@@ -1,9 +1,10 @@
-import requests
 from database.model import logaudio, logpercakapan
+from configs import config
 from pydub import AudioSegment
+import requests
 import io
 
-def request_audio(text,spaeker_id:int):
+async def request_audio(text,spaeker_id:int):
     url = 'https://deprecatedapis.tts.quest/v2/voicevox/audio/'
     params = {
         'key': config.api_key_voicevox,
@@ -21,4 +22,4 @@ def request_audio(text,spaeker_id:int):
 async def blob_to_wav(data_audio):
     audio = AudioSegment.from_file(io.BytesIO(data_audio), format="wav")
     output_file = config.output_file
-    await audio.export(output_file, format='wav')
+    audio.export(output_file, format='wav')

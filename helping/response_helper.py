@@ -1,9 +1,18 @@
+from database.model import access_token_data
+from helping.auth_helper import check_access_token_expired
+
+def pesan_response(email: str, pesan: str):
+    return {
+        'email':email,
+        'pesan':pesan
+    }
+
 def user_response(user, password=None):
     response = {
         "user_id": str(user.user_id),
         "nama": user.nama,
         "email": user.email,
-        "akunbw": user.akunbw,
+        "akunwso": user.akunwso,
         "status": user.status
     }
     
@@ -11,12 +20,6 @@ def user_response(user, password=None):
         response["password"] = password
     
     return response
-
-def pesan_response(email: str, pesan: str):
-    return {
-        'email':email,
-        'pesan':pesan
-    }
 
 async def access_token_response(user, password=None):
     user_id = user.user_id
@@ -42,7 +45,7 @@ async def access_token_response(user, password=None):
                     "user_id": str(user.user_id),
                     "nama": user.nama,
                     "email": user.email,
-                    "akunbw": user.akunbw,
+                    "akunwso": user.akunwso,
                     "status": user.status
                 }
             }

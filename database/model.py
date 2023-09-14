@@ -1,6 +1,7 @@
 from tortoise.models import Model
 from tortoise import fields
 
+# LOG 
 class logaudio(Model):
     audio_id = fields.IntField()
     user_id = fields.CharField(max_length=225)
@@ -27,6 +28,7 @@ class logpercakapan(Model):
     def __str__(self):
         return self.id_percakapan
 
+# USER
 class userdata(Model):
     user_id = fields.UUIDField(pk=True)
     nama = fields.CharField(max_length=225, null=True)

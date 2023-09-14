@@ -1,5 +1,6 @@
 from database.model import userdata, access_token_data
 from datetime import datetime, timedelta
+from database.model import logaudio
 from ast import pattern
 import bcrypt
 import secrets
@@ -53,15 +54,13 @@ async def check_premium(user_id:str):
     if not user.premium:
         user_audio_count = await logaudio.filter(user_id=user_id).count()
         if user_audio_count >= 10:
-            response = pesan_response(email=user.email, pesan="logaudio data anda telah mencapai limit. Upgrade ke plan premium atau hapus logaudio.")
-            return response
+            return ("logaudio data anda telah mencapai limit. Upgrade ke plan premium atau hapus logaudio.")
     else:
         current_time = datetime.now()
         if user.waktu_basi_premium and user.waktu_basi_premium <= current_time:
             user.premium = False
             await user.save()
-            response = pesan_response(email=user.email, pesan="Masa premium telah habis. Kembali ke versi gratis.")
-            return response
+            return ("Masa premium telah habis. Kembali ke versi gratis.")
 
 def validation_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'

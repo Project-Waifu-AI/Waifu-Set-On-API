@@ -17,7 +17,7 @@ def init_db(app: FastAPI) -> None:
         app,
         db_url=config.url_database,
         modules={"models": [
-            "model"
+            "database.model"
         ]},
         generate_schemas=True,
         add_exception_handlers=True,

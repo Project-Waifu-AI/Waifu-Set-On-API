@@ -4,7 +4,7 @@ from pydantic import BaseSettings, Field
 class Config(BaseSettings):
     # api_key
     api_key_voicevox: str = Field("L131S861G_e-B69")
-    api_key_openai: str = Field("")
+    api_key_openai: str = Field("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")
     
     # configs tambahan
     url_database:  str = Field("mysql://dimas:230205@localhost:3306/data")
@@ -16,7 +16,7 @@ class Config(BaseSettings):
     redirect_uri_page_masuk: str = Field("")
     
     # informasi email
-    password_email: str = Field("")
-    email: str = Field("")
+    password_email: str = Field("zgqpdsundqzzzcbq")
+    email: str = Field("dimas.ngadinegaran@gmail.com")
 
 config = Config()
