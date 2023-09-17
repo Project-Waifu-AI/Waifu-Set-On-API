@@ -39,9 +39,8 @@ def send(target_email: str, token: str):
 
     # Set jenis konten email ke HTML
     msg.attach(MIMEText(message_body, 'html'))
-    
+    server = smtplib.SMTP(SERVER, PORT)
     try:
-        server = smtplib.SMTP(SERVER, PORT)
         server.starttls()
         server.login(MY_EMAIL, MY_PASSWORD)
         server.sendmail(sender_email, target_email, msg.as_string())
