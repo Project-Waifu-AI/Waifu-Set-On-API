@@ -26,6 +26,7 @@ async def obrolan(input, userid):
     
     if existing_conversations > 0:
         user_inputs = await logpercakapan.filter(user_id=userid).order_by('id_percakapan').values_list('input', flat=True)
+        print (user_inputs)
     else:
         user_inputs = []
     
@@ -43,6 +44,11 @@ async def obrolan(input, userid):
     )
     print (response)
     return response.choices[0].message.content
+
+async def dummy(input, userid):
+    user_inputs = await logpercakapan.filter(user_id=userid).order_by('id_percakapan').values_list('input', flat=True)
+    print (user_inputs)
+    return 'hai'
 
 def to_japan(input):
     detected_language = detect(input)  
