@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
 from fastapi.responses import JSONResponse, RedirectResponse
 import secrets
 import random
 from database.model import userdata
 from webhook.send_email import send
-from helping.auth_helper import check_password, create_access_token, validation_email, set_password
+from helping.auth_helper import check_password, create_access_token, validation_email, set_password, check_access_token_expired
 from helping.response_helper import access_token_response, pesan_response, user_response
 from webhook.send_email import send
 from database.model import userdata
@@ -95,3 +95,22 @@ async def simpan_user(email: str, password: str, token: str):
     else:
         # User tidak ditemukan
         raise HTTPException(detail='pengguna tidak ditemukan', status_code=404)
+
+@router.put('/update-user-data')
+async def update_userData(nama: str, access_token: str = Header(...)):
+    check = await check_access_token_expired(access_token=access_token)
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    elif check is False:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    else:
+        user_id = check
+
+    user = await userdata.filter(user_id=user_id).first()
+    if user:
+        user.nama = nama
+        await user.save()
+        response = pesan_response(email=user.email, pesan=f'data user dengan id {user_id} telah berhasil di update')
+        return JSONResponse(response)
+    else:
+        raise HTTPException(status_code=404, detail='data user tidak ditemukan')
