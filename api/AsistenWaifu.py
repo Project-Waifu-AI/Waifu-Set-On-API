@@ -22,7 +22,7 @@ async def pesan(speakerId: int, pesan: str, access_token: str = Header(...)):
         id_percakapan = user_data.id_percakapan + 1
     else:
         id_percakapan = 1  
-    response = await obrolan(input=pesan, userid=user_id)
+    response = await obrolan(input_text=pesan, userid=user_id)
     translate = to_japan(input=response)
     data_audio = request_audio(text=translate, speaker_id=speakerId)
     data = [{
@@ -31,7 +31,7 @@ async def pesan(speakerId: int, pesan: str, access_token: str = Header(...)):
         'translate': translate,
     }]
     data.append(data_audio)
-    save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=input, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+    save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
     await save.save()
     return JSONResponse (data)
     

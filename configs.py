@@ -6,7 +6,7 @@ class Config(BaseSettings):
     api_key_openai: str = Field("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")
     
     # configs tambahan
-    url_database:  str = Field("mysql://root:123456@localhost:3306/data")
+    url_database:  str = Field("mysql://dimas:230205@localhost:3306/data")
     output_file: str = Field('voice.wav')
     
     # redirect

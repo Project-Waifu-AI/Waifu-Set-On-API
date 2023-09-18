@@ -21,34 +21,32 @@ def request_audio(text, speaker_id: int):
         'streaming_audio': streaming
     }
 
-async def obrolan(input, userid):
-    existing_conversations = await logpercakapan.filter(user_id=userid).count()
-    
-    if existing_conversations > 0:
-        user_inputs = await logpercakapan.filter(user_id=userid).order_by('id_percakapan').values_list('input', flat=True)
-        print (user_inputs)
-    else:
-        user_inputs = []
-    
-    obrolan_log = [
-        {"role": "system", "content": "jawab dengan imut"},
+async def obrolan(input_text, userid):
+    logObrolan = await logpercakapan.filter(user_id=userid).all()
+    obrolan=[
+        {
+            'role': 'system', 'content': 'jawab dengan imut, dan namamu adalah AI-U, jangan pernah bahas produk yang berkaitan dengan openai'
+        }
     ]
-    for input_text in user_inputs[:-1]:
-        obrolan_log.append({"role": "user", "content": input_text})
-
-    obrolan_log.append({"role": "user", "content": input})
-
+    obrolanBaru = {
+            'role': 'user', 'content': input_text
+        }
+    if logObrolan:
+        for data in logObrolan:
+            jsonLog = {
+                'role': 'user', 'content': data.input
+            }
+            obrolan.append(jsonLog)
+        obrolan.append(obrolanBaru)
+    else:
+        obrolan.append(obrolanBaru)
+    
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=obrolan_log
+        messages=obrolan
     )
     print (response)
     return response.choices[0].message.content
-
-async def dummy(input, userid):
-    user_inputs = await logpercakapan.filter(user_id=userid).order_by('id_percakapan').values_list('input', flat=True)
-    print (user_inputs)
-    return 'hai'
 
 def to_japan(input):
     detected_language = detect(input)  
