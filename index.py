@@ -29,6 +29,6 @@ app.add_middleware(
 )
 
 app.include_router(api.BecomWaifu.router)
+app.include_router(api.AsistenWaifu.router)
 app.include_router(autentikasi.google_auth.router)
 app.include_router(autentikasi.wso_auth.router)
-app.include_router(api.AsistenWaifu.router)

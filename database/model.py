@@ -35,6 +35,8 @@ class logpercakapan(Model):
 class userdata(Model):
     user_id = fields.UUIDField(pk=True)
     nama = fields.CharField(max_length=225, null=True)
+    ulang_tahun = fields.DateField(null=True)
+    gender = fields.CharField(max_length=10, null=True)
     email = fields.CharField(max_length=225)
     password = fields.BinaryField(max_length=225,null=True)
     akunwso = fields.BooleanField(default=False)

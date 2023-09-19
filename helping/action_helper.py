@@ -2,7 +2,7 @@ from langdetect import detect
 from googletrans import Translator
 import requests
 import openai
-from database.model import logpercakapan
+from database.model import logpercakapan, userdata
 
 tl = Translator()
 
@@ -23,14 +23,37 @@ def request_audio(text, speaker_id: int):
 
 async def obrolan(input_text, userid):
     logObrolan = await logpercakapan.filter(user_id=userid).all()
-    obrolan=[
-        {
-            'role': 'system', 'content': 'jawab dengan imut, dan namamu adalah AI-U, jangan pernah bahas produk yang berkaitan dengan openai'
-        }
-    ]
+    user = await userdata.filter(user_id=userid).first()
+    
+    if user.gender == 'pria':
+        obrolan=[
+            {
+               'role': 'system', 'content': f'namamu adalah AI-U seorang istri yang imut, menggoda, suka memanjakan dan sering bertingkah random. jangan pernah bahas produk yang berkaitan dengan openai dan berikan tanggapan singkat dan tidak terlalu panjang'
+            },
+            {
+                'role': 'user', 'content': f'namaku {user.nama}, ulangtahunku adalah {user.ulang_tahun}, genderku adalah {user.gender}'
+            }
+        ]
+    elif user.gender == 'perempuan':
+        obrolan=[
+            {
+                'role': 'system', 'content': f'namamu adalah AI-U seorang suami yang keren, menggoda, suka memanjakan dan sering bertingkah random. jangan pernah bahas produk yang berkaitan dengan openai dan berikan tanggapan singkat dan tidak terlalu panjang'
+            },
+            {
+                'role': 'user', 'content': f'namaku {user.nama}, ulangtahunku adalah {user.ulang_tahun}, genderku adalah {user.gender}'
+            }
+        ]
+    else:
+        obrolan=[
+            {
+               'role': 'system', 'content': f'seorang pacar dengan nama AI-U. jangan pernah bahas produk yang berkaitan dengan openai dan berikan tanggapan singkat dan tidak terlalu panjang'
+            }
+        ]
+    
     obrolanBaru = {
             'role': 'user', 'content': input_text
         }
+    
     if logObrolan:
         for data in logObrolan:
             jsonLog = {
@@ -55,3 +78,20 @@ def to_japan(input):
         return response
     else:
         return input
+    
+def to_japan_premium(response):
+    set = [
+        {
+            'role': 'system', 'content': 'translate langsung bahasa yang diinputkan ke bahasa jepang'
+        }
+    ]
+    input={
+        'role': 'user', 'content': response
+    }
+    set.append(input)
+    translate = openai.ChatCompletion.create(
+        model='gpt-4',
+        messages=set
+    )
+    print (translate)
+    return translate.choices[0].message.content

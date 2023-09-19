@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Header
 from fastapi.responses import JSONResponse, RedirectResponse
 import secrets
 import random
+from body import update
 from database.model import userdata
 from webhook.send_email import send
 from helping.auth_helper import check_password, create_access_token, validation_email, set_password, check_access_token_expired
@@ -97,7 +98,7 @@ async def simpan_user(email: str, password: str, token: str):
         raise HTTPException(detail='pengguna tidak ditemukan', status_code=404)
 
 @router.put('/update-user-data')
-async def update_userData(nama: str, access_token: str = Header(...)):
+async def update_userData(data: update, access_token: str = Header(...)):
     check = await check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -108,8 +109,18 @@ async def update_userData(nama: str, access_token: str = Header(...)):
 
     user = await userdata.filter(user_id=user_id).first()
     if user:
-        user.nama = nama
-        await user.save()
+        if data.nama:
+            user.nama = data.nama
+            await user.save()
+        if data.nama:
+            if data.gender in ('pria', 'perempuan'):
+                user.gender = data.gender
+                await user.save()
+            else:
+                raise HTTPException(detail='gender yang anda masukan tidak valid', status_code=400)
+        if data.ulang_tahun is not None:
+            user.ulang_tahun = data.ulang_tahun
+            await user.save()
         response = pesan_response(email=user.email, pesan=f'data user dengan id {user_id} telah berhasil di update')
         return JSONResponse(response)
     else:
