@@ -23,7 +23,7 @@ async def update_userData(data: update, access_token: str = Header(...)):
         if data.nama:
             user.nama = data.nama
             await user.save()
-        if data.nama:
+        if data.gender:
             if data.gender in ('pria', 'perempuan'):
                 user.gender = data.gender
                 await user.save()

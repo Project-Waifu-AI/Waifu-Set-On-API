@@ -72,26 +72,18 @@ async def simpan_user(email: str, password: str, konfirmasi_password: str, token
                     user.akunwso = True  # Setel akunwso menjadi Aktif
                     user.token_konfirmasi = None  # Hapus token
                     await user.save()
-                    response = []
                     await create_access_token(user_id= user.user_id)
                     access_token = await access_token_response(user=user, password=password)
-                    user_data = user_response(user=user, password=password)
-                    response.append(user_data)
-                    response.append(access_token)
-                    return JSONResponse(response, status_code=201)
+                    return JSONResponse(access_token, status_code=201)
                 else:
                     # Akun pengguna aktif, update kata sandi dan akunwso
                     user.password = set_password(password=password)  # Setel kata sandi baru
                     user.akunwso = True  # Setel akunwso menjadi Aktif
                     user.token_konfirmasi = None  # Hapus token
                     await user.save()
-                    response = []
                     await create_access_token(user_id= user.user_id)
                     access_token = await access_token_response(user=user, password=password)
-                    user_data = user_response(user=user, password=password)
-                    response.append(user_data)
-                    response.append(access_token)
-                    return JSONResponse(response, status_code=201)
+                    return JSONResponse(access_token, status_code=201)
             else:
                 # Token tidak cocok dengan pengguna
                 if user.status:
