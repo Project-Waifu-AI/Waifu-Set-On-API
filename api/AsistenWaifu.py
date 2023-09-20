@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from database.model import logpercakapan, userdata
-from helping.action_helper import obrolan, to_japan, request_audio
+from helping.action_helper import obrolan, to_japan, request_audio, to_japan_premium
 from helping.response_helper import pesan_response
 from helping.auth_helper import check_access_token_expired
 from configs import config
@@ -23,7 +23,13 @@ async def pesan(speakerId: int, pesan: str, access_token: str = Header(...)):
     else:
         id_percakapan = 1  
     response = await obrolan(input_text=pesan, userid=user_id)
-    translate = to_japan(input=response)
+    user = await userdata.filter(user_id=user_id).first()
+    
+    if user.premium is True:
+        translate = to_japan_premium(input=response)
+    else:
+        translate = to_japan(input=response)
+
     data_audio = request_audio(text=translate, speaker_id=speakerId)
     data = [{
         'pesan': pesan,

@@ -96,32 +96,3 @@ async def simpan_user(email: str, password: str, token: str):
     else:
         # User tidak ditemukan
         raise HTTPException(detail='pengguna tidak ditemukan', status_code=404)
-
-@router.put('/update-user-data')
-async def update_userData(data: update, access_token: str = Header(...)):
-    check = await check_access_token_expired(access_token=access_token)
-    if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        user_id = check
-
-    user = await userdata.filter(user_id=user_id).first()
-    if user:
-        if data.nama:
-            user.nama = data.nama
-            await user.save()
-        if data.nama:
-            if data.gender in ('pria', 'perempuan'):
-                user.gender = data.gender
-                await user.save()
-            else:
-                raise HTTPException(detail='gender yang anda masukan tidak valid', status_code=400)
-        if data.ulang_tahun is not None:
-            user.ulang_tahun = data.ulang_tahun
-            await user.save()
-        response = pesan_response(email=user.email, pesan=f'data user dengan id {user_id} telah berhasil di update')
-        return JSONResponse(response)
-    else:
-        raise HTTPException(status_code=404, detail='data user tidak ditemukan')

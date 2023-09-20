@@ -37,7 +37,7 @@ async def obrolan(input_text, userid):
     elif user.gender == 'perempuan':
         obrolan=[
             {
-                'role': 'system', 'content': f'namamu adalah AI-U seorang suami yang keren, menggoda, suka memanjakan dan sering bertingkah random. jangan pernah bahas produk yang berkaitan dengan openai dan berikan tanggapan singkat dan tidak terlalu panjang'
+                'role': 'system', 'content': f'namamu adalah AI-U seorang suami yang keren, suka memanjakan dan sering bertingkah random. jangan pernah bahas produk yang berkaitan dengan openai dan berikan tanggapan singkat dan tidak terlalu panjang'
             },
             {
                 'role': 'user', 'content': f'namaku {user.nama}, ulangtahunku adalah {user.ulang_tahun}, genderku adalah {user.gender}'
@@ -79,16 +79,16 @@ def to_japan(input):
     else:
         return input
     
-def to_japan_premium(response):
+def to_japan_premium(input):
     set = [
         {
             'role': 'system', 'content': 'translate langsung bahasa yang diinputkan ke bahasa jepang'
         }
     ]
-    input={
-        'role': 'user', 'content': response
+    trans={
+        'role': 'user', 'content': input
     }
-    set.append(input)
+    set.append(trans)
     translate = openai.ChatCompletion.create(
         model='gpt-4',
         messages=set
