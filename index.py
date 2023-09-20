@@ -5,6 +5,7 @@ from configs import config
 import api.BecomWaifu 
 import autentikasi.google_auth
 import autentikasi.wso_auth
+import autentikasi.user_set
 import api.AsistenWaifu
 import openai
 
@@ -32,3 +33,4 @@ app.include_router(api.BecomWaifu.router)
 app.include_router(api.AsistenWaifu.router)
 app.include_router(autentikasi.google_auth.router)
 app.include_router(autentikasi.wso_auth.router)
+app.include_router(autentikasi.user_set.router)
