@@ -58,41 +58,54 @@ async def register(email: str):
         return JSONResponse(response, status_code=200)
     
 @router.post('/simpan-user')
-async def simpan_user(email: str, password: str, token: str):
+async def simpan_user(email: str, password: str, konfirmasi_password: str, token: str):
     user = await userdata.filter(email=email).first()
-        
-    if user:
-        if user.token_konfirmasi and user.token_konfirmasi == token:
-            # Token cocok dengan pengguna
-            if not user.status:
-                # Akun pengguna tidak aktif
-                user.password = set_password(password=password)  # Setel kata sandi baru
-                user.status = True  # Setel status menjadi Aktif
-                user.akunwso = True  # Setel akunwso menjadi Aktif
-                user.token_konfirmasi = None  # Hapus token
-                await user.save()
-                user_data = user_response(user=user, password=password)
-                return JSONResponse(user_data, status_code=201)
+
+    if password == konfirmasi_password:    
+        if user:
+            if user.token_konfirmasi and user.token_konfirmasi == token:
+                # Token cocok dengan pengguna
+                if not user.status:
+                    # Akun pengguna tidak aktif
+                    user.password = set_password(password=password)  # Setel kata sandi baru
+                    user.status = True  # Setel status menjadi Aktif
+                    user.akunwso = True  # Setel akunwso menjadi Aktif
+                    user.token_konfirmasi = None  # Hapus token
+                    await user.save()
+                    response = []
+                    await create_access_token(user_id= user.user_id)
+                    access_token = await access_token_response(user=user, password=password)
+                    user_data = user_response(user=user, password=password)
+                    response.append(user_data)
+                    response.append(access_token)
+                    return JSONResponse(response, status_code=201)
+                else:
+                    # Akun pengguna aktif, update kata sandi dan akunwso
+                    user.password = set_password(password=password)  # Setel kata sandi baru
+                    user.akunwso = True  # Setel akunwso menjadi Aktif
+                    user.token_konfirmasi = None  # Hapus token
+                    await user.save()
+                    response = []
+                    await create_access_token(user_id= user.user_id)
+                    access_token = await access_token_response(user=user, password=password)
+                    user_data = user_response(user=user, password=password)
+                    response.append(user_data)
+                    response.append(access_token)
+                    return JSONResponse(response, status_code=201)
             else:
-                # Akun pengguna aktif, update kata sandi dan akunwso
-                user.password = set_password(password=password)  # Setel kata sandi baru
-                user.akunwso = True  # Setel akunwso menjadi Aktif
-                user.token_konfirmasi = None  # Hapus token
-                await user.save()
-                user_data = user_response(user=user, password=password)
-                return JSONResponse(user_data, status_code=201)
+                # Token tidak cocok dengan pengguna
+                if user.status:
+                    # Akun pengguna aktif, hapus token
+                    user.token_konfirmasi = None  # Hapus token
+                    await user.save()
+                    user_data = user_response(user=user)
+                    raise HTTPException(detail='token konfirmasi yang anda masukan salah', status_code=404)
+                else:
+                    # Akun pengguna tidak aktif, hapus data pengguna
+                    await user.delete()  # Hapus data pengguna
+                    raise HTTPException(detail='token konfirmasi yang anda masukan salah', status_code=404)
         else:
-            # Token tidak cocok dengan pengguna
-            if user.status:
-                # Akun pengguna aktif, hapus token
-                user.token_konfirmasi = None  # Hapus token
-                await user.save()
-                user_data = user_response(user=user)
-                raise HTTPException(detail='token konfirmasi yang anda masukan salah', status_code=404)
-            else:
-                # Akun pengguna tidak aktif, hapus data pengguna
-                await user.delete()  # Hapus data pengguna
-                raise HTTPException(detail='token konfirmasi yang anda masukan salah', status_code=404)
+            # User tidak ditemukan
+            raise HTTPException(detail='pengguna tidak ditemukan', status_code=404)
     else:
-        # User tidak ditemukan
-        raise HTTPException(detail='pengguna tidak ditemukan', status_code=404)
+        raise HTTPException(detail='passowrd dan konfirmasi password tidak sama', status_code=418)
