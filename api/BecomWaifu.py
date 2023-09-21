@@ -7,7 +7,7 @@ import tempfile
 from configs import config
 from database.model import logaudio, userdata
 from helping.response_helper import pesan_response
-from helping.auth_helper import check_access_token_expired, check_premium
+from helping.auth_helper import check_access_token_expired, check_premium_becomewaifu
 from helping.action_helper import request_audio
 
 translator = Translator()
@@ -23,7 +23,7 @@ async def change_voice(BahasaYangDigunakan: str, SpeakerId: str, access_token: s
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     else:
         user_id = check
-    premium_check = await check_premium(user_id=user_id)
+    premium_check = await check_premium_becomewaifu(user_id=user_id)
     if premium_check:
         raise HTTPException(status_code=400, detail=premium_check)
     user_data = await logaudio.filter(user_id=user_id).order_by("-audio_id").first()

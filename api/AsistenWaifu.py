@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from database.model import logpercakapan, userdata
 from helping.action_helper import obrolan, to_japan, request_audio, to_japan_premium
 from helping.response_helper import pesan_response
-from helping.auth_helper import check_access_token_expired
+from helping.auth_helper import check_access_token_expired, check_premium_AI_U
 from configs import config
 
 router = APIRouter(prefix='/AsistenWaifu', tags=['AsistenWaifu-action'])
@@ -25,7 +25,10 @@ async def pesan(speakerId: int, pesan: str, access_token: str = Header(...)):
     response = await obrolan(input_text=pesan, userid=user_id)
     user = await userdata.filter(user_id=user_id).first()
     
-    if user.premium is True:
+    premium = check_premium_AI_U(user=user)
+    if premium is False:
+        translate = to_japan(input=response)
+    elif premium is False:
         translate = to_japan_premium(input=response)
     else:
         translate = to_japan(input=response)

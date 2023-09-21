@@ -49,7 +49,7 @@ async def check_access_token_expired(access_token: str):
     else:
         return False
 
-async def check_premium(user_id:str):
+async def check_premium_becomewaifu(user_id:str):
     user = await userdata.filter(user_id=user_id).first()
     if not user.premium:
         user_audio_count = await logaudio.filter(user_id=user_id).count()
@@ -61,6 +61,18 @@ async def check_premium(user_id:str):
             user.premium = False
             await user.save()
             return ("Masa premium telah habis. Kembali ke versi gratis.")
+
+async def check_premium_AI_U(user):
+    if user.premium is False:
+        return False
+    elif user.premium is True:
+        current_time = datetime.now()
+        if user.waktu_basi_premium and user.waktu_basi_premium <= current_time:
+            user.premium = False
+            await user.save()
+            return ("masa premium telah habis")
+        else:
+            return True
 
 def validation_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'

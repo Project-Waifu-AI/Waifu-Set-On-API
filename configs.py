@@ -1,12 +1,15 @@
 import os
 from pydantic import BaseSettings, Field
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Config(BaseSettings):
     # api_key
-    api_key_openai: str = Field("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")
+    api_key_openai: str = os.getenv("API_KEY_OPENAI")
     
     # configs tambahan
-    url_database:  str = Field("mysql://dimas:230205@localhost:3306/data")
+    url_database:  str = os.getenv("URL_DATABASE")
     output_file: str = Field('voice.wav')
     
     # redirect
@@ -15,7 +18,7 @@ class Config(BaseSettings):
     redirect_uri_page_masuk: str = Field("")
     
     # informasi email
-    password_email: str = Field("zgqpdsundqzzzcbq")
-    email: str = Field("dimas.ngadinegaran@gmail.com")
+    email: str = os.getenv("EMAIL")
+    password_email: str = os.getenv("PASSWORD_EMAIL")
 
 config = Config()

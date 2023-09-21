@@ -1,10 +1,13 @@
 tortoise-orm
 tortoise-orm[asyncmy]
 fastapi
-uvicorn
+uvicorn[standard]
+websockets
 aerich
 SpeechRecognition
 pydantic==1.10.7
+setuptools
+python-dotenv
 googletrans==3.1.0a0
 python-multipart
 google-auth
