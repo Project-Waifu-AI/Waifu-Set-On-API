@@ -19,3 +19,4 @@ bcrypt
 pydub
 openai
 langdetect
+numpy

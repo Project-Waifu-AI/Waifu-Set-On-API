@@ -52,7 +52,7 @@ async def register(email: str):
                 raise HTTPException(detail='email anda telah terdaftar pada akunbw tidak dapat membuat lagi', status_code=403)
     else:
         send(target_email=email, token=token_konfirmasi)
-        save = userdata(email=email, token_konfirmasi=token_konfirmasi)
+        save = userdata(email=email, token_konfirmasi=token_konfirmasi, NegaiKanjo=0)
         await save.save()
         response = pesan_response(email=email, pesan=f'token konfirmasi telah dikirimakan')
         return JSONResponse(response, status_code=200)
@@ -71,6 +71,7 @@ async def simpan_user(email: str, password: str, konfirmasi_password: str, token
                     user.status = True  # Setel status menjadi Aktif
                     user.akunwso = True  # Setel akunwso menjadi Aktif
                     user.token_konfirmasi = None  # Hapus token
+                    user.NegaiKanjo += 100
                     await user.save()
                     await create_access_token(user_id= user.user_id)
                     access_token = await access_token_response(user=user, password=password)
@@ -80,6 +81,7 @@ async def simpan_user(email: str, password: str, konfirmasi_password: str, token
                     user.password = set_password(password=password)  # Setel kata sandi baru
                     user.akunwso = True  # Setel akunwso menjadi Aktif
                     user.token_konfirmasi = None  # Hapus token
+                    user.NegaiKanjo += 100
                     await user.save()
                     await create_access_token(user_id= user.user_id)
                     access_token = await access_token_response(user=user, password=password)

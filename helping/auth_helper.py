@@ -1,4 +1,4 @@
-from database.model import userdata, access_token_data
+from database.model import userdata, access_token_data, premium
 from datetime import datetime, timedelta
 from database.model import logaudio
 from ast import pattern
@@ -50,26 +50,27 @@ async def check_access_token_expired(access_token: str):
         return False
 
 async def check_premium_becomewaifu(user_id:str):
-    user = await userdata.filter(user_id=user_id).first()
+    user = await premium.filter(user_id=user_id).first()
     if not user.premium:
         user_audio_count = await logaudio.filter(user_id=user_id).count()
         if user_audio_count >= 10:
             return ("logaudio data anda telah mencapai limit. Upgrade ke plan premium atau hapus logaudio.")
     else:
         current_time = datetime.now()
-        if user.waktu_basi_premium and user.waktu_basi_premium <= current_time:
+        if user.waktu_basi and user.waktu_basi <= current_time:
             user.premium = False
             await user.save()
             return ("Masa premium telah habis. Kembali ke versi gratis.")
 
 async def check_premium_AI_U(user):
-    if user.premium is False:
+    data = await premium.filter(user_id=user.user_id).first()
+    if data.premium is False:
         return False
-    elif user.premium is True:
+    elif data.premium is True:
         current_time = datetime.now()
-        if user.waktu_basi_premium and user.waktu_basi_premium <= current_time:
-            user.premium = False
-            await user.save()
+        if data.waktu_basi and data.waktu_basi <= current_time:
+            data.premium = False
+            await data.save()
             return ("masa premium telah habis")
         else:
             return True

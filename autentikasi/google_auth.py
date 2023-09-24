@@ -65,7 +65,7 @@ async def auth2callback_register(request: Request, state: str):
 
         existing_user = await userdata.filter(email=email).first()
         if not existing_user:
-            save = userdata(nama=nama, email=email, status=True)
+            save = userdata(nama=nama, email=email, status=True, NegaiKanjo=100)
             await save.save()
             user = await userdata.filter(email=email).first()
             await create_access_token(user_id=user.user_id)
@@ -108,6 +108,5 @@ async def auth2callback(request: Request, state: str):
             response = await access_token_response(user)
             return JSONResponse(response, status_code=200)
     except ConnectionError as e:
-        # Mengatasi kesalahan koneksi
         print(f"Kesalahan koneksi: {e}")
         return JSONResponse({"error": "Request Timed Out"}, status_code=500)
