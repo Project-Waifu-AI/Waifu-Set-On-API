@@ -10,6 +10,10 @@ async def tambah_karakter(data: SetKarakter, password: str = Header(...)):
     save = KarakterData(nama=data.nama, kepribadian=data.kepribadian, usia=data.usia, ulang_tahun=data.ulang_tahun)
     await save.save()
     
+@router.get('/ge-all-data-karakter')
+async def getAllDataKarakter(password: str = Header(...)):
+    karakter = await KarakterData.all()
+
 @router.put('/EditKarakter')
 async def edit_karakter(data: SetKarakter, password: str = Header(...)):
     karakter = await KarakterData.filter(nama=data.nama).first()

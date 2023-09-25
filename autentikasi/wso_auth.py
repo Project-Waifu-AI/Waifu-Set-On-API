@@ -13,7 +13,7 @@ from configs import config
 
 router = APIRouter(prefix='/wso-auth', tags=['Waifu-Set-On-autentikasi'])
 
-@router.get('/login/{email}')
+@router.post('/login/{email}')
 async def login_wso(email: str, password: str):
     user = await userdata.filter(email=email).first()
 
@@ -29,7 +29,7 @@ async def login_wso(email: str, password: str):
     else:
         raise HTTPException(status_code=403, detail="anda masih belum mendaftar")
     
-@router.get('/register/{email}')
+@router.post('/register/{email}')
 async def register(email: str):
     token_konfirmasi = ''.join([str(random.randint(0, 9)) for _ in range(5)])
     user = await userdata.filter(email=email).first()

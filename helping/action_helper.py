@@ -50,9 +50,9 @@ async def obrolan(input_text, userid):
             }
         ]
     
-    obrolanBaru = {
+    obrolanBaru = [{
             'role': 'user', 'content': input_text
-        }
+        }]
     
     if logObrolan:
         for data in logObrolan:

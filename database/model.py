@@ -35,6 +35,7 @@ class logpercakapan(Model):
 class userdata(Model):
     user_id = fields.UUIDField(pk=True)
     nama = fields.CharField(max_length=225, null=True)
+    admin = fields.BooleanField(default=False)
     ulang_tahun = fields.DateField(null=True)
     gender = fields.CharField(max_length=10, null=True)
     email = fields.CharField(max_length=225)
@@ -78,6 +79,7 @@ class KarakterData(Model):
 
 class access_token_data(Model):
     access_token = fields.UUIDField(pk=True)
+    level = fields.CharField(max_length=100)
     waktu_basi = fields.DatetimeField()
     user_id = fields.CharField(max_length=225)
     

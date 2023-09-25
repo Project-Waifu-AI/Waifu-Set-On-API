@@ -12,3 +12,13 @@ class SetKarakter(BaseModel):
     kepribadian: Optional[str]
     usia: Optional[int]
     ulang_tahun: Optional[date]
+
+class login(BaseModel):
+    email: Optional[str]
+    password: Optional[str]
+
+class simpan_user(BaseModel):
+    email: Optional[str]
+    password: Optional[str]
+    konfirmasi_password: Optional[str]
+    token: Optional[str]
