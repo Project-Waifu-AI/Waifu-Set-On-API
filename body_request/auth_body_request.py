@@ -2,22 +2,16 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import date
 
-class update(BaseModel):
+class updateUser(BaseModel):
     nama: Optional[str]
     gender: Optional[str]
     ulang_tahun: Optional[date]
-    
-class SetKarakter(BaseModel):
-    nama: Optional[str]
-    kepribadian: Optional[str]
-    usia: Optional[int]
-    ulang_tahun: Optional[date]
 
-class login(BaseModel):
+class LoginWSO(BaseModel):
     email: Optional[str]
     password: Optional[str]
 
-class simpan_user(BaseModel):
+class SimpanUserWSO(BaseModel):
     email: Optional[str]
     password: Optional[str]
     konfirmasi_password: Optional[str]

@@ -2,10 +2,10 @@ from fastapi import APIRouter, HTTPException, Header
 from fastapi.responses import JSONResponse, RedirectResponse
 import secrets
 import random
-from body import update
+from body_request.auth_body_request import LoginWSO, SimpanUserWSO
 from database.model import userdata
 from webhook.send_email import send
-from helping.auth_helper import check_password, create_access_token, validation_email, set_password, check_access_token_expired
+from helping.auth_helper import check_password, create_access_token, validation_email, set_password
 from helping.response_helper import access_token_response, pesan_response, user_response
 from webhook.send_email import send
 from database.model import userdata
@@ -13,18 +13,18 @@ from configs import config
 
 router = APIRouter(prefix='/wso-auth', tags=['Waifu-Set-On-autentikasi'])
 
-@router.post('/login/{email}')
-async def login_wso(email: str, password: str):
-    user = await userdata.filter(email=email).first()
+@router.post('/login')
+async def login_wso(meta: LoginWSO):
+    user = await userdata.filter(email=meta.email).first()
 
     if user:
         if user.akunwso is False:
             return RedirectResponse(config.redirect_uri_page_masuk)
         else:
-            if not check_password(password=password, user=user):
+            if not check_password(password=meta.password, user=user):
                 raise HTTPException(status_code=401, detail="password anda salah")
-            await create_access_token(user_id= user.user_id)
-            response = await access_token_response(user=user, password=password)
+            await create_access_token(user=user)
+            response = await access_token_response(user=user, password=meta.password)
             return JSONResponse(response, status_code=200)
     else:
         raise HTTPException(status_code=403, detail="anda masih belum mendaftar")
@@ -58,33 +58,33 @@ async def register(email: str):
         return JSONResponse(response, status_code=200)
     
 @router.post('/simpan-user')
-async def simpan_user(email: str, password: str, konfirmasi_password: str, token: str):
-    user = await userdata.filter(email=email).first()
+async def simpan_user(meta: SimpanUserWSO):
+    user = await userdata.filter(email=meta.email).first()
 
-    if password == konfirmasi_password:    
+    if meta.password == meta.konfirmasi_password:
         if user:
-            if user.token_konfirmasi and user.token_konfirmasi == token:
+            if user.token_konfirmasi and user.token_konfirmasi == meta.token:
                 # Token cocok dengan pengguna
                 if not user.status:
                     # Akun pengguna tidak aktif
-                    user.password = set_password(password=password)  # Setel kata sandi baru
+                    user.password = set_password(password=meta.password)  # Setel kata sandi baru
                     user.status = True  # Setel status menjadi Aktif
                     user.akunwso = True  # Setel akunwso menjadi Aktif
                     user.token_konfirmasi = None  # Hapus token
                     user.NegaiKanjo += 100
                     await user.save()
-                    await create_access_token(user_id= user.user_id)
-                    access_token = await access_token_response(user=user, password=password)
+                    await create_access_token(user=user)
+                    access_token = await access_token_response(user=user, password=meta.password)
                     return JSONResponse(access_token, status_code=201)
                 else:
                     # Akun pengguna aktif, update kata sandi dan akunwso
-                    user.password = set_password(password=password)  # Setel kata sandi baru
+                    user.password = set_password(password=meta.password)  # Setel kata sandi baru
                     user.akunwso = True  # Setel akunwso menjadi Aktif
                     user.token_konfirmasi = None  # Hapus token
                     user.NegaiKanjo += 100
                     await user.save()
-                    await create_access_token(user_id= user.user_id)
-                    access_token = await access_token_response(user=user, password=password)
+                    await create_access_token(user=user)
+                    access_token = await access_token_response(user=user, password=meta.password)
                     return JSONResponse(access_token, status_code=201)
             else:
                 # Token tidak cocok dengan pengguna

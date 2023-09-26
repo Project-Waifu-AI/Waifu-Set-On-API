@@ -1,6 +1,7 @@
 tortoise-orm
 tortoise-orm[asyncmy]
 fastapi
+starlette
 uvicorn[standard]
 websockets
 aerich

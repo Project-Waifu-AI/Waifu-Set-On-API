@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
-from body import update
+from body_request.auth_body_request import update
 from configs import config
 from database.model import userdata
 from helping.auth_helper import check_access_token_expired
 from helping.response_helper import pesan_response
 
-router = APIRouter(prefix='/set-user', tags=['user-set-account'])
+router = APIRouter(prefix='/user', tags=['user-data'])
 
 @router.put('/update-user-data')
-async def update_userData(data: update, access_token: str = Header(...)):
+async def update_userData(meta: update, access_token: str = Header(...)):
     check = await check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -20,17 +20,17 @@ async def update_userData(data: update, access_token: str = Header(...)):
 
     user = await userdata.filter(user_id=user_id).first()
     if user:
-        if data.nama:
-            user.nama = data.nama
+        if meta.nama:
+            user.nama = meta.nama
             await user.save()
-        if data.gender:
-            if data.gender in ('pria', 'perempuan'):
-                user.gender = data.gender
+        if meta.gender:
+            if meta.gender in ('pria', 'perempuan'):
+                user.gender = meta.gender
                 await user.save()
             else:
                 raise HTTPException(detail='gender yang anda masukan tidak valid', status_code=400)
-        if data.ulang_tahun is not None:
-            user.ulang_tahun = data.ulang_tahun
+        if meta.ulang_tahun is not None:
+            user.ulang_tahun = meta.ulang_tahun
             await user.save()
         response = pesan_response(email=user.email, pesan=f'data user dengan id {user_id} telah berhasil di update')
         return JSONResponse(response)

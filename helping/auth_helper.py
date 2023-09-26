@@ -30,11 +30,15 @@ def set_password(password: str):
     hash = bcrypt.hashpw(bytes, salt)
     return hash
 
-async def create_access_token(user_id: str):
+async def create_access_token(user):
     token = secrets.token_hex(16)
     waktu_basi = datetime.now(pytz.utc) + timedelta(hours=1)
-    save = access_token_data(access_token=token, waktu_basi=waktu_basi, user_id=user_id)
-    await save.save()
+    if user.admin is False:
+        save = access_token_data(access_token=token, waktu_basi=waktu_basi, user_id=user.user_id, level = 'user')
+        await save.save()
+    if user.admin is True:
+        save = access_token_data(access_token=token, waktu_basi=waktu_basi, user_id=user.user_id, level = 'admin')
+        await save.save()
 
 async def check_access_token_expired(access_token: str):
     current_time = datetime.now(pytz.utc)
@@ -49,6 +53,16 @@ async def check_access_token_expired(access_token: str):
     else:
         return False
 
+async def check_access_token_level(access_token: str):
+    data = await access_token_data.filter(access_token=access_token).first()
+    if data:
+        if data.level == 'admin':
+            return True
+        elif data.level == 'user':
+            return False
+        else:
+            return ('data anda telah dimanipulasi')
+        
 async def check_premium_becomewaifu(user_id:str):
     user = await premium.filter(user_id=user_id).first()
     if not user.premium:

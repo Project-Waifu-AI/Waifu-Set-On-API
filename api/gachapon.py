@@ -109,3 +109,26 @@ async def gacha_normal10(access_token: str = Header(...)):
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
         return JSONResponse (pesan)
+
+@router.get('/get-all-karakter-data')
+async def getAllKarakter(access_token: str = Header(...)):
+    check = await check_access_token_expired(access_token=access_token)
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    elif check is False:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    else:
+        user_id = check
+    data = await KarakterData.all()
+    response = []
+    for karakter in data:
+        karakter_dict = {
+                'karakter_id': karakter.karakter_id,
+                'nama': karakter.nama,
+                'bahasa_yang_digunakan': karakter.bahasaYangDigunakan,
+                'kepribadian': karakter.kepribadian,
+                'usia': karakter.usia,
+                'ulang_tahun': karakter.ulang_tahun
+            }
+        response.append(karakter_dict)
+    return JSONResponse(response, status_code=200)

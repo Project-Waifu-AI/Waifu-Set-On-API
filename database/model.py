@@ -41,7 +41,7 @@ class userdata(Model):
     email = fields.CharField(max_length=225)
     password = fields.BinaryField(max_length=225,null=True)
     NegaiKanjo = fields.IntField(null=True)
-    karakter = fields.JSONField()
+    karakterYangDimiliki = fields.JSONField(null=True)
     akunwso = fields.BooleanField(default=False)
     token_konfirmasi = fields.CharField(max_length=225, null=True)
     status = fields.BooleanField(default=False)
@@ -65,12 +65,13 @@ class premium(Model):
         return self.user_id
 
 class KarakterData(Model):
-    karakter_id = fields.IntField(pk=True)
+    id = fields.IntField(pk=True)
     nama = fields.CharField(max_length=225)
+    bahasaYangDigunakan = fields.CharField(max_length=225)
     kepribadian = fields.CharField(max_length=225)
     usia = fields.IntField(null=True)
     ulang_tahun = fields.DateField(null=True)
-    model_suara = fields.BinaryField(null=True)
+    speakerID = fields.JSONField()
     class Meta:
         table = 'karakter'
     
@@ -79,7 +80,7 @@ class KarakterData(Model):
 
 class access_token_data(Model):
     access_token = fields.UUIDField(pk=True)
-    level = fields.CharField(max_length=100)
+    level = fields.CharField(max_length=5)
     waktu_basi = fields.DatetimeField()
     user_id = fields.CharField(max_length=225)
     

@@ -12,6 +12,8 @@ def user_response(user, password=None):
         "user_id": str(user.user_id),
         "nama": user.nama,
         "email": user.email,
+        'karakter_yang_dimiliki': user.karakterYangDimiliki,
+        'NegaiKanjo': user.NegaiKanjo,
         "akunwso": user.akunwso,
         "status": user.status
     }
@@ -45,6 +47,8 @@ async def access_token_response(user, password=None):
                     "user_id": str(user.user_id),
                     "nama": user.nama,
                     "email": user.email,
+                    'karakter_yang_dimiliki': user.karakterYangDimiliki,
+                    'NegaiKanjo': user.NegaiKanjo,
                     "akunwso": user.akunwso,
                     "status": user.status
                 }
