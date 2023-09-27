@@ -65,8 +65,7 @@ class premium(Model):
         return self.user_id
 
 class KarakterData(Model):
-    id = fields.IntField(pk=True)
-    nama = fields.CharField(max_length=225)
+    nama = fields.CharField(max_length=225, pk=True)
     bahasaYangDigunakan = fields.CharField(max_length=225)
     kepribadian = fields.CharField(max_length=225)
     usia = fields.IntField(null=True)

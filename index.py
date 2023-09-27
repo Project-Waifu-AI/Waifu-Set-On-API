@@ -7,6 +7,8 @@ import autentikasi.google_auth
 import autentikasi.wso_auth
 import autentikasi.user_set
 import api.AsistenWaifu
+import api.admin_access
+import api.gachapon
 import openai
 
 app = FastAPI()
@@ -23,7 +25,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=['*'],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -31,6 +33,8 @@ app.add_middleware(
 
 app.include_router(api.BecomWaifu.router)
 app.include_router(api.AsistenWaifu.router)
+app.include_router(api.gachapon.router)
+app.include_router(api.admin_access.router)
 app.include_router(autentikasi.google_auth.router)
 app.include_router(autentikasi.wso_auth.router)
 app.include_router(autentikasi.user_set.router)

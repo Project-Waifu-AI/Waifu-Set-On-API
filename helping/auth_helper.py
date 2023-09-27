@@ -57,11 +57,11 @@ async def check_access_token_level(access_token: str):
     data = await access_token_data.filter(access_token=access_token).first()
     if data:
         if data.level == 'admin':
-            return True
+            return 'admin'
         elif data.level == 'user':
-            return False
+            return 'user'
         else:
-            return ('data anda telah dimanipulasi')
+            return 'dimanipulasi'
         
 async def check_premium_becomewaifu(user_id:str):
     user = await premium.filter(user_id=user_id).first()

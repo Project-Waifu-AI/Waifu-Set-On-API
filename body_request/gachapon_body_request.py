@@ -3,8 +3,9 @@ from typing import Optional
 from datetime import date
 
 class SetKarakter(BaseModel):
-    nama: Optional[str]
+    nama: str
     bahasaYangDigunakan: Optional[str]
     kepribadian: Optional[str]
     usia: Optional[int]
     ulang_tahun: Optional[date]
+    speakerID: Optional[dict]

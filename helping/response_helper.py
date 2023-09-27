@@ -12,12 +12,17 @@ def user_response(user, password=None):
         "user_id": str(user.user_id),
         "nama": user.nama,
         "email": user.email,
+        'gender': user.gender,
+        'ulang tahun': user.ulang_tahun,
         'karakter_yang_dimiliki': user.karakterYangDimiliki,
         'NegaiKanjo': user.NegaiKanjo,
         "akunwso": user.akunwso,
         "status": user.status
     }
-    
+    if user.admin is True:
+        response['role'] = 'admin'
+    elif user.admin is False:
+        response['role'] = 'user'
     if password is not None:
         response["password"] = password
     
