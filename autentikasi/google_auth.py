@@ -65,9 +65,11 @@ async def auth2callback_register(request: Request, state: str):
 
         existing_user = await userdata.filter(email=email).first()
         if not existing_user:
-            save = userdata(nama=nama, email=email, status=True, NegaiKanjo=100)
+            save = userdata(nama=nama, email=email, status=True)
             await save.save()
             user = await userdata.filter(email=email).first()
+            user.NegaiKanjo += 100
+            await user.save
             await create_access_token(user_id=user.user_id)
             response = await access_token_response(user)
             return JSONResponse(response, status_code=201)

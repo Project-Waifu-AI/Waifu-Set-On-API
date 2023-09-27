@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
-from body_request.auth_body_request import update
+from body_request.auth_body_request import updateUser
 from configs import config
 from database.model import userdata
 from helping.auth_helper import check_access_token_expired
@@ -9,7 +9,7 @@ from helping.response_helper import pesan_response
 router = APIRouter(prefix='/user', tags=['user-data'])
 
 @router.put('/update-user-data')
-async def update_userData(meta: update, access_token: str = Header(...)):
+async def update_userData(meta: updateUser, access_token: str = Header(...)):
     check = await check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
