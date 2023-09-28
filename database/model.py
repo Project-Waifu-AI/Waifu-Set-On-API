@@ -67,10 +67,10 @@ class premium(Model):
 class KarakterData(Model):
     nama = fields.CharField(max_length=225, pk=True)
     bahasaYangDigunakan = fields.CharField(max_length=225)
-    kepribadian = fields.CharField(max_length=225)
+    kepribadian = fields.CharField(max_length=225, null=True)
     usia = fields.IntField(null=True)
     ulang_tahun = fields.DateField(null=True)
-    speakerID = fields.JSONField()
+    speakerID = fields.JSONField(null=True)
     class Meta:
         table = 'karakter'
     

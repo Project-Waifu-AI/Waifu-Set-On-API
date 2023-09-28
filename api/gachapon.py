@@ -123,12 +123,12 @@ async def getAllKarakter(access_token: str = Header(...)):
     response = []
     for karakter in data:
         karakter_dict = {
-                'karakter_id': karakter.karakter_id,
                 'nama': karakter.nama,
                 'bahasa_yang_digunakan': karakter.bahasaYangDigunakan,
                 'kepribadian': karakter.kepribadian,
                 'usia': karakter.usia,
-                'ulang_tahun': karakter.ulang_tahun
+                'ulang_tahun': str(karakter.ulang_tahun),
+                'speakerID': karakter.speakerID
             }
         response.append(karakter_dict)
     return JSONResponse(response, status_code=200)
