@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header, Body, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from numpy.random import choice
 from helping.auth_helper import check_access_token_expired
-from helping.response_helper import pesan_response
+from helping.response_helper import pesan_response, karakter_response
 from database.model import KarakterData, userdata
 from configs import config
 
@@ -118,17 +118,25 @@ async def getAllKarakter(access_token: str = Header(...)):
     elif check is False:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     else:
-        user_id = check
+        trobos = check
     data = await KarakterData.all()
     response = []
     for karakter in data:
-        karakter_dict = {
-                'nama': karakter.nama,
-                'bahasa_yang_digunakan': karakter.bahasaYangDigunakan,
-                'kepribadian': karakter.kepribadian,
-                'usia': karakter.usia,
-                'ulang_tahun': str(karakter.ulang_tahun),
-                'speakerID': karakter.speakerID
-            }
+        karakter_dict =karakter_response(karakter=karakter)
         response.append(karakter_dict)
     return JSONResponse(response, status_code=200)
+
+@router.get('/get-spesifik-data-karakter')
+async def getSpesifikKarakter(nama: str = Body(...), access_token: str = Header(...)):
+    check = await check_access_token_expired(access_token=access_token)
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    elif check is False:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    else:
+        try:
+            karakter = await KarakterData.filter(nama=nama).first()
+            karakter_data = karakter_response(karakter=karakter)
+            return JSONResponse(karakter_data)
+        except Exception as e:
+            raise HTTPException (detail= str(e), status_code=500)

@@ -58,12 +58,22 @@ async def access_token_response(user, password=None):
                     "status": user.status
                 }
             }
-
+            
+            if data.level:
+                response['level'] =  data.level
+            
             if password is not None:
                 response['data_user']['password'] = password
-
             response_list.append(response)
-
         return response_list
     else:
         return []
+
+def karakter_response(karakter):
+    karakter_dict = {
+                'nama': karakter.nama,
+                'bahasa_yang_digunakan': karakter.bahasaYangDigunakan,
+                'speaker id': karakter.speakerID,
+                'informasi tambahan': karakter.informasi_tambahan,
+                }
+    return karakter_dict
