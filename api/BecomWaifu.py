@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Header, UploadFile, File
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydub import AudioSegment
 from googletrans import Translator
 import speech_recognition as sr

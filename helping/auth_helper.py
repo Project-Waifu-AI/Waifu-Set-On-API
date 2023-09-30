@@ -5,7 +5,6 @@ from ast import pattern
 import bcrypt
 import secrets
 import pytz
-import io
 import re
 
 def credentials_to_dict(credentials):
@@ -32,7 +31,7 @@ def set_password(password: str):
 
 async def create_access_token(user):
     token = secrets.token_hex(16)
-    waktu_basi = datetime.now(pytz.utc) + timedelta(hours=1)
+    waktu_basi = datetime.now(pytz.utc) + timedelta(hours=8)
     if user.admin is False:
         save = access_token_data(access_token=token, waktu_basi=waktu_basi, user_id=user.user_id, level = 'user')
         await save.save()

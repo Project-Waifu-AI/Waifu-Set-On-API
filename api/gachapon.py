@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Header, Body, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from numpy.random import choice
 from helping.auth_helper import check_access_token_expired
@@ -28,10 +28,10 @@ async def gacha_normal1(access_token: str = Header(...)):
         user.NegaiKanjo -= 35
         hasil = choice(listKarakter, p=probality)
         response.append(hasil)
-        return JSONResponse (response)
+        return JSONResponse (response, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
-        return JSONResponse (pesan)
+        return JSONResponse (pesan, status_code=403)
     
 @router.get('gacha-normal-10')
 async def gacha_normal10(access_token: str = Header(...)):
@@ -53,10 +53,10 @@ async def gacha_normal10(access_token: str = Header(...)):
         for i in range(10):
             hasil = choice(listKarakter, p=probality)
             response.append(hasil)
-        return JSONResponse (response)
+        return JSONResponse (response, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
-        return JSONResponse (pesan)
+        return JSONResponse (pesan, status_code=403)
     
 @router.get('gacha-banner-meimei-himari-1')
 async def banner_meimei_himari1(access_token: str = Header(...)):
@@ -79,10 +79,10 @@ async def banner_meimei_himari1(access_token: str = Header(...)):
         user.NegaiKanjo -= 35
         hasil = choice(listKarakter, p=probality)
         response.append(hasil)
-        return JSONResponse (response)
+        return JSONResponse (response, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
-        return JSONResponse (pesan)
+        return JSONResponse (pesan, status_code=403)
     
 @router.get('gacha-banner-meimei-himari-10')
 async def gacha_normal10(access_token: str = Header(...)):
@@ -105,10 +105,10 @@ async def gacha_normal10(access_token: str = Header(...)):
         for i in range(10):
             hasil = choice(listKarakter, p=probality)
             response.append(hasil)
-        return JSONResponse (response)
+        return JSONResponse (response, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
-        return JSONResponse (pesan)
+        return JSONResponse (pesan, status_code=403)
 
 @router.get('/get-all-karakter-data')
 async def getAllKarakter(access_token: str = Header(...)):
@@ -127,16 +127,16 @@ async def getAllKarakter(access_token: str = Header(...)):
     return JSONResponse(response, status_code=200)
 
 @router.get('/get-spesifik-data-karakter')
-async def getSpesifikKarakter(nama: str = Body(...), access_token: str = Header(...)):
+async def getSpesifikKarakter(nama: str, access_token: str = Header(...)):
     check = await check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     else:
-        try:
-            karakter = await KarakterData.filter(nama=nama).first()
+        karakter = await KarakterData.filter(nama=nama).first()
+        if karakter:
             karakter_data = karakter_response(karakter=karakter)
             return JSONResponse(karakter_data)
-        except Exception as e:
-            raise HTTPException (detail= str(e), status_code=500)
+        else:
+            raise HTTPException(detail=404)

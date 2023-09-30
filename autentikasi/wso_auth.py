@@ -1,6 +1,5 @@
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
-import secrets
 import random
 from body_request.auth_body_request import LoginWSO, SimpanUserWSO
 from database.model import userdata
