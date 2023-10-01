@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from numpy.random import choice
+import json
 from helping.auth_helper import check_access_token_expired
 from helping.response_helper import pesan_response, karakter_response
 from database.model import KarakterData, userdata
@@ -21,14 +22,21 @@ async def gacha_normal1(access_token: str = Header(...)):
     karakter = await KarakterData.all()
     response = []
     listKarakter = [karakter.nama for karakter in karakter]
-    probality = [0.001] * len(listKarakter)
+    probality = [1 / len(listKarakter) * len(listKarakter)]
     
     user = await userdata.filter(user_id=user_id).first()
     if user.NegaiKanjo >= 35:
         user.NegaiKanjo -= 35
         hasil = choice(listKarakter, p=probality)
         response.append(hasil)
-        return JSONResponse (response, status_code=200)
+        
+        if user.karakterYangDimiliki is not None:
+            user.karakterYangDimiliki += response
+        else:
+            user.karakterYangDimiliki = response
+        await user.save()
+        
+        return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
         return JSONResponse (pesan, status_code=403)
@@ -46,14 +54,22 @@ async def gacha_normal10(access_token: str = Header(...)):
     karakter = await KarakterData.all()
     response = []
     listKarakter = [karakter.nama for karakter in karakter]
-    probality = [0.001] * len(listKarakter)
+    probality = [1 / len(listKarakter) * len(listKarakter)]
     
     user = await userdata.filter(user_id=user_id).first()
     if user.NegaiKanjo >= 300:
+        
         for i in range(10):
             hasil = choice(listKarakter, p=probality)
             response.append(hasil)
-        return JSONResponse (response, status_code=200)
+        
+        if user.karakterYangDimiliki is not None:
+            user.karakterYangDimiliki += response
+        else:
+            user.karakterYangDimiliki = response
+        await user.save()
+        
+        return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
         return JSONResponse (pesan, status_code=403)
@@ -71,7 +87,7 @@ async def banner_meimei_himari1(access_token: str = Header(...)):
     karakter = await KarakterData.all()
     response = []
     listKarakter = [karakter.nama for karakter in karakter]
-    probality = [0.001] * len(listKarakter)
+    probality = [1 / len(listKarakter) * len(listKarakter)]
     MeiMeiHimari_index = listKarakter.index("meimei himari")
     probality[MeiMeiHimari_index] = 0.05
     user = await userdata.filter(user_id=user_id).first()
@@ -79,7 +95,14 @@ async def banner_meimei_himari1(access_token: str = Header(...)):
         user.NegaiKanjo -= 35
         hasil = choice(listKarakter, p=probality)
         response.append(hasil)
-        return JSONResponse (response, status_code=200)
+        
+        if user.karakterYangDimiliki is not None:
+            user.karakterYangDimiliki += response
+        else:
+            user.karakterYangDimiliki = response
+        await user.save()
+        
+        return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
         return JSONResponse (pesan, status_code=403)
@@ -105,7 +128,14 @@ async def gacha_normal10(access_token: str = Header(...)):
         for i in range(10):
             hasil = choice(listKarakter, p=probality)
             response.append(hasil)
-        return JSONResponse (response, status_code=200)
+        
+        if user.karakterYangDimiliki is not None:
+            user.karakterYangDimiliki += response
+        else:
+            user.karakterYangDimiliki = response
+        await user.save()
+        
+        return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
         return JSONResponse (pesan, status_code=403)

@@ -7,6 +7,7 @@ class SetKarakter(BaseModel):
     bahasaYangDigunakan: Optional[str]
     speakerID: Optional[str]
     nama_panggilan: Optional[str]
+    deskripsi: Optional[str]
     ras: Optional[str]
     kepribadian: Optional[str]
     kesukaan: Optional[str]
@@ -22,6 +23,7 @@ class SetKarakter(BaseModel):
 
 class tambahan(BaseModel):
     nama_panggilan: Optional[str]
+    deskripsi: Optional[str]
     ras: Optional[str]
     kepribadian: Optional[str]
     kesukaan: Optional[str]
