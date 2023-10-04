@@ -41,13 +41,13 @@ async def register(email: str):
         if user.ban:
             raise HTTPException(status_code=403, detail="akun anda telah di ban")
         else:
-            if user.password is None:
+            if user.googleAuth is True:
                 send(target_email=email, token=token_konfirmasi)
                 user.token_konfirmasi = token_konfirmasi
                 await user.save()
                 response = pesan_response(email=email, pesan=f'token konfirmasi telah dikirimakan')
                 return JSONResponse(response, status_code=200)
-            else:
+            if user.akunwso is True:
                 raise HTTPException(detail='email anda telah terdaftar pada akunbw tidak dapat membuat lagi', status_code=403)
     else:
         send(target_email=email, token=token_konfirmasi)
@@ -64,37 +64,24 @@ async def simpan_user(meta: SimpanUserWSO):
         if user:
             if user.token_konfirmasi and user.token_konfirmasi == meta.token:
                 # Token cocok dengan pengguna
-                if not user.status:
-                    # Akun pengguna tidak aktif
-                    user.password = set_password(password=meta.password)  # Setel kata sandi baru
-                    user.status = True  # Setel status menjadi Aktif
-                    user.akunwso = True  # Setel akunwso menjadi Aktif
-                    user.token_konfirmasi = None  # Hapus token
-                    user.NegaiKanjo += 100
-                    await user.save()
-                    await create_access_token(user=user)
-                    access_token = await access_token_response(user=user, password=meta.password)
-                    return JSONResponse(access_token, status_code=201)
-                else:
-                    # Akun pengguna aktif, update kata sandi dan akunwso
-                    user.password = set_password(password=meta.password)  # Setel kata sandi baru
-                    user.akunwso = True  # Setel akunwso menjadi Aktif
-                    user.token_konfirmasi = None  # Hapus token
-                    user.NegaiKanjo += 100
-                    await user.save()
-                    await create_access_token(user=user)
-                    access_token = await access_token_response(user=user, password=meta.password)
-                    return JSONResponse(access_token, status_code=201)
+                user.password = set_password(password=meta.password)  # Setel kata sandi baru
+                user.akunwso = True  # Setel akunwso menjadi Aktif
+                user.token_konfirmasi = None  # Hapus token
+                user.NegaiKanjo += 100
+                await user.save()
+                await create_access_token(user=user)
+                access_token = await access_token_response(user=user, password=meta.password)
+                return JSONResponse(access_token, status_code=201)
             else:
                 # Token tidak cocok dengan pengguna
-                if user.status:
-                    # Akun pengguna aktif, hapus token
+                if user.googleAuth is True:
+                    # Akun pengguna google auth aktif, hapus token
                     user.token_konfirmasi = None  # Hapus token
                     await user.save()
                     user_data = user_response(user=user)
                     raise HTTPException(detail='token konfirmasi yang anda masukan salah', status_code=404)
                 else:
-                    # Akun pengguna tidak aktif, hapus data pengguna
+                    # gak terhubung dengan auth lain , hapus data pengguna
                     await user.delete()  # Hapus data pengguna
                     raise HTTPException(detail='token konfirmasi yang anda masukan salah', status_code=404)
         else:

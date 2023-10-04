@@ -40,12 +40,12 @@ class userdata(Model):
     gender = fields.CharField(max_length=10, null=True)
     email = fields.CharField(max_length=225)
     password = fields.BinaryField(max_length=225,null=True)
-    ねがいのかんじょNNK = fields.IntField(null=True)
-    ねがいのほしHNK = fields.IntField(null=True)
+    AtsumaruKanjo = fields.IntField(null=True)
+    NegaiGoto = fields.IntField(null=True)
     karakterYangDimiliki = fields.JSONField(null=True)
     akunwso = fields.BooleanField(default=False)
+    googleAuth = fileds.BooleanField(default=False)
     token_konfirmasi = fields.CharField(max_length=225, null=True)
-    status = fields.BooleanField(default=False)
     ban = fields.BooleanField(default=False)
 
     class Meta:

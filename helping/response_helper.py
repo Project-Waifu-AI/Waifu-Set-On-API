@@ -12,12 +12,13 @@ def user_response(user, password=None):
         "user_id": str(user.user_id),
         "nama": user.nama,
         "email": user.email,
+        'akunwso': user.akunwso,
+        'googleauth': user.googleAuth,
         'gender': user.gender,
         'ulang tahun': user.ulang_tahun,
         'karakter_yang_dimiliki': user.karakterYangDimiliki,
-        'NegaiKanjo': user.NegaiKanjo,
-        "akunwso": user.akunwso,
-        "status": user.status
+        'NegaiGoto': user.NegaiGoto,
+        'AtsumaruKanjo': user.AtsumaruKanjo,
     }
     if user.admin is True:
         response['role'] = 'admin'

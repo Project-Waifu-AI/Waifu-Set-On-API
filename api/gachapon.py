@@ -25,8 +25,8 @@ async def gacha_normal1(access_token: str = Header(...)):
     probality = [1 / len(listKarakter) * len(listKarakter)]
     
     user = await userdata.filter(user_id=user_id).first()
-    if user.NegaiKanjo >= 35:
-        user.NegaiKanjo -= 35
+    if user.AtsumaroKanjo >= 35:
+        user.AtsumaroKanjo -= 35
         hasil = choice(listKarakter, p=probality)
         response.append(hasil)
         
@@ -57,8 +57,8 @@ async def gacha_normal10(access_token: str = Header(...)):
     probality = [1 / len(listKarakter) * len(listKarakter)]
     
     user = await userdata.filter(user_id=user_id).first()
-    if user.NegaiKanjo >= 300:
-        
+    if user.AtsumaruKanjo >= 300:
+        user.AtsumaruKanjo -= 300
         for i in range(10):
             hasil = choice(listKarakter, p=probality)
             response.append(hasil)
@@ -89,10 +89,10 @@ async def banner_meimei_himari1(access_token: str = Header(...)):
     listKarakter = [karakter.nama for karakter in karakter]
     probality = [1 / len(listKarakter) * len(listKarakter)]
     MeiMeiHimari_index = listKarakter.index("meimei himari")
-    probality[MeiMeiHimari_index] = 0.05
+    probality[MeiMeiHimari_index] += 0.05
     user = await userdata.filter(user_id=user_id).first()
-    if user.NegaiKanjo >= 35:
-        user.NegaiKanjo -= 35
+    if user.NegaiGoto >= 35:
+        user.NegaiGoto -= 35
         hasil = choice(listKarakter, p=probality)
         response.append(hasil)
         
@@ -122,9 +122,10 @@ async def gacha_normal10(access_token: str = Header(...)):
     listKarakter = [karakter.nama for karakter in karakter]
     probality = [0.001] * len(listKarakter)
     MeiMeiHimari_index = listKarakter.index("meimei himari")
-    probality[MeiMeiHimari_index] = 0.05
+    probality[MeiMeiHimari_index] += 0.05
     user = await userdata.filter(user_id=user_id).first()
-    if user.NegaiKanjo >= 300:
+    if user.NegaiGoto >= 300:
+        user.NegaiGoto -= 300
         for i in range(10):
             hasil = choice(listKarakter, p=probality)
             response.append(hasil)

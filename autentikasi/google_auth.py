@@ -63,9 +63,9 @@ async def auth2callback_register(request: Request, state: str):
         email = user_info.get("email")
         nama = user_info.get("name")
 
-        existing_user = await userdata.filter(email=email).first()
-        if not existing_user:
-            save = userdata(nama=nama, email=email, status=True)
+        user = await userdata.filter(email=email).first()
+        if user.googleAuth is False:
+            save = userdata(nama=nama, email=email, googleAuth=True)
             await save.save()
             user = await userdata.filter(email=email).first()
             user.NegaiKanjo += 100
@@ -74,7 +74,7 @@ async def auth2callback_register(request: Request, state: str):
             response = await access_token_response(user)
             return JSONResponse(response, status_code=201)
         else:
-            raise HTTPException (detail='email anda sudah terdaftar', status_code=403)
+            raise HTTPException (detail='email anda sudah terhubung dengan google autentikasi', status_code=403)
     except ConnectionError as e:
         # Mengatasi kesalahan koneksi
         print(f"Kesalahan koneksi: {e}")
@@ -101,9 +101,9 @@ async def auth2callback(request: Request, state: str):
         user_info = user_info_response.json()
         email = user_info.get("email")
 
-        existing_user = await userdata.filter(email=email).first()
-        if not existing_user:
-            raise HTTPException(detail='email anda masih belum terdaftar di Waifu-Set-On', status_code=405)
+        user = await userdata.filter(email=email).first()
+        if use.googleAuth is False:
+            raise HTTPException(detail='email anda masih belum terhubung dengan google autentikasi', status_code=405)
         else:
             user = await userdata.filter(email=email).first()
             await create_access_token(user_id=user.user_id)
