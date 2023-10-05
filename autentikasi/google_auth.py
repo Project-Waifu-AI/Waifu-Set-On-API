@@ -68,7 +68,7 @@ async def auth2callback_register(request: Request, state: str):
             save = userdata(nama=nama, email=email, googleAuth=True)
             await save.save()
             user = await userdata.filter(email=email).first()
-            user.NegaiKanjo += 100
+            user.AtsumaruKanjo += 100
             await user.save
             await create_access_token(user_id=user.user_id)
             response = await access_token_response(user)
@@ -102,7 +102,7 @@ async def auth2callback(request: Request, state: str):
         email = user_info.get("email")
 
         user = await userdata.filter(email=email).first()
-        if use.googleAuth is False:
+        if user.googleAuth is False:
             raise HTTPException(detail='email anda masih belum terhubung dengan google autentikasi', status_code=405)
         else:
             user = await userdata.filter(email=email).first()
