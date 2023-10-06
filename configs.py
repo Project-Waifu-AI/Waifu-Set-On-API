@@ -13,9 +13,9 @@ class Config(BaseSettings):
     output_file: str = Field('voice.wav')
     
     # redirect
-    redirect_uri_register: str = Field("")
-    redirect_uri_login: str = Field("")
-    redirect_uri_page_masuk: str = Field("")
+    redirect_uri_register: str = Field("REDIRECT_URI_REGISTER")
+    redirect_uri_login: str = Field("REDIRECT_URI_LOGIN")
+    redirect_uri_page_masuk: str = Field("LINK_PAGE_MASUK")
     
     # informasi email
     email: str = os.getenv("EMAIL")

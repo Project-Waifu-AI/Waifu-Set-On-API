@@ -64,17 +64,31 @@ async def auth2callback_register(request: Request, state: str):
         nama = user_info.get("name")
 
         user = await userdata.filter(email=email).first()
-        if user.googleAuth is False:
-            save = userdata(nama=nama, email=email, googleAuth=True)
+        if user:
+            if user.googleAuth is False:
+                
+                if user.akunwso is True and user.email != email:
+                    raise HTTPException (detail='gmail yang anda daftarkan dengan akun wso berbeda dengan gmail yang anda coba hubungkan pada google auth')
+                
+                user.googleAuth = True
+                user.nama = nama
+                user.email = email
+                user.AtsumaruKanjo += 100
+                await user.save()
+                response = await access_token_response(user)
+                return JSONResponse(response, status_code=201)
+            
+            else:
+                raise HTTPException (detail='email anda sudah terhubung dengan google autentikasi', status_code=403)
+        
+        else:
+            save = userdata(nama=nama, email=email, googleAuth=True, AtsumaruKanjo=100)
             await save.save()
             user = await userdata.filter(email=email).first()
-            user.AtsumaruKanjo += 100
-            await user.save
-            await create_access_token(user_id=user.user_id)
+            await create_access_token(user=user)
             response = await access_token_response(user)
-            return JSONResponse(response, status_code=201)
-        else:
-            raise HTTPException (detail='email anda sudah terhubung dengan google autentikasi', status_code=403)
+            return JSONResponse(response, status_code=201) 
+    
     except ConnectionError as e:
         # Mengatasi kesalahan koneksi
         print(f"Kesalahan koneksi: {e}")
@@ -102,13 +116,17 @@ async def auth2callback(request: Request, state: str):
         email = user_info.get("email")
 
         user = await userdata.filter(email=email).first()
-        if user.googleAuth is False:
-            raise HTTPException(detail='email anda masih belum terhubung dengan google autentikasi', status_code=405)
+        if user:
+            
+            if user.googleAuth is False:
+                raise HTTPException(detail='email anda masih belum terhubung dengan google autentikasi', status_code=405)
+            else:
+                user = await userdata.filter(email=email).first()
+                await create_access_token(user=user)
+                response = await access_token_response(user)
+                return JSONResponse(response, status_code=200)
         else:
-            user = await userdata.filter(email=email).first()
-            await create_access_token(user_id=user.user_id)
-            response = await access_token_response(user)
-            return JSONResponse(response, status_code=200)
+            raise HTTPException (detail='gmail ini masih belum terdafatar dengan autentikasi apapun di WSO', status_code=405)
     except ConnectionError as e:
         print(f"Kesalahan koneksi: {e}")
         return JSONResponse({"error": "Request Timed Out"}, status_code=500)

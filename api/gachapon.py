@@ -39,7 +39,7 @@ async def gacha_normal1(access_token: str = Header(...)):
         return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
-        return JSONResponse (pesan, status_code=403)
+        raise HTTPException (detail=HTTPException, status_code=403)
     
 @router.get('gacha-normal-10')
 async def gacha_normal10(access_token: str = Header(...)):
@@ -72,7 +72,7 @@ async def gacha_normal10(access_token: str = Header(...)):
         return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
-        return JSONResponse (pesan, status_code=403)
+        raise HTTPException (detail=pesan, status_code=403)
     
 @router.get('gacha-banner-meimei-himari-1')
 async def banner_meimei_himari1(access_token: str = Header(...)):
@@ -105,7 +105,7 @@ async def banner_meimei_himari1(access_token: str = Header(...)):
         return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
-        return JSONResponse (pesan, status_code=403)
+        raise HTTPException (detail=pesan, status_code=403)
     
 @router.get('gacha-banner-meimei-himari-10')
 async def gacha_normal10(access_token: str = Header(...)):
@@ -139,7 +139,7 @@ async def gacha_normal10(access_token: str = Header(...)):
         return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
         pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
-        return JSONResponse (pesan, status_code=403)
+        raise HTTPException (detail=pesan, status_code=403)
 
 @router.get('/get-all-karakter-data')
 async def getAllKarakter(access_token: str = Header(...)):
@@ -170,4 +170,4 @@ async def getSpesifikKarakter(nama: str, access_token: str = Header(...)):
             karakter_data = karakter_response(karakter=karakter)
             return JSONResponse(karakter_data)
         else:
-            raise HTTPException(detail=404)
+            raise HTTPException(detail='karakter tidak ditemukan', status_code=404)

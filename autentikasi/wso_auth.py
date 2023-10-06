@@ -12,13 +12,13 @@ from configs import config
 
 router = APIRouter(prefix='/wso-auth', tags=['Waifu-Set-On-autentikasi'])
 
-@router.post('/login')
+@router.get('/login')
 async def login_wso(meta: LoginWSO):
     user = await userdata.filter(email=meta.email).first()
 
     if user:
         if user.akunwso is False:
-            return RedirectResponse(config.redirect_uri_page_masuk)
+            return RedirectResponse(config.redirect_uri_page_masuk, status_code=404)
         else:
             if not check_password(password=meta.password, user=user):
                 raise HTTPException(status_code=401, detail="password anda salah")
@@ -77,6 +77,7 @@ async def simpan_user(meta: SimpanUserWSO):
                 if user.googleAuth is True:
                     # Akun pengguna google auth aktif, hapus token
                     user.token_konfirmasi = None  # Hapus token
+                    user.AtsumaruKanjo += 100
                     await user.save()
                     user_data = user_response(user=user)
                     raise HTTPException(detail='token konfirmasi yang anda masukan salah', status_code=404)
