@@ -35,7 +35,7 @@ async def tambah_karakter(meta: SetKarakter, access_token: str = Header(...)):
             else:
                 raise HTTPException(status_code=400, detail=f'karakter dengan nama {meta.nama}, sudah pernah dibuat')
         else:
-            raise HTTPException(status_code=403, detail=f'user anda {check_lvl}')
+            raise HTTPException(status_code=403, detail=f'user anda {level}')
         
 @router.put('/update-data-karakter')
 async def update_karakter(meta: SetKarakter, access_token: str = Header(...)):
@@ -63,7 +63,7 @@ async def update_karakter(meta: SetKarakter, access_token: str = Header(...)):
             else:
                 raise HTTPException(detail=f'karakter dengan {meta.nama} tidak ditemukan', status_code=404)
         else:
-            raise HTTPException(status_code=403, detail=f'user anda {check_lvl}')
+            raise HTTPException(status_code=403, detail=f'user anda {level}')
                         
 @router.delete('/delete-karakter-data')
 async def delete_karakter(nama_karakter: str, access_token: str = Header(...)):
@@ -81,4 +81,4 @@ async def delete_karakter(nama_karakter: str, access_token: str = Header(...)):
             else:
                 raise HTTPException(detail=f'karakter dengan {nama_karakter} tidak ditemukan', status_code=404)
         else:
-            raise HTTPException(status_code=403, detail=f'user anda {check_lvl}')
+            raise HTTPException(status_code=403, detail=f'user anda {level}')
