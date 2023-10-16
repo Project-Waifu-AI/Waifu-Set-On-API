@@ -1,7 +1,9 @@
-from database.model import userdata, access_token_data, premium
-from datetime import datetime, timedelta
+from database.model import userdata, premium
+from configs import config
+from datetime import datetime, timedelta, timezone
 from database.model import logaudio
 from ast import pattern
+from jose import jwt
 import bcrypt
 import secrets
 import pytz
@@ -29,38 +31,41 @@ def set_password(password: str):
     hash = bcrypt.hashpw(bytes, salt)
     return hash
 
-async def create_access_token(user):
-    token = secrets.token_hex(16)
-    waktu_basi = datetime.now(pytz.utc) + timedelta(hours=8)
+def create_access_token(user):
     if user.admin is False:
-        save = access_token_data(access_token=token, waktu_basi=waktu_basi, user_id=user.user_id, level = 'user')
-        await save.save()
-    if user.admin is True:
-        save = access_token_data(access_token=token, waktu_basi=waktu_basi, user_id=user.user_id, level = 'admin')
-        await save.save()
+        level = 'user'
+    elif user.admin is True:
+        level = 'admin'
+    to_encode = {
+        "sub": str(user.user_id),
+        "level": level,
+        "exp": datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(hours=8),
+    }
+    encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
+    return encoded_token
 
-async def check_access_token_expired(access_token: str):
-    current_time = datetime.now(pytz.utc)
-    data = await access_token_data.filter(access_token=access_token).first()
-    
-    if data:
-        if data.waktu_basi <= current_time:
-            await data.delete()
-            return True
+def check_access_token_expired(access_token: str):
+    try:
+        payload = jwt.decode(access_token, config.secret_key, algorithms=[config.algoritma])
+        expiration = payload.get("exp")
+        if expiration:
+            expiration_utc = datetime.utcfromtimestamp(expiration).replace(tzinfo=timezone.utc)
+            return expiration_utc < datetime.now(timezone.utc)
         else:
-            return data.user_id
-    else:
-        return False
+            return False
+    except jwt.ExpiredSignatureError:
+        return True  # Token sudah kadaluarsa
+    except jwt.InvalidTokenError:
+        return True  # Token tidak valid
 
-async def check_access_token_level(access_token: str):
-    data = await access_token_data.filter(access_token=access_token).first()
-    if data:
-        if data.level == 'admin':
-            return 'admin'
-        elif data.level == 'user':
-            return 'user'
-        else:
-            return 'dimanipulasi'
+def decode_access_token(access_token: str):
+    try:
+        payload = jwt.decode(access_token, config.secret_key, algorithms=[config.algoritma])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None  # Token sudah kadaluarsa
+    except jwt.InvalidTokenError:
+        return None  # Token tidak valid
         
 async def check_premium_becomewaifu(user_id:str):
     user = await premium.filter(user_id=user_id).first()

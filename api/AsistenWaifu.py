@@ -3,20 +3,20 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from database.model import logpercakapan, userdata
 from helping.action_helper import obrolan, to_japan, request_audio, to_japan_premium
 from helping.response_helper import pesan_response
-from helping.auth_helper import check_access_token_expired, check_premium_AI_U
+from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium_AI_U
 from configs import config
 
 router = APIRouter(prefix='/AsistenWaifu', tags=['AsistenWaifu-action'])
 
 @router.get('/pesan')
 async def pesan(speakerId: int, pesan: str, access_token: str = Header(...)):
-    check = await check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        user_id = check
+        payloadJWT = decode_access_token(access_token=access_token)
+        user_id = payloadJWT.get('sub')
+
     user_data = await logpercakapan.filter(user_id=user_id).order_by("-id_percakapan").first()
     if user_data:
         id_percakapan = user_data.id_percakapan + 1
@@ -46,13 +46,12 @@ async def pesan(speakerId: int, pesan: str, access_token: str = Header(...)):
     
 @router.delete('/delete-obrolan')
 async def delete_obrolan(access_token: str = Header(...)):
-    check = await check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        user_id = check
+        payloadJWT = decode_access_token(access_token=access_token)
+        user_id = payloadJWT.get('sub')
         
     try:
         user = await userdata.filter(user_id=user_id).first()

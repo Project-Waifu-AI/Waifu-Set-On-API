@@ -5,14 +5,13 @@ from body_request.auth_body_request import LoginWSO, SimpanUserWSO
 from database.model import userdata
 from webhook.send_email import send
 from helping.auth_helper import check_password, create_access_token, validation_email, set_password
-from helping.response_helper import access_token_response, pesan_response, user_response
+from helping.response_helper import pesan_response, user_response
 from webhook.send_email import send
-from database.model import userdata
 from configs import config
 
 router = APIRouter(prefix='/wso-auth', tags=['Waifu-Set-On-autentikasi'])
 
-@router.get('/login')
+@router.post('/login')
 async def login_wso(meta: LoginWSO):
     user = await userdata.filter(email=meta.email).first()
 
@@ -22,9 +21,8 @@ async def login_wso(meta: LoginWSO):
         else:
             if not check_password(password=meta.password, user=user):
                 raise HTTPException(status_code=401, detail="password anda salah")
-            await create_access_token(user=user)
-            response = await access_token_response(user=user, password=meta.password)
-            return JSONResponse(response, status_code=200)
+            access_token = create_access_token(user=user)
+            return JSONResponse(content={'access_token': str(access_token)}, status_code=200)
     else:
         raise HTTPException(status_code=403, detail="anda masih belum mendaftar")
     
@@ -69,9 +67,8 @@ async def simpan_user(meta: SimpanUserWSO):
                 user.token_konfirmasi = None  # Hapus token
                 user.AtsumaruKanjo += 100
                 await user.save()
-                await create_access_token(user=user)
-                access_token = await access_token_response(user=user, password=meta.password)
-                return JSONResponse(access_token, status_code=201)
+                access_token = create_access_token(user=user)
+                return JSONResponse({'access_token':str(access_token)}, status_code=201)
             else:
                 # Token tidak cocok dengan pengguna
                 if user.googleAuth is True:

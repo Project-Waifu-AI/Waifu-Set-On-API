@@ -5,6 +5,7 @@ starlette
 uvicorn[standard]
 websockets
 aerich
+python-jose[cryptography]
 SpeechRecognition
 pydantic==1.10.7
 setuptools

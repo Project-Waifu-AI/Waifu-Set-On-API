@@ -21,4 +21,8 @@ class Config(BaseSettings):
     email: str = os.getenv("EMAIL")
     password_email: str = os.getenv("PASSWORD_EMAIL")
 
+    # JWT
+    algoritma: str = os.getenv('ALGORITMA')
+    secret_key: str = os.getenv('SECRET_KEY')
+
 config = Config()

@@ -7,7 +7,7 @@ import tempfile
 from configs import config
 from database.model import logaudio, userdata
 from helping.response_helper import pesan_response
-from helping.auth_helper import check_access_token_expired, check_premium_becomewaifu
+from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium_becomewaifu
 from helping.action_helper import request_audio
 
 translator = Translator()
@@ -16,13 +16,13 @@ router = APIRouter(prefix='/BecomeWaifu', tags=['BecomeWaifu-action'])
 
 @router.post('/change-voice')
 async def change_voice(BahasaYangDigunakan: str, SpeakerId: str, access_token: str = Header(...), audio_file: UploadFile = File(...)):
-    check = await check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        user_id = check
+        payloadJWT = decode_access_token(access_token=access_token)
+        user_id = payloadJWT.get('sub')
+
     premium_check = await check_premium_becomewaifu(user_id=user_id)
     if premium_check:
         raise HTTPException(status_code=400, detail=premium_check)
@@ -54,13 +54,12 @@ async def change_voice(BahasaYangDigunakan: str, SpeakerId: str, access_token: s
     
 @router.get('/get-all-logaudio/{audio}')
 async def get_all_logaudio(access_token: str = Header(...)):
-    check = await check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        user_id = check
+        payloadJWT = decode_access_token(access_token=access_token)
+        user_id = payloadJWT.get('sub')
     
     user_data = await logaudio.filter(user_id=user_id).all()
     if user_data:
@@ -80,13 +79,13 @@ async def get_all_logaudio(access_token: str = Header(...)):
     
 @router.delete("/delete-audio/{audio_id}")
 async def delete_audio(audio_id: int, access_token: str = Header(...)):
-    result = await check_access_token_expired(access_token=access_token)
-    if result is True:
+    check = check_access_token_expired(access_token=access_token)
+    if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    elif result is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        user_id = result
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=access_token)
+        user_id = payloadJWT.get('sub')
+        
     try:
         audio_data = await logaudio.filter(user_id=user_id, audio_id=audio_id).first()
         user = await userdata.filter(user_id=user_id).first()

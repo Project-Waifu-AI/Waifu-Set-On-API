@@ -2,7 +2,7 @@ from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from numpy.random import choice
 import json
-from helping.auth_helper import check_access_token_expired
+from helping.auth_helper import check_access_token_expired, decode_access_token
 from helping.response_helper import pesan_response, karakter_response
 from database.model import KarakterData, userdata
 from configs import config
@@ -11,13 +11,13 @@ router = APIRouter(prefix='/gacha', tags=['gachapon system'])
 
 @router.get('/gacha-normal-1')
 async def gacha_normal1(access_token: str = Header(...)):
-    check = await check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        user_id = check
+        payloadJWT = decode_access_token(access_token=access_token)
+        user_id = payloadJWT.get('sub')
+
     email = await userdata.filter(user_id=user_id).first()
     karakter = await KarakterData.all()
     response = []
@@ -43,13 +43,13 @@ async def gacha_normal1(access_token: str = Header(...)):
     
 @router.get('gacha-normal-10')
 async def gacha_normal10(access_token: str = Header(...)):
-    check = await check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        user_id = check
+        payloadJWT = decode_access_token(access_token=access_token)
+        user_id = payloadJWT.get('sub')
+
     email = await userdata.filter(user_id=user_id).first()
     karakter = await KarakterData.all()
     response = []
@@ -76,13 +76,13 @@ async def gacha_normal10(access_token: str = Header(...)):
     
 @router.get('gacha-banner-meimei-himari-1')
 async def banner_meimei_himari1(access_token: str = Header(...)):
-    check = await check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        user_id = check
+        payloadJWT = decode_access_token(access_token=access_token)
+        user_id = payloadJWT.get('sub')
+
     email = await userdata.filter(user_id=user_id).first()
     karakter = await KarakterData.all()
     response = []
@@ -109,13 +109,13 @@ async def banner_meimei_himari1(access_token: str = Header(...)):
     
 @router.get('gacha-banner-meimei-himari-10')
 async def gacha_normal10(access_token: str = Header(...)):
-    check = await check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        user_id = check
+        payloadJWT = decode_access_token(access_token=access_token)
+        user_id = payloadJWT.get('sub')
+
     email = await userdata.filter(user_id=user_id).first()
     karakter = await KarakterData.all()
     response = []
@@ -143,13 +143,10 @@ async def gacha_normal10(access_token: str = Header(...)):
 
 @router.get('/get-all-karakter-data')
 async def getAllKarakter(access_token: str = Header(...)):
-    check = await check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        trobos = check
+    
     data = await KarakterData.all()
     response = []
     for karakter in data:
@@ -159,11 +156,10 @@ async def getAllKarakter(access_token: str = Header(...)):
 
 @router.get('/get-spesifik-data-karakter')
 async def getSpesifikKarakter(nama: str, access_token: str = Header(...)):
-    check = await check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    elif check is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+
     else:
         karakter = await KarakterData.filter(nama=nama).first()
         if karakter:

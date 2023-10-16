@@ -7,7 +7,6 @@ import os
 from configs import config
 from database.model import userdata
 from helping.auth_helper import create_access_token, credentials_to_dict
-from helping.response_helper import access_token_response
 
 router = APIRouter(prefix='/google-auth', tags=['google-auth-WSO'])
 
@@ -75,8 +74,8 @@ async def auth2callback_register(request: Request, state: str):
                 user.email = email
                 user.AtsumaruKanjo += 100
                 await user.save()
-                response = await access_token_response(user)
-                return JSONResponse(response, status_code=201)
+                token = create_access_token(user=user)
+                return JSONResponse({'access_token': token}, status_code=201)
             
             else:
                 raise HTTPException (detail='email anda sudah terhubung dengan google autentikasi', status_code=403)
@@ -85,9 +84,8 @@ async def auth2callback_register(request: Request, state: str):
             save = userdata(nama=nama, email=email, googleAuth=True, AtsumaruKanjo=100)
             await save.save()
             user = await userdata.filter(email=email).first()
-            await create_access_token(user=user)
-            response = await access_token_response(user)
-            return JSONResponse(response, status_code=201) 
+            token = create_access_token(user=user)
+            return JSONResponse({'access_token': token}, status_code=201) 
     
     except ConnectionError as e:
         # Mengatasi kesalahan koneksi
@@ -122,9 +120,8 @@ async def auth2callback(request: Request, state: str):
                 raise HTTPException(detail='email anda masih belum terhubung dengan google autentikasi', status_code=405)
             else:
                 user = await userdata.filter(email=email).first()
-                await create_access_token(user=user)
-                response = await access_token_response(user)
-                return JSONResponse(response, status_code=200)
+                token = create_access_token(user=user)
+                return JSONResponse({'access_token': token}, status_code=200)
         else:
             raise HTTPException (detail='gmail ini masih belum terdafatar dengan autentikasi apapun di WSO', status_code=405)
     except ConnectionError as e:

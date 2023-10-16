@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Header, Response, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from database.model import KarakterData
-from helping.auth_helper import check_access_token_expired, check_access_token_level
+from helping.auth_helper import check_access_token_expired, decode_access_token
 from body_request.gachapon_body_request import SetKarakter, tambahan
 from configs import config
 import json
@@ -10,14 +10,13 @@ router = APIRouter(prefix='/admin-access', tags=['admin'])
 
 @router.post('/+karakter')
 async def tambah_karakter(meta: SetKarakter, access_token: str = Header(...)):
-    check_exp = await check_access_token_expired(access_token=access_token)
-    if check_exp is True:
+    check = check_access_token_expired(access_token=access_token)
+    if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    elif check_exp is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        check_lvl = await check_access_token_level(access_token=access_token)
-        if check_lvl == 'admin':
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=access_token)
+        level = payloadJWT.get('level')
+        if level == 'admin':
             cek_karakter = await KarakterData(nama=meta.nama).first()
             if not cek_karakter:
                 list = [int(angka) for angka in meta.speakerID.split(',')]
@@ -40,14 +39,13 @@ async def tambah_karakter(meta: SetKarakter, access_token: str = Header(...)):
         
 @router.put('/update-data-karakter')
 async def update_karakter(meta: SetKarakter, access_token: str = Header(...)):
-    check_exp = await check_access_token_expired(access_token=access_token)
-    if check_exp is True:
+    check = check_access_token_expired(access_token=access_token)
+    if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    elif check_exp is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        check_lvl = await check_access_token_level(access_token=access_token)
-        if check_lvl == 'admin':
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=access_token)
+        level = payloadJWT.get('level')
+        if level == 'admin':
             karakter = await KarakterData.filter(nama=meta.nama).first()
             if karakter:
                 data_tambahan = tambahan(**meta.dict(exclude_unset=True))
@@ -69,14 +67,13 @@ async def update_karakter(meta: SetKarakter, access_token: str = Header(...)):
                         
 @router.delete('/delete-karakter-data')
 async def delete_karakter(nama_karakter: str, access_token: str = Header(...)):
-    check_exp = await check_access_token_expired(access_token=access_token)
-    if check_exp is True:
+    check = check_access_token_expired(access_token=access_token)
+    if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    elif check_exp is False:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    else:
-        check_lvl = await check_access_token_level(access_token=access_token)
-        if check_lvl == 'admin':
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=access_token)
+        level = payloadJWT.get('level')
+        if level == 'admin':
             karakter = await KarakterData.filter(nama=nama_karakter).first()
             if karakter:
                 await karakter.delete()
