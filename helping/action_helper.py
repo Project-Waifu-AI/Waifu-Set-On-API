@@ -50,9 +50,9 @@ async def obrolan(input_text, userid):
             }
         ]
     
-    obrolanBaru = [{
+    obrolanBaru = {
             'role': 'user', 'content': input_text
-        }]
+        }
     
     if logObrolan:
         for data in logObrolan:
@@ -66,7 +66,8 @@ async def obrolan(input_text, userid):
     
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=obrolan
+        messages=obrolan,
+        temperature = 0
     )
     print (response)
     return response.choices[0].message.content

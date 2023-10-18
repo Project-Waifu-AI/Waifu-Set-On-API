@@ -69,7 +69,7 @@ def decode_access_token(access_token: str):
         
 async def check_premium_becomewaifu(user_id:str):
     user = await premium.filter(user_id=user_id).first()
-    if not user.premium:
+    if user is None:
         user_audio_count = await logaudio.filter(user_id=user_id).count()
         if user_audio_count >= 10:
             return ("logaudio data anda telah mencapai limit. Upgrade ke plan premium atau hapus logaudio.")
