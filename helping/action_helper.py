@@ -21,38 +21,26 @@ def request_audio(text, speaker_id: int):
         'streaming_audio': streaming
     }
 
-async def obrolan(input_text, userid):
+async def obrolan(input_text, userid, setKarakter):
     logObrolan = await logpercakapan.filter(user_id=userid).all()
     user = await userdata.filter(user_id=userid).first()
-    
-    if user.gender == 'pria':
-        obrolan=[
-            {
-               'role': 'system', 'content': f'namamu adalah AI-U seorang istri yang imut, menggoda, suka memanjakan dan sering bertingkah random. jangan pernah bahas produk yang berkaitan dengan openai dan berikan tanggapan singkat dan tidak terlalu panjang'
-            },
-            {
-                'role': 'user', 'content': f'namaku {user.nama}, ulangtahunku adalah {user.ulang_tahun}, genderku adalah {user.gender}'
-            }
-        ]
-    elif user.gender == 'perempuan':
-        obrolan=[
-            {
-                'role': 'system', 'content': f'namamu adalah AI-U seorang suami yang keren, suka memanjakan dan sering bertingkah random. jangan pernah bahas produk yang berkaitan dengan openai dan berikan tanggapan singkat dan tidak terlalu panjang'
-            },
-            {
-                'role': 'user', 'content': f'namaku {user.nama}, ulangtahunku adalah {user.ulang_tahun}, genderku adalah {user.gender}'
-            }
-        ]
-    else:
-        obrolan=[
-            {
-               'role': 'system', 'content': f'seorang pacar dengan nama AI-U. jangan pernah bahas produk yang berkaitan dengan openai dan berikan tanggapan singkat dan tidak terlalu panjang'
-            }
-        ]
-    
+    obrolan = []
+    obrolan.append(setKarakter)
     obrolanBaru = {
             'role': 'user', 'content': input_text
         }
+    if user.ulang_tahun is not None:
+        ulang_tahun = user.ulang_tahun
+    
+    if user.nama is not None:
+        nama= user.nama
+    
+    if user.gender:
+        gender = user.gender
+
+    setUser = {
+        'role': 'user', 'content': f'namaku adalah {nama}'
+    }
     
     if logObrolan:
         for data in logObrolan:

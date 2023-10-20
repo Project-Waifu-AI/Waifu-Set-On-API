@@ -8,7 +8,7 @@ from configs import config
 
 router = APIRouter(prefix='/AsistenWaifu', tags=['AsistenWaifu-action'])
 
-@router.get('/pesan')
+@router.get('/pesan-meimei-himari')
 async def pesan(speakerId: int, pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -22,9 +22,14 @@ async def pesan(speakerId: int, pesan: str, access_token: str = Header(...)):
         id_percakapan = user_data.id_percakapan + 1
     else:
         id_percakapan = 1  
-    response = await obrolan(input_text=pesan, userid=user_id)
-    user = await userdata.filter(user_id=user_id).first()
     
+    setkarakter = {
+        'role':'system',
+        'content':'namamu adalah meimei himari seorang gadis grim reaper'
+    }
+    
+    response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
+    user = await userdata.filter(user_id=user_id).first()
     premium = check_premium_AI_U(user=user)
     if premium is False:
         translate = to_japan(input=response)
