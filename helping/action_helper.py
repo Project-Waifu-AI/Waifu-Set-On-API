@@ -29,19 +29,13 @@ async def obrolan(input_text, userid, setKarakter):
     obrolanBaru = {
             'role': 'user', 'content': input_text
         }
-    if user.ulang_tahun is not None:
-        ulang_tahun = user.ulang_tahun
-    
-    if user.nama is not None:
-        nama= user.nama
-    
-    if user.gender:
-        gender = user.gender
-
+    setNama = f'namaku adalah {user.nama}' if user.nama is not None else ''
+    setUlangTahun = f'ulang tahun ku {user.ulang_tahun}' if user.ulang_tahun is not None else ''
+    setGender = f'genderku {user.gender}' if user.gender is not None else ''
     setUser = {
-        'role': 'user', 'content': f'namaku adalah {nama}'
+        'role': 'user', 'content': f'{setNama},{setUlangTahun},{setGender}'
     }
-    
+    obrolan.append(setUser)
     if logObrolan:
         for data in logObrolan:
             jsonLog = {
