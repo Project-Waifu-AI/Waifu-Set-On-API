@@ -53,10 +53,8 @@ def check_access_token_expired(access_token: str):
             return expiration_utc < datetime.now(timezone.utc)
         else:
             return False
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError | jwt.InvalidTokenError:
         return True  # Token sudah kadaluarsa
-    except jwt.InvalidTokenError:
-        return True  # Token tidak valid
 
 def decode_access_token(access_token: str):
     try:
