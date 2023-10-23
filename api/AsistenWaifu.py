@@ -9,7 +9,7 @@ from configs import config
 router = APIRouter(prefix='/AsistenWaifu', tags=['AsistenWaifu-action'])
 
 @router.get('/pesan-meimei-himari')
-async def pesan_meimei_himari(speakerId: int, pesan: str, access_token: str = Header(...)):
+async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -38,6 +38,7 @@ async def pesan_meimei_himari(speakerId: int, pesan: str, access_token: str = He
     else:
         translate = to_japan(input=response)
 
+    speakerId = 13
     data_audio = request_audio(text=translate, speaker_id=speakerId)
     data = [{
         'pesan': pesan,
@@ -50,7 +51,7 @@ async def pesan_meimei_himari(speakerId: int, pesan: str, access_token: str = He
     return JSONResponse (data)
 
 @router.get('/pesan-nurse-T')
-async def pesan_nurse_t(speakerId: int, pesan: str, access_token: str = Header(...)):
+async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -79,6 +80,7 @@ async def pesan_nurse_t(speakerId: int, pesan: str, access_token: str = Header(.
     else:
         translate = to_japan(input=response)
 
+    speakerId = 47
     data_audio = request_audio(text=translate, speaker_id=speakerId)
     data = [{
         'pesan': pesan,
@@ -91,7 +93,7 @@ async def pesan_nurse_t(speakerId: int, pesan: str, access_token: str = Header(.
     return JSONResponse (data)
 
 @router.get('/pesan-kusukabe-tsumugi')
-async def pesan_kusukabe_tsumugi(speakerId: int, pesan: str, access_token: str = Header(...)):
+async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -119,7 +121,8 @@ async def pesan_kusukabe_tsumugi(speakerId: int, pesan: str, access_token: str =
         translate = to_japan_premium(input=response)
     else:
         translate = to_japan(input=response)
-
+    
+    speakerId = 8
     data_audio = request_audio(text=translate, speaker_id=speakerId)
     data = [{
         'pesan': pesan,
@@ -132,7 +135,7 @@ async def pesan_kusukabe_tsumugi(speakerId: int, pesan: str, access_token: str =
     return JSONResponse (data)
 
 @router.get('/pesan-no.7')
-async def pesan_no7(speakerId: int, pesan: str, access_token: str = Header(...)):
+async def pesan_no7(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -161,6 +164,7 @@ async def pesan_no7(speakerId: int, pesan: str, access_token: str = Header(...))
     else:
         translate = to_japan(input=response)
 
+    speakerId = 29
     data_audio = request_audio(text=translate, speaker_id=speakerId)
     data = [{
         'pesan': pesan,
@@ -173,7 +177,7 @@ async def pesan_no7(speakerId: int, pesan: str, access_token: str = Header(...))
     return JSONResponse (data)
 
 @router.get('/pesan-SAYO')
-async def pesan_sayo(speakerId: int, pesan: str, access_token: str = Header(...)):
+async def pesan_sayo(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -202,6 +206,7 @@ async def pesan_sayo(speakerId: int, pesan: str, access_token: str = Header(...)
     else:
         translate = to_japan(input=response)
 
+    speakerId = 46
     data_audio = request_audio(text=translate, speaker_id=speakerId)
     data = [{
         'pesan': pesan,
