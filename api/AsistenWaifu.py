@@ -38,7 +38,7 @@ async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
     else:
         translate = to_japan(input=response)
 
-    speakerId = 13
+    speakerId = 14
     data_audio = request_audio(text=translate, speaker_id=speakerId)
     data = [{
         'pesan': pesan,
