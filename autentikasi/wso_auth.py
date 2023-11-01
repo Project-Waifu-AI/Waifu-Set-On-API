@@ -4,7 +4,7 @@ import random
 from body_request.auth_body_request import LoginWSO, SimpanUserWSO
 from database.model import userdata
 from webhook.send_email import send
-from helping.auth_helper import check_password, create_access_token, validation_email, set_password
+from helping.auth_helper import check_password, create_access_token, validation_email, set_password, userIni
 from helping.response_helper import pesan_response, user_response
 from webhook.send_email import send
 from configs import config
@@ -13,18 +13,17 @@ router = APIRouter(prefix='/wso-auth', tags=['Waifu-Set-On-autentikasi'])
 
 @router.post('/login')
 async def login_wso(meta: LoginWSO):
-    user = await userdata.filter(email=meta.email).first()
+    user = await userIni(namaORemail=meta.emailORname)
+    if user is False:
+        raise HTTPException(detail='nama, email anda masih belum terdaftar', status_code=403)
 
-    if user:
-        if user.akunwso is False:
-            return RedirectResponse(config.redirect_uri_page_masuk, status_code=404)
-        else:
-            if not check_password(password=meta.password, user=user):
-                raise HTTPException(status_code=401, detail="password anda salah")
-            access_token = create_access_token(user=user)
-            return JSONResponse(content={'access_token': str(access_token)}, status_code=200)
+    if user.akunwso is False:
+        return RedirectResponse(config.redirect_uri_page_masuk, status_code=404)
     else:
-        raise HTTPException(status_code=403, detail="anda masih belum mendaftar")
+        if not check_password(password=meta.password, user=user):
+            raise HTTPException(status_code=401, detail="nama, email atau password yang anda masukan salah")
+        access_token = create_access_token(user=user)
+        return JSONResponse(content={'access_token': str(access_token)}, status_code=200)
     
 @router.post('/register/{email}')
 async def register(email: str):

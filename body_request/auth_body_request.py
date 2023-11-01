@@ -8,7 +8,7 @@ class updateUser(BaseModel):
     ulang_tahun: Optional[date]
 
 class LoginWSO(BaseModel):
-    email: Optional[str]
+    emailORname: Optional[str]
     password: Optional[str]
 
 class SimpanUserWSO(BaseModel):

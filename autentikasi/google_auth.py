@@ -6,7 +6,7 @@ import requests
 import os
 from configs import config
 from database.model import userdata
-from helping.auth_helper import create_access_token, credentials_to_dict
+from helping.auth_helper import create_access_token, credentials_to_dict, apakahNamakuAda, buatNamaUnik
 
 router = APIRouter(prefix='/google-auth', tags=['google-auth-WSO'])
 
@@ -63,14 +63,21 @@ async def auth2callback_register(request: Request, state: str):
         nama = user_info.get("name")
 
         user = await userdata.filter(email=email).first()
+
         if user:
+
+            if await apakahNamakuAda(nama=nama) == False:
+                namaYangDisimpan = await buatNamaUnik(nama=nama)
+            else:
+                namaYangDisimpan = nama
+
             if user.googleAuth is False:
                 
                 if user.akunwso is True and user.email != email:
                     raise HTTPException (detail='gmail yang anda daftarkan dengan akun wso berbeda dengan gmail yang anda coba hubungkan pada google auth')
                 
                 user.googleAuth = True
-                user.nama = nama
+                user.nama = namaYangDisimpan
                 user.email = email
                 user.AtsumaruKanjo += 100
                 await user.save()
@@ -88,7 +95,6 @@ async def auth2callback_register(request: Request, state: str):
             return JSONResponse({'access_token': token}, status_code=201) 
     
     except ConnectionError as e:
-        # Mengatasi kesalahan koneksi
         print(f"Kesalahan koneksi: {e}")
         return JSONResponse({"error": "Request Timed Out"}, status_code=500)
 

@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from body_request.auth_body_request import updateUser
 from configs import config
 from database.model import userdata
-from helping.auth_helper import check_access_token_expired, decode_access_token
+from helping.auth_helper import check_access_token_expired, decode_access_token, apakahNamakuAda
 from helping.response_helper import pesan_response, user_response
 
 router = APIRouter(prefix='/user', tags=['user-data'])
@@ -21,7 +21,12 @@ async def update_userData(meta: updateUser, access_token: str = Header(...)):
     if user:
         if meta.nama:
             user.nama = meta.nama
-            await user.save()
+            
+            if await apakahNamakuAda(nama=meta.nama) == True:
+                await user.save()
+            else:
+                raise HTTPException(detail='nama yang ingin anda gunakan sudah digunakan oleh orang lain', status_code=405)
+        
         if meta.gender:
             if meta.gender in ('pria', 'perempuan'):
                 user.gender = meta.gender

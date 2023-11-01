@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from database.model import logaudio
 from ast import pattern
 from jose import jwt
+import random
 import bcrypt
 import secrets
 import pytz
@@ -98,3 +99,29 @@ def validation_email(email):
         return True
     else:
         return False
+    
+async def apakahNamakuAda(nama:str):
+    user = await userdata.filter(nama=nama).first()
+    if user:
+        return False
+    else:
+        return True
+    
+async def buatNamaUnik(nama:str):
+    while True:
+        random_suffix = random.randint(1, 9999)
+        new_name = f"{nama}#{random_suffix}"
+        user = await userdata.filter(nama=new_name).first()
+        if user is None:
+            return new_name
+        
+async def userIni(namaORemail: str):
+    nama = await userdata.filter(nama=namaORemail).first()
+    if nama:
+        return nama
+    else:
+        email = await userdata.filter(email=namaORemail).first()
+        if email:
+            return email
+        else:
+            return False
