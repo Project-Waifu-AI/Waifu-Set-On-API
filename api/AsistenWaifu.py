@@ -10,6 +10,7 @@ router = APIRouter(prefix='/AsistenWaifu', tags=['AsistenWaifu-action'])
 
 @router.get('/pesan-meimei-himari')
 async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
+    
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -48,7 +49,7 @@ async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
     data.append(data_audio)
     save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
     await save.save()
-    return JSONResponse (data)
+    return JSONResponse (data, status_code=200)
 
 @router.get('/pesan-nurse-T')
 async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
@@ -90,7 +91,7 @@ async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
     data.append(data_audio)
     save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
     await save.save()
-    return JSONResponse (data)
+    return JSONResponse (data, status_code=200)
 
 @router.get('/pesan-kusukabe-tsumugi')
 async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
@@ -132,7 +133,7 @@ async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
     data.append(data_audio)
     save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
     await save.save()
-    return JSONResponse (data)
+    return JSONResponse (data, status_code=200)
 
 @router.get('/pesan-no.7')
 async def pesan_no7(pesan: str, access_token: str = Header(...)):
@@ -174,7 +175,7 @@ async def pesan_no7(pesan: str, access_token: str = Header(...)):
     data.append(data_audio)
     save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
     await save.save()
-    return JSONResponse (data)
+    return JSONResponse (data, status_code=200)
 
 @router.get('/pesan-SAYO')
 async def pesan_sayo(pesan: str, access_token: str = Header(...)):
@@ -216,7 +217,7 @@ async def pesan_sayo(pesan: str, access_token: str = Header(...)):
     data.append(data_audio)
     save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
     await save.save()
-    return JSONResponse (data)
+    return JSONResponse (data, status_code=200)
 
 @router.delete('/delete-obrolan')
 async def delete_obrolan(access_token: str = Header(...)):

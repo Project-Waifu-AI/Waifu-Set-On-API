@@ -3,5 +3,4 @@ test.py
 client_secret.json
 .env
 **/__pycache__/
-test.js
 credentials_google.json

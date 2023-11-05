@@ -29,11 +29,11 @@ async def obrolan(input_text, userid, setKarakter):
     obrolanBaru = {
             'role': 'user', 'content': input_text
         }
-    setNama = f'namaku adalah {user.nama}' if user.nama is not None else ''
-    setUlangTahun = f'ulang tahun ku {user.ulang_tahun}' if user.ulang_tahun is not None else ''
-    setGender = f'genderku {user.gender}' if user.gender is not None else ''
+    setNama = f'nama user adalah {user.nama}' if user.nama is not None else ''
+    setUlangTahun = f'ulang tahun user adalah {user.ulang_tahun}' if user.ulang_tahun is not None else ''
+    setGender = f'gender user adalah {user.gender}' if user.gender is not None else ''
     setUser = {
-        'role': 'user', 'content': f'{setNama},{setUlangTahun},{setGender}'
+        'role': 'assistant', 'content': f'{setNama},{setUlangTahun},{setGender}'
     }
     obrolan.append(setUser)
     if logObrolan:
@@ -45,7 +45,6 @@ async def obrolan(input_text, userid, setKarakter):
         obrolan.append(obrolanBaru)
     else:
         obrolan.append(obrolanBaru)
-    
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=obrolan,
