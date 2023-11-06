@@ -30,7 +30,7 @@ async def register(email: str):
     token_konfirmasi = ''.join([str(random.randint(0, 9)) for _ in range(5)])
     user = await userdata.filter(email=email).first()
     validasi_email = validation_email(email=email)
-
+    
     if validasi_email is False:
         raise HTTPException(status_code=400, detail="email yang anda masukan tidak valid")
     

@@ -40,7 +40,7 @@ async function regisFetch(email) {
 
         if (response.status === 200) {
             const data = await response.json();
-
+            
             return data;
         } else {
             throw new Error('Request failed with status ' + response.status);
@@ -81,20 +81,3 @@ async function simpanUserFetch(email, password, konfirmasiPassword, token) {
 }
 
 module.exports = {loginFetch, regisFetch, simpanUserFetch};
-
-// test fetch
-ulang_tahun = new Date('2023-11-04');
-
-const email = 'godim.ngadinegaran@gmail.com';
-const password = '230205';
-const konfirmasi_password = '230205';
-const token = '36967';
-const pesan = 'hai siapa namamu';
-const access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxZGQwMDkwZS0xZDdmLTQ0NTQtYmEyMi0xNzlmYWQzNTJkNzciLCJsZXZlbCI6InVzZXIiLCJleHAiOjE2OTkxNzk0Njd9.8IvicnHa84SeAiWhvKCz05ySA4WDzuBygoiN65qPoeM';
-loginFetch(email, password)
-    .then(data => {
-        console.log('pesan:', data);
-    })
-    .catch(error => {
-        console.error(error);
-    });

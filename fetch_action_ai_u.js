@@ -1,7 +1,8 @@
 const url_action_aiu = 'http://localhost:8000/AsistenWaifu'
 
-async function pesanMeimeiHimari(pesan, access_token) {
-    const url = `${url_action_aiu}/pesan-meimei-himari?pesan=${pesan}`;
+async function pesanMeimeiHimari(bahasa) {
+    const speakerID = 14
+    const url = `${url_action_aiu}/change-voice?BahasaYangDigunakan=${pesan}`;
     try {
         const response = await fetch(url, {
             method: 'GET',

@@ -14,7 +14,7 @@ def user_response(user, password=None):
         'akunwso': user.akunwso,
         'googleauth': user.googleAuth,
         'gender': user.gender,
-        'ulang tahun': user.ulang_tahun,
+        'ulang tahun': str(user.ulang_tahun),
         'karakter_yang_dimiliki': user.karakterYangDimiliki,
         'NegaiGoto': user.NegaiGoto,
         'AtsumaruKanjo': user.AtsumaruKanjo,
