@@ -38,13 +38,13 @@ async def register(email: str):
         if user.ban:
             raise HTTPException(status_code=403, detail="akun anda telah di ban")
         else:
-            if user.googleAuth is True:
+            if user.akunwso is False:
                 send(target_email=email, token=token_konfirmasi)
                 user.token_konfirmasi = token_konfirmasi
                 await user.save()
                 response = pesan_response(email=email, pesan=f'token konfirmasi telah dikirimakan')
                 return JSONResponse(response, status_code=200)
-            if user.akunwso is True:
+            else:
                 raise HTTPException(detail='email anda telah terdaftar pada akunbw tidak dapat membuat lagi', status_code=403)
     else:
         send(target_email=email, token=token_konfirmasi)
