@@ -19,25 +19,28 @@ async def update_userData(meta: updateUser, access_token: str = Header(...)):
 
     user = await userdata.filter(user_id=user_id).first()
     if user:
-        if meta.nama:
-            user.nama = meta.nama
+        try:    
+            if meta.nama:
+                user.nama = meta.nama
+                if await apakahNamakuAda(nama=meta.nama) == True:
+                    await user.save()
+                else:
+                    raise HTTPException(detail='nama yang ingin anda gunakan sudah digunakan oleh orang lain', status_code=405)
+                
+            if meta.gender:
+                if meta.gender in ('pria', 'perempuan'):
+                    user.gender = meta.gender
+                    await user.save()
+                else:
+                    raise HTTPException(detail='gender yang anda masukan tidak valid', status_code=400)
             
-            if await apakahNamakuAda(nama=meta.nama) == True:
+            if meta.ulang_tahun is not None:
+                user.ulang_tahun = meta.ulang_tahun
                 await user.save()
-            else:
-                raise HTTPException(detail='nama yang ingin anda gunakan sudah digunakan oleh orang lain', status_code=405)
-        
-        if meta.gender:
-            if meta.gender in ('pria', 'perempuan'):
-                user.gender = meta.gender
-                await user.save()
-            else:
-                raise HTTPException(detail='gender yang anda masukan tidak valid', status_code=400)
-        if meta.ulang_tahun is not None:
-            user.ulang_tahun = meta.ulang_tahun
-            await user.save()
-        response = pesan_response(email=user.email, pesan=f'data user dengan id {user_id} telah berhasil di update')
-        return JSONResponse(response, status_code=200)
+            response = pesan_response(email=user.email, pesan=f'data user dengan id {user_id} telah berhasil di update')
+            return JSONResponse(response, status_code=200)
+        except Exception as e:
+            raise HTTPException(detail=str(e), status_code=500)
     else:
         raise HTTPException(status_code=404, detail='data user tidak ditemukan')
     
@@ -49,10 +52,13 @@ async def user_data(access_token: str = Header(...)):
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
         user_id = payloadJWT.get('sub')
-
-    user = await userdata.filter(user_id=user_id).first()
-    response = user_response(user=user)
-    return JSONResponse(response, status_code=200)
+        
+    try:        
+        user = await userdata.filter(user_id=user_id).first()
+        response = user_response(user=user)
+        return JSONResponse(response, status_code=200)
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=500)
 
 @router.delete('/delete-account')
 async def deleteAcount(access_token: str = Header(...)):
@@ -62,8 +68,10 @@ async def deleteAcount(access_token: str = Header(...)):
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
         user_id = payloadJWT.get('sub')
-
-    user = await userdata.filter(user_id=user_id).first()
-    await user.delete()
-    repsonse = pesan_response(email=user.email, pesan='akun anda telah berhasil dihapus')
-    return JSONResponse (repsonse, status_code=200)
+    try:    
+        user = await userdata.filter(user_id=user_id).first()
+        await user.delete()
+        repsonse = pesan_response(email=user.email, pesan='akun anda telah berhasil dihapus')
+        return JSONResponse (repsonse, status_code=200)
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=500)

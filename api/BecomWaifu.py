@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Header, UploadFile, File
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydub import AudioSegment
-from googletrans import Translator
 import speech_recognition as sr
 import tempfile
 from configs import config
@@ -9,9 +8,8 @@ from body_request.action_body_request import changeVoice
 from database.model import logaudio, userdata
 from helping.response_helper import pesan_response
 from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium_becomewaifu
-from helping.action_helper import request_audio
+from helping.action_helper import request_audio, to_japan
 
-translator = Translator()
 r = sr.Recognizer()
 router = APIRouter(prefix='/BecomeWaifu', tags=['BecomeWaifu-action'])
 
@@ -40,18 +38,21 @@ async def change_voice(meta: changeVoice, access_token: str = Header(...), audio
     with sr.AudioFile(audio_file.file) as audio_file:
         audio_data = r.record(audio_file)
         transcript = r.recognize_google(audio_data, language=meta.BahasaYangDigunakan)
-    translation = translator.translate(transcript, dest='ja')
-    data_audio = request_audio(text=translation.text, speaker_id=meta.speakerID)
-    save = logaudio(audio_id=audio_id, user_id=user_id, transcript=transcript, translate=translation.text, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
-    await save.save()
-    data=[{
-        'userId': user_id,
-        'audiId': audio_id,
-        'transcript': transcript,
-        'translation': translation.text
-    }]
-    data.append(data_audio)
-    return JSONResponse(content=data, status_code=200)
+    translation = to_japan(transcript)
+    if translation['status'] is True:
+        data_audio = request_audio(text=translation['response'].text, speaker_id=meta.speakerID)
+        save = logaudio(audio_id=audio_id, user_id=user_id, transcript=transcript, translate=translation['response'].text, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+        await save.save()
+        data=[{
+            'userId': user_id,
+            'audiId': audio_id,
+            'transcript': transcript,
+            'translation': translation['response'].text
+        }]
+        data.append(data_audio)
+        return JSONResponse(content=data, status_code=200)
+    else:
+        raise HTTPException(detail=translation, status_code=500)
     
 @router.get('/get-all-logaudio/{audio}')
 async def get_all_logaudio(access_token: str = Header(...)):

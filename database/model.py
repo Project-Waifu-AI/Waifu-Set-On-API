@@ -75,15 +75,3 @@ class KarakterData(Model):
     
     def __str__(self):
         return self.karakter_id
-
-class access_token_data(Model):
-    access_token = fields.UUIDField(pk=True)
-    level = fields.CharField(max_length=5)
-    waktu_basi = fields.DatetimeField()
-    user_id = fields.CharField(max_length=225)
-    
-    class Meta:
-        table = "access_token"
-        
-    def __str__(self):
-        return self.access_token

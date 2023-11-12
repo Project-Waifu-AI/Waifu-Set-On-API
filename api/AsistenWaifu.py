@@ -10,8 +10,8 @@ router = APIRouter(prefix='/AsistenWaifu', tags=['AsistenWaifu-action'])
 
 @router.get('/pesan-meimei-himari')
 async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
-    
     check = check_access_token_expired(access_token=access_token)
+    
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
@@ -30,26 +30,34 @@ async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
     }
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
-    user = await userdata.filter(user_id=user_id).first()
-    premium = check_premium_AI_U(user=user)
-    if premium is False:
-        translate = to_japan(input=response)
-    elif premium is False:
-        translate = to_japan_premium(input=response)
+    if response['status'] is True:
+        user = await userdata.filter(user_id=user_id).first()
+        premium = check_premium_AI_U(user=user)
+        if premium is False:
+            translate = to_japan(input=response['output'])
+        elif premium is False:
+            translate = to_japan_premium(input=response['output'])
+        else:
+            translate = to_japan(input=response['output'])
+        
+        if translate['status'] is True:
+            speakerId = 14
+            data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
+            data = [{
+                'pesan': pesan,
+                'response': response['output'],
+                'translate': translate['response'],
+            }]
+            
+            data.append(data_audio)
+            save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+            await save.save()
+            return JSONResponse (data, status_code=200)
+        
+        else:
+            raise HTTPException (detail=translate['response'], status_code=500)
     else:
-        translate = to_japan(input=response)
-
-    speakerId = 14
-    data_audio = request_audio(text=translate, speaker_id=speakerId)
-    data = [{
-        'pesan': pesan,
-        'response': response,
-        'translate': translate,
-    }]
-    data.append(data_audio)
-    save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
-    await save.save()
-    return JSONResponse (data, status_code=200)
+        raise HTTPException(detail=response['output'], status_code=500)
 
 @router.get('/pesan-nurse-T')
 async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
@@ -72,26 +80,31 @@ async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
     }
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
-    user = await userdata.filter(user_id=user_id).first()
-    premium = check_premium_AI_U(user=user)
-    if premium is False:
-        translate = to_japan(input=response)
-    elif premium is False:
-        translate = to_japan_premium(input=response)
+    if response['status'] is True:
+        user = await userdata.filter(user_id=user_id).first()
+        premium = check_premium_AI_U(user=user)
+        if premium is False:
+            translate = to_japan(input=response['output'])
+        elif premium is False:
+            translate = to_japan_premium(input=response['output'])
+        else:
+            translate = to_japan(input=response['output'])
+        if translate['status'] is True:
+            speakerId = 47
+            data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
+            data = [{
+                'pesan': pesan,
+                'response': response['output'],
+                'translate': translate['response'],
+            }]
+            data.append(data_audio)
+            save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+            await save.save()
+            return JSONResponse (data, status_code=200)
+        else:
+            raise HTTPException(detail=translate, status_code=500)
     else:
-        translate = to_japan(input=response)
-
-    speakerId = 47
-    data_audio = request_audio(text=translate, speaker_id=speakerId)
-    data = [{
-        'pesan': pesan,
-        'response': response,
-        'translate': translate,
-    }]
-    data.append(data_audio)
-    save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
-    await save.save()
-    return JSONResponse (data, status_code=200)
+        raise HTTPException(detail=response['output'], status_code=500)
 
 @router.get('/pesan-kusukabe-tsumugi')
 async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
@@ -114,26 +127,31 @@ async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
     }
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
-    user = await userdata.filter(user_id=user_id).first()
-    premium = check_premium_AI_U(user=user)
-    if premium is False:
-        translate = to_japan(input=response)
-    elif premium is False:
-        translate = to_japan_premium(input=response)
+    if response['status'] is True:
+        user = await userdata.filter(user_id=user_id).first()
+        premium = check_premium_AI_U(user=user)
+        if premium is False:
+            translate = to_japan(input=response['output'])
+        elif premium is False:
+            translate = to_japan_premium(input=response['output'])
+        else:
+            translate = to_japan(input=response['output'])
+        if translate['status'] is True:
+            speakerId = 8
+            data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
+            data = [{
+                'pesan': pesan,
+                'response': response['output'],
+                'translate': translate['response'],
+            }]
+            data.append(data_audio)
+            save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+            await save.save()
+            return JSONResponse (data, status_code=200)
+        else:
+            raise HTTPException(detail=translate['response'], status_code=500)
     else:
-        translate = to_japan(input=response)
-    
-    speakerId = 8
-    data_audio = request_audio(text=translate, speaker_id=speakerId)
-    data = [{
-        'pesan': pesan,
-        'response': response,
-        'translate': translate,
-    }]
-    data.append(data_audio)
-    save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
-    await save.save()
-    return JSONResponse (data, status_code=200)
+        raise HTTPException(detail=response['output'], status_code=500)
 
 @router.get('/pesan-no.7')
 async def pesan_no7(pesan: str, access_token: str = Header(...)):
@@ -156,32 +174,43 @@ async def pesan_no7(pesan: str, access_token: str = Header(...)):
     }
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
-    user = await userdata.filter(user_id=user_id).first()
-    premium = check_premium_AI_U(user=user)
-    if premium is False:
-        translate = to_japan(input=response)
-    elif premium is False:
-        translate = to_japan_premium(input=response)
+    
+    if response['status'] is True:
+        
+        user = await userdata.filter(user_id=user_id).first()
+        
+        premium = check_premium_AI_U(user=user)
+        if premium is False:
+            translate = to_japan(input=response['output'])
+        
+        elif premium is False:
+            translate = to_japan_premium(input=response['output'])
+        
+        else:
+            translate = to_japan(input=response['output'])
+        if translate['status'] is True:
+            speakerId = 29
+            data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
+            data = [{
+                'pesan': pesan,
+                'response': response['output'],
+                'translate': translate['response'],
+            }]
+            data.append(data_audio)
+            save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+            await save.save()
+            return JSONResponse (data, status_code=200)
+        else:
+            raise HTTPException(detail=translate['response'], status_code=500)
     else:
-        translate = to_japan(input=response)
-
-    speakerId = 29
-    data_audio = request_audio(text=translate, speaker_id=speakerId)
-    data = [{
-        'pesan': pesan,
-        'response': response,
-        'translate': translate,
-    }]
-    data.append(data_audio)
-    save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
-    await save.save()
-    return JSONResponse (data, status_code=200)
+        raise HTTPException(detail=response['output'], status_code=500)
 
 @router.get('/pesan-SAYO')
 async def pesan_sayo(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
         user_id = payloadJWT.get('sub')
@@ -189,6 +218,7 @@ async def pesan_sayo(pesan: str, access_token: str = Header(...)):
     user_data = await logpercakapan.filter(user_id=user_id).order_by("-id_percakapan").first()
     if user_data:
         id_percakapan = user_data.id_percakapan + 1
+    
     else:
         id_percakapan = 1  
     
@@ -198,26 +228,35 @@ async def pesan_sayo(pesan: str, access_token: str = Header(...)):
     }
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
-    user = await userdata.filter(user_id=user_id).first()
-    premium = check_premium_AI_U(user=user)
-    if premium is False:
-        translate = to_japan(input=response)
-    elif premium is False:
-        translate = to_japan_premium(input=response)
+    
+    if response['status'] is True:
+        user = await userdata.filter(user_id=user_id).first()
+        
+        premium = check_premium_AI_U(user=user)
+        if premium is False:
+            translate = to_japan(input=response['output'])
+        
+        elif premium is False:
+            translate = to_japan_premium(input=response['output'])
+        
+        else:
+            translate = to_japan(input=response['output'])
+        if translate['status'] is True:
+            speakerId = 46
+            data_audio = request_audio(text=translate, speaker_id=speakerId)
+            data = [{
+                'pesan': pesan,
+                'response': response['output'] ,
+                'translate': translate['response'],
+            }]
+            data.append(data_audio)
+            save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+            await save.save()
+            return JSONResponse (data, status_code=200)
+        else:
+            raise HTTPException(detail=translate['response'], status_code=500)
     else:
-        translate = to_japan(input=response)
-
-    speakerId = 46
-    data_audio = request_audio(text=translate, speaker_id=speakerId)
-    data = [{
-        'pesan': pesan,
-        'response': response,
-        'translate': translate,
-    }]
-    data.append(data_audio)
-    save = logpercakapan(id_percakapan=id_percakapan, user_id=user_id, input=pesan, output=response, translate=translate, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
-    await save.save()
-    return JSONResponse (data, status_code=200)
+        raise HTTPException(detail=response['output'], status_code=500)
 
 @router.delete('/delete-obrolan')
 async def delete_obrolan(access_token: str = Header(...)):

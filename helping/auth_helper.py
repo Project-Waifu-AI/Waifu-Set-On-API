@@ -88,7 +88,7 @@ async def check_premium_AI_U(user):
         if data.waktu_basi and data.waktu_basi <= current_time:
             data.premium = False
             await data.save()
-            return ("masa premium telah habis")
+            return False
         else:
             return True
 

@@ -45,21 +45,42 @@ async def obrolan(input_text, userid, setKarakter):
         obrolan.append(obrolanBaru)
     else:
         obrolan.append(obrolanBaru)
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=obrolan,
-        temperature = 0
-    )
-    print (response)
-    return response.choices[0].message.content
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=obrolan,
+            temperature = 0
+        )
+        print (response)
+        return {
+            'status': True,
+            'output':response.choices[0].message.content
+        }
+    except Exception as e:
+        return{
+            'status': False,
+            'output': str(e)
+        }
 
 def to_japan(input):
-    detected_language = detect(input)  
-    if detected_language != 'ja':
-        response = tl.translate(input, src=detected_language, dest='ja').text
-        return response
-    else:
-        return input
+    detected_language = detect(input)
+    try:  
+        if detected_language != 'ja':
+            response = tl.translate(input, src=detected_language, dest='ja').text
+            return {
+                'status': True,
+                'response': response
+            }
+        else:
+            return {
+                'status': True,
+                'response': input
+            }
+    except Exception as e:
+        return{
+            'status': False,
+            'response': str(e)
+        }
     
 def to_japan_premium(input):
     set = [
@@ -71,9 +92,20 @@ def to_japan_premium(input):
         'role': 'user', 'content': input
     }
     set.append(trans)
-    translate = openai.ChatCompletion.create(
-        model='gpt-4',
-        messages=set
-    )
-    print (translate)
-    return translate.choices[0].message.content
+    
+    try:
+        translate = openai.ChatCompletion.create(
+            model='gpt-4',
+            messages=set
+        )
+        print (translate)
+        return {
+            'status':True,
+            'response': translate.choices[0].message.content
+        }
+    
+    except Exception as e:
+        return{
+            'status': False,
+            'response': str(e)
+        }
