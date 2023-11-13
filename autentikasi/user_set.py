@@ -52,13 +52,14 @@ async def user_data(access_token: str = Header(...)):
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
         user_id = payloadJWT.get('sub')
-        
-    try:        
-        user = await userdata.filter(user_id=user_id).first()
-        response = user_response(user=user)
-        return JSONResponse(response, status_code=200)
-    except Exception as e:
-        raise HTTPException(detail=str(e), status_code=500)
+          
+    user = await userdata.filter(user_id=user_id).first()
+    
+    if user is None:
+        raise HTTPException(detail='user data not found', status_code=404)
+    response = user_response(user=user)
+    return JSONResponse(response, status_code=200)
+
 
 @router.delete('/delete-account')
 async def deleteAcount(access_token: str = Header(...)):
@@ -67,11 +68,10 @@ async def deleteAcount(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
-    try:    
-        user = await userdata.filter(user_id=user_id).first()
-        await user.delete()
-        repsonse = pesan_response(email=user.email, pesan='akun anda telah berhasil dihapus')
-        return JSONResponse (repsonse, status_code=200)
-    except Exception as e:
-        raise HTTPException(detail=str(e), status_code=500)
+        user_id = payloadJWT.get('sub') 
+    user = await userdata.filter(user_id=user_id).first()
+    if user is None:
+        raise HTTPException(detail='user tidak ditemukan', status_code=404)
+    await user.delete()
+    repsonse = pesan_response(email=user.email, pesan='akun anda telah berhasil dihapus')
+    return JSONResponse (repsonse, status_code=200)
