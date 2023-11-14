@@ -125,3 +125,16 @@ async def userIni(namaORemail: str):
             return email
         else:
             return False
+
+def valid_password(password: str):
+    if len(password) < 8:
+        return False
+    else:
+        return True
+    
+    if not (re.search("[a-z]", password) and
+            re.search("[A-Z]", password) and
+            re.search("[0-9]", password)):
+            return False
+    else:
+        return True

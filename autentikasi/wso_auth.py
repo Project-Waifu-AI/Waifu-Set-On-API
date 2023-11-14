@@ -4,7 +4,7 @@ import random
 from body_request.auth_body_request import LoginWSO, SimpanUserWSO
 from database.model import userdata
 from webhook.send_email import send
-from helping.auth_helper import check_password, create_access_token, validation_email, set_password, userIni
+from helping.auth_helper import check_password, create_access_token, validation_email, set_password, userIni, valid_password
 from helping.response_helper import pesan_response, user_response
 from webhook.send_email import send
 from configs import config
@@ -76,6 +76,9 @@ async def simpan_user(meta: SimpanUserWSO):
     user = await userdata.filter(email=meta.email).first()
 
     if meta.password == meta.konfirmasi_password:
+        if valid_password(meta.password) is False:
+            raise HTTPException(detail='password anda kurang mantap man, minimal 8 karakter, kombinasi Lower dan Upper case huruf dan ditambahkan angka juga') 
+        
         if user:
             if user.token_konfirmasi and user.token_konfirmasi == meta.token:
                 # Token cocok dengan pengguna
