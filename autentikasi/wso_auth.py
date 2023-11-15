@@ -77,7 +77,7 @@ async def simpan_user(meta: SimpanUserWSO):
 
     if meta.password == meta.konfirmasi_password:
         if valid_password(meta.password) is False:
-            raise HTTPException(detail='password anda kurang mantap man, minimal 8 karakter, kombinasi Lower dan Upper case huruf dan ditambahkan angka juga') 
+            raise HTTPException(detail='password anda kurang mantap man, minimal 8 karakter, kombinasi Lower dan Upper case huruf dan ditambahkan angka juga', status_code=400) 
         
         if user:
             if user.token_konfirmasi and user.token_konfirmasi == meta.token:
