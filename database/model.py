@@ -20,7 +20,7 @@ class logpercakapan(Model):
     id_percakapan = fields.IntField()
     user_id = fields.CharField(max_length=225)
     input = fields.CharField(max_length=225)
-    output = fields.CharField(max_length=225)
+    output = fields.TextField()
     translate = fields.CharField(max_length=225)
     audio_streming = fields.CharField(max_length=225)
     audio_download = fields.CharField(max_length=225) 
