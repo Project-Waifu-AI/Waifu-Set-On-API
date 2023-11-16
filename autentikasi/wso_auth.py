@@ -3,10 +3,9 @@ from fastapi.responses import JSONResponse, RedirectResponse
 import random
 from body_request.auth_body_request import LoginWSO, SimpanUserWSO
 from database.model import userdata
-from webhook.send_email import send
 from helping.auth_helper import check_password, create_access_token, validation_email, set_password, userIni, valid_password
 from helping.response_helper import pesan_response, user_response
-from webhook.send_email import send
+from webhook.send_email import send_verify_token
 from configs import config
 
 router = APIRouter(prefix='/wso-auth', tags=['Waifu-Set-On-autentikasi'])
@@ -45,7 +44,7 @@ async def register(email: str):
             raise HTTPException(status_code=403, detail="akun anda telah di ban")
         else:
             if user.akunwso is False:
-                sendEmail01=send(target_email=email, token=token_konfirmasi)
+                sendEmail01=send_verify_token(target_email=email, token=token_konfirmasi)
                 if sendEmail01 is True:
                     try:
                         user.token_konfirmasi = token_konfirmasi
@@ -59,7 +58,7 @@ async def register(email: str):
             else:
                 raise HTTPException(detail='email anda telah terdaftar pada akunbw tidak dapat membuat lagi', status_code=403)
     else:
-        sendEmail02 = send(target_email=email, token=token_konfirmasi)
+        sendEmail02 = send_verify_token(target_email=email, token=token_konfirmasi)
         if sendEmail02 is True:
             try:
                 save = userdata(email=email, token_konfirmasi=token_konfirmasi)

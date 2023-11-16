@@ -4,12 +4,12 @@ from datetime import datetime, timedelta, timezone
 from database.model import logaudio
 from ast import pattern
 from jose import jwt
+from typing import Optional
 import random
 import bcrypt
 import secrets
 import pytz
 import re
-
 def credentials_to_dict(credentials):
     return {
         "token": credentials.token,
@@ -32,7 +32,7 @@ def set_password(password: str):
     hash = bcrypt.hashpw(bytes, salt)
     return hash
 
-def create_access_token(user):
+def create_access_token(user, permintaan: Optional[str]):
     if user.admin is False:
         level = 'user'
     elif user.admin is True:
@@ -42,6 +42,8 @@ def create_access_token(user):
         "level": level,
         "exp": datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(hours=8),
     }
+    if permintaan:
+        to_encode.update({'permintaan':permintaan})
     encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
     return encoded_token
 
@@ -129,12 +131,10 @@ async def userIni(namaORemail: str):
 def valid_password(password: str):
     if len(password) < 8:
         return False
-    else:
-        return True
     
     if not (re.search("[a-z]", password) and
             re.search("[A-Z]", password) and
             re.search("[0-9]", password)):
             return False
-    else:
-        return True
+    
+    return True

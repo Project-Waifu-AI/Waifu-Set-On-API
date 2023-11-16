@@ -16,3 +16,7 @@ class SimpanUserWSO(BaseModel):
     password: Optional[str]
     konfirmasi_password: Optional[str]
     token: Optional[str]
+
+class updatePassword(BaseModel):
+    password: Optional[str]
+    konfirmasi_password: Optional[str]

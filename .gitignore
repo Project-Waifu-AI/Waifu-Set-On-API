@@ -1,5 +1,6 @@
 env/**
 test.py
+test.html
 client_secret.json
 .env
 **/__pycache__/

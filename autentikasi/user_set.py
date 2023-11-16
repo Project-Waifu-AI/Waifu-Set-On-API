@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Request
 from fastapi.responses import RedirectResponse, JSONResponse
-from body_request.auth_body_request import updateUser
+from body_request.auth_body_request import updateUser, updatePassword
 from configs import config
 from database.model import userdata
-from helping.auth_helper import check_access_token_expired, decode_access_token, apakahNamakuAda
+from webhook.send_email import send_password_change
+from helping.auth_helper import check_access_token_expired, decode_access_token, apakahNamakuAda, userIni, create_access_token, valid_password, set_password
 from helping.response_helper import pesan_response, user_response
 
 router = APIRouter(prefix='/user', tags=['user-data'])
@@ -60,6 +61,43 @@ async def user_data(access_token: str = Header(...)):
     response = user_response(user=user)
     return JSONResponse(response, status_code=200)
 
+
+@router.post('/forgot-password')
+async def forgotPassword(email:str):
+    user = await userIni(namaORemail=email)
+    
+    if user is False:
+        raise HTTPException(detail='your email is not found', status_code=404)
+    else:
+        access_token = await create_access_token(user=user, permintaan='change-password')
+        send = await send_password_change(target_email=email, access_toke=access_token)
+        if send is True:
+            return JSONResponse(pesan_response(email=email, pesan='email untuk melakukan reset password sudah dikirimkan ke email anda'), status_code=200)
+        else:
+            raise HTTPException(detail=send, status_code=500)
+
+@router.get('/change-password')
+async def want_change_password(request: Request, meta: updatePassword):
+    access_token = request.query_params.get("access_token")
+    if meta.password == meta.konfirmasi_password:
+        check = check_access_token_expired(access_token=access_token)
+        if check is True:
+            raise HTTPException(detail='kirimkan permintaan ulang untuk reset password')
+        elif check is False:
+            payloadJWT = decode_access_token(access_token=access_token)
+            permintaan = payloadJWT.get('permintaan')
+            user_id = payloadJWT.get('sub')
+            if permintaan is not 'change-password':
+                raise HTTPException(detail='permintaan tidak valid', status_code=403)
+            valid = valid_password(password=meta.password)
+            if valid is False:
+                raise HTTPException(detail='password anda lemah coy', status_code=400)
+            user = await userdata.filter(user_id=user_id).first()
+            user.password = set_password(password=meta.password)
+            user.save()
+            return JSONResponse(pesan_response(email=user.email, pesan='password anda telah berhasil di update'), status_code=200)
+    else:
+        raise HTTPException(detail='password anda dengan konfirmasi password tidak sama', status_code=400)
 
 @router.delete('/delete-account')
 async def deleteAcount(access_token: str = Header(...)):

@@ -49,7 +49,8 @@ async def obrolan(input_text, userid, setKarakter):
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=obrolan,
-            temperature = 0
+            temperature = 0.5,
+            max_tokens = 40
         )
         print (response)
         return {
