@@ -7,7 +7,7 @@ from configs import config
 from body_request.action_body_request import changeVoice
 from database.model import logaudio, userdata
 from helping.response_helper import pesan_response
-from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium_becomewaifu
+from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium
 from helping.action_helper import request_audio, to_japan
 
 r = sr.Recognizer()
@@ -22,9 +22,12 @@ async def change_voice(meta: changeVoice, access_token: str = Header(...), audio
         payloadJWT = decode_access_token(access_token=access_token)
         user_id = payloadJWT.get('sub')
 
-    premium_check = await check_premium_becomewaifu(user_id=user_id)
-    if premium_check:
-        raise HTTPException(status_code=400, detail=premium_check)
+    premium_check = await check_premium(user_id=user_id)
+    if premium_check['status'] is False:
+        user_audio_count = await logaudio.filter(user_id=user_id).count()
+        if user_audio_count >= 10:
+            raise HTTPException(detail='logaudio data anda telah mencapai limit. Upgrade ke plan premium atau hapus logaudio.', status_code=400)
+    
     user_data = await logaudio.filter(user_id=user_id).order_by("-audio_id").first()
     if user_data:
         audio_id = user_data.audio_id + 1

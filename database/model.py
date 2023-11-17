@@ -46,6 +46,7 @@ class userdata(Model):
     akunwso = fields.BooleanField(default=False)
     googleAuth = fields.BooleanField(default=False)
     token_konfirmasi = fields.CharField(max_length=225, null=True)
+    premium_token = fields.CharField(max_length=225, null=True)
     ban = fields.BooleanField(default=False)
 
     class Meta:
@@ -58,6 +59,7 @@ class premium(Model):
     user_id = fields.CharField(max_length=225, pk=True)
     premium = fields.BooleanField(default=False)
     waktu_basi = fields.DatetimeField(null=True)
+    token_premium = fields.CharField(null=True)
     
     class Meta:
         table = 'premium'

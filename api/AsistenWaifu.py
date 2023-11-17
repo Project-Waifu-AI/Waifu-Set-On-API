@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from database.model import logpercakapan, userdata
 from helping.action_helper import obrolan, to_japan, request_audio, to_japan_premium
 from helping.response_helper import pesan_response
-from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium_AI_U
+from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium
 from configs import config
 
 router = APIRouter(prefix='/AsistenWaifu', tags=['AsistenWaifu-action'])
@@ -31,14 +31,14 @@ async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
     if response['status'] is True:
-        user = await userdata.filter(user_id=user_id).first()
-        premium = check_premium_AI_U(user=user)
-        if premium is False:
+        premium = check_premium(user_id=user_id)
+        if premium['status'] is False:
             translate = to_japan(input=response['output'])
-        elif premium is False:
-            translate = to_japan_premium(input=response['output'])
         else:
-            translate = to_japan(input=response['output'])
+            if premium['keterangan'].lower() == 'bw':
+                translate = to_japan(input=response['output'])
+            else:
+                translate = to_japan_premium(input=response['output'])
         
         if translate['status'] is True:
             speakerId = 14
@@ -81,14 +81,15 @@ async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
     if response['status'] is True:
-        user = await userdata.filter(user_id=user_id).first()
-        premium = check_premium_AI_U(user=user)
-        if premium is False:
+        premium = check_premium(user_id=user_id)
+        if premium['status'] is False:
             translate = to_japan(input=response['output'])
-        elif premium is False:
-            translate = to_japan_premium(input=response['output'])
         else:
-            translate = to_japan(input=response['output'])
+            if premium['keterangan'].lower() == 'bw':
+                translate = to_japan(input=response['output'])
+            else:
+                translate = to_japan_premium(input=response['output'])
+
         if translate['status'] is True:
             speakerId = 47
             data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
@@ -128,14 +129,15 @@ async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
     if response['status'] is True:
-        user = await userdata.filter(user_id=user_id).first()
-        premium = check_premium_AI_U(user=user)
-        if premium is False:
+        premium = check_premium(user_id=user_id)
+        if premium['status'] is False:
             translate = to_japan(input=response['output'])
-        elif premium is False:
-            translate = to_japan_premium(input=response['output'])
         else:
-            translate = to_japan(input=response['output'])
+            if premium['keterangan'].lower() == 'bw':
+                translate = to_japan(input=response['output'])
+            else:
+                translate = to_japan_premium(input=response['output'])
+
         if translate['status'] is True:
             speakerId = 8
             data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
@@ -176,18 +178,15 @@ async def pesan_no7(pesan: str, access_token: str = Header(...)):
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
     
     if response['status'] is True:
-        
-        user = await userdata.filter(user_id=user_id).first()
-        
-        premium = check_premium_AI_U(user=user)
-        if premium is False:
+        premium = check_premium(user_id=user_id)
+        if premium['status'] is False:
             translate = to_japan(input=response['output'])
-        
-        elif premium is False:
-            translate = to_japan_premium(input=response['output'])
-        
         else:
-            translate = to_japan(input=response['output'])
+            if premium['keterangan'].lower() == 'bw':
+                translate = to_japan(input=response['output'])
+            else:
+                translate = to_japan_premium(input=response['output'])
+
         if translate['status'] is True:
             speakerId = 29
             data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
@@ -230,17 +229,15 @@ async def pesan_sayo(pesan: str, access_token: str = Header(...)):
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
     
     if response['status'] is True:
-        user = await userdata.filter(user_id=user_id).first()
-        
-        premium = check_premium_AI_U(user=user)
-        if premium is False:
+        premium = await check_premium(user_id=user_id)
+        if premium['status'] is False:
             translate = to_japan(input=response['output'])
-        
-        elif premium is False:
-            translate = to_japan_premium(input=response['output'])
-        
         else:
-            translate = to_japan(input=response['output'])
+            if premium['keterangan'].lower() == 'bw':
+                translate = to_japan(input=response['output'])
+            else:
+                translate = to_japan_premium(input=response['output'])
+
         if translate['status'] is True:
             speakerId = 46
             data_audio = request_audio(text=translate, speaker_id=speakerId)

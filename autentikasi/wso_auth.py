@@ -25,7 +25,7 @@ async def login_wso(meta: LoginWSO):
             raise HTTPException(status_code=401, detail="nama, email atau password yang anda masukan salah")
         else:
             try:
-                access_token = create_access_token(user=user, permintaan=None)
+                access_token = create_access_token(user=user)
                 return JSONResponse(content={'access_token': str(access_token)}, status_code=200)
             except Exception as e:
                 raise HTTPException(detail=str(e), status_code=500)
@@ -87,7 +87,7 @@ async def simpan_user(meta: SimpanUserWSO):
                     user.token_konfirmasi = None  # Hapus token
                     user.AtsumaruKanjo += 100
                     await user.save()
-                    access_token = create_access_token(user=user, permintaan=None)
+                    access_token = create_access_token(user=user)
                     return JSONResponse({'access_token':str(access_token)}, status_code=201)
                 except Exception as e:
                     raise HTTPException(detail=str(e), status_code=500)

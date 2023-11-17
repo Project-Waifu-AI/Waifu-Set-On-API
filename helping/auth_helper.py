@@ -10,6 +10,7 @@ import bcrypt
 import secrets
 import pytz
 import re
+
 def credentials_to_dict(credentials):
     return {
         "token": credentials.token,
@@ -32,7 +33,7 @@ def set_password(password: str):
     hash = bcrypt.hashpw(bytes, salt)
     return hash
 
-def create_access_token(user, permintaan: str | None):
+def create_access_token(user, permintaan: Optional[str]= None):
     if user.admin is False:
         level = 'user'
     elif user.admin is True:
@@ -44,11 +45,9 @@ def create_access_token(user, permintaan: str | None):
     }
     if permintaan is not None:
         to_encode.update({'permintaan':permintaan})
-        encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
-        return encoded_token
-    else:
-        encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
-        return encoded_token
+    
+    encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
+    return encoded_token
 
 def check_access_token_expired(access_token: str):
     try:
@@ -71,31 +70,50 @@ def decode_access_token(access_token: str):
     except jwt.InvalidTokenError:
         return None  # Token tidak valid
         
-async def check_premium_becomewaifu(user_id:str):
-    user = await premium.filter(user_id=user_id).first()
-    if user is None:
-        user_audio_count = await logaudio.filter(user_id=user_id).count()
-        if user_audio_count >= 10:
-            return ("logaudio data anda telah mencapai limit. Upgrade ke plan premium atau hapus logaudio.")
-    else:
-        current_time = datetime.now()
-        if user.waktu_basi and user.waktu_basi <= current_time:
-            user.premium = False
-            await user.save()
-            return ("Masa premium telah habis. Kembali ke versi gratis.")
-
-async def check_premium_AI_U(user):
-    data = await premium.filter(user_id=user.user_id).first()
-    if data.premium is False:
-        return False
-    elif data.premium is True:
-        current_time = datetime.now()
-        if data.waktu_basi and data.waktu_basi <= current_time:
-            data.premium = False
-            await data.save()
-            return False
+async def check_premium(user_id):
+    try:
+        user = await userdata.filter(user_id=user_id).first
+        if user.premium_token is None:
+            return{
+                'status': False,
+                'keterangan': 'silahkan pilih plan premium'
+            }
         else:
-            return True
+            if check_access_token_expired(access_token=user.premium_token) is True:
+                user.premium_token = None
+                user.save()
+                return{
+                    'status': False,
+                    'keterangan': 'akses premium user telah berakhir'
+                }
+            else:
+                cek = decode_access_token(access_token=user.premium)
+                planing = cek.get('plan')
+                return {
+                    'status': True,
+                    'keterangan': planing
+                }
+    except Exception as e:
+        return{
+            'status':False,
+            'keterangan': str(e)
+        }
+
+async def create_token_premium(user_id: str, plan: str):
+    try:
+        to_encode = {
+            "sub": user_id,
+            "plan": plan,
+            "exp": datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(hours=720),
+        }
+        encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
+        user = await userdata.filter(user_id=user_id).first()
+        user.premium = str(encoded_token)
+        user.save
+        return True
+    except Exception as e:
+        return False
+        print (str(e))
 
 def validation_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
