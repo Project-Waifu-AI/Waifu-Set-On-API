@@ -32,7 +32,7 @@ def set_password(password: str):
     hash = bcrypt.hashpw(bytes, salt)
     return hash
 
-def create_access_token(user, permintaan: Optional[str]):
+def create_access_token(user, permintaan: str | None):
     if user.admin is False:
         level = 'user'
     elif user.admin is True:
@@ -42,10 +42,13 @@ def create_access_token(user, permintaan: Optional[str]):
         "level": level,
         "exp": datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(hours=8),
     }
-    if permintaan:
+    if permintaan is not None:
         to_encode.update({'permintaan':permintaan})
-    encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
-    return encoded_token
+        encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
+        return encoded_token
+    else:
+        encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
+        return encoded_token
 
 def check_access_token_expired(access_token: str):
     try:
