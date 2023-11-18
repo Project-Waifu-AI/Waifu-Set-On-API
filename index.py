@@ -6,6 +6,7 @@ import api.BecomWaifu
 import autentikasi.google_auth
 import autentikasi.wso_auth
 import autentikasi.user_set
+import autentikasi.premium_auth
 import api.AsistenWaifu
 import api.admin_access
 import api.gachapon
@@ -31,6 +32,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+app.include_router(autentikasi.premium_auth.router)
 app.include_router(api.BecomWaifu.router)
 app.include_router(api.AsistenWaifu.router)
 app.include_router(api.gachapon.router)

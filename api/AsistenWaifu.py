@@ -31,7 +31,7 @@ async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
     if response['status'] is True:
-        premium = check_premium(user_id=user_id)
+        premium = await check_premium(user_id=user_id)
         if premium['status'] is False:
             translate = to_japan(input=response['output'])
         else:
@@ -81,7 +81,7 @@ async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
     if response['status'] is True:
-        premium = check_premium(user_id=user_id)
+        premium = await check_premium(user_id=user_id)
         if premium['status'] is False:
             translate = to_japan(input=response['output'])
         else:
@@ -129,7 +129,7 @@ async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
     
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
     if response['status'] is True:
-        premium = check_premium(user_id=user_id)
+        premium = await check_premium(user_id=user_id)
         if premium['status'] is False:
             translate = to_japan(input=response['output'])
         else:
@@ -178,7 +178,7 @@ async def pesan_no7(pesan: str, access_token: str = Header(...)):
     response = await obrolan(input_text=pesan, userid=user_id, setKarakter=setkarakter)
     
     if response['status'] is True:
-        premium = check_premium(user_id=user_id)
+        premium = await check_premium(user_id=user_id)
         if premium['status'] is False:
             translate = to_japan(input=response['output'])
         else:

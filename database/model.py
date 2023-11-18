@@ -55,18 +55,6 @@ class userdata(Model):
     def __str__(self):
         return self.user_id
 
-class premium(Model):
-    user_id = fields.CharField(max_length=225, pk=True)
-    premium = fields.BooleanField(default=False)
-    waktu_basi = fields.DatetimeField(null=True)
-    token_premium = fields.CharField(null=True)
-    
-    class Meta:
-        table = 'premium'
-    
-    def __str__(self):
-        return self.user_id
-
 class KarakterData(Model):
     nama = fields.CharField(max_length=225, pk=True)
     bahasaYangDigunakan = fields.CharField(max_length=225)

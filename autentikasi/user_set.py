@@ -87,7 +87,7 @@ async def want_change_password(request: Request, meta: updatePassword):
             payloadJWT = decode_access_token(access_token=access_token)
             permintaan = payloadJWT.get('permintaan')
             user_id = payloadJWT.get('sub')
-            if permintaan is not 'change-password':
+            if permintaan != 'change-password':
                 raise HTTPException(detail='permintaan tidak valid', status_code=403)
             valid = valid_password(password=meta.password)
             if valid is False:

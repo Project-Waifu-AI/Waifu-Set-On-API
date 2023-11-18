@@ -1,4 +1,4 @@
-from database.model import userdata, premium
+from database.model import userdata
 from configs import config
 from datetime import datetime, timedelta, timezone
 from database.model import logaudio
@@ -72,7 +72,7 @@ def decode_access_token(access_token: str):
         
 async def check_premium(user_id):
     try:
-        user = await userdata.filter(user_id=user_id).first
+        user = await userdata.filter(user_id=user_id).first()
         if user.premium_token is None:
             return{
                 'status': False,
@@ -110,11 +110,17 @@ async def create_token_premium(user_id: str, plan: str):
         user = await userdata.filter(user_id=user_id).first()
         user.premium = str(encoded_token)
         user.save
-        return True
+        return {
+            'status': True,
+            'keterangan': f'{user.email} selamat telah menjadi premium plan {plan}'
+            }
     except Exception as e:
-        return False
         print (str(e))
-
+        return {
+                'status': False,
+                'keterangan': str(e)
+                }
+    
 def validation_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
