@@ -7,19 +7,26 @@ from database.model import logpercakapan, userdata
 tl = Translator()
 
 def request_audio(text, speaker_id: int):
-    url = 'https://api.tts.quest/v3/voicevox/synthesis/'
-    params = {
-        'speaker': speaker_id, 
-        'text': text
-    }
-    response = requests.get(url, params=params)
-    data = response.json()
-    download = data.get('mp3DownloadUrl')
-    streaming = data.get('mp3StreamingUrl') 
-    return {
-        'download_audio': download,
-        'streaming_audio': streaming
-    }
+    try:
+        url = 'https://api.tts.quest/v3/voicevox/synthesis/'
+        params = {
+            'speaker': speaker_id, 
+            'text': text
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+        download = data.get('mp3DownloadUrl')
+        streaming = data.get('mp3StreamingUrl') 
+        return {
+            'status': True,
+            'download_audio': download,
+            'streaming_audio': streaming
+        }
+    except Exception as e:
+        return{
+            'status': False,
+            'keterangan': str(e)
+        }
 
 async def obrolan(input_text, userid, setKarakter):
     logObrolan = await logpercakapan.filter(user_id=userid).all()

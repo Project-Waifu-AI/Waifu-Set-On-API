@@ -1,15 +1,13 @@
 const url_action_bw = 'http://localhost:8000/BecomeWaifu'
 
-async function BWMeimeiHimari(bahasa, access_token) {
-    const url = `${url_action_bw}/change-voice`;
-    const requestBody = {
-        BahasaYangDigunakan: bahasa,
-        speakerID: 14
-    }
+const bahasa = ['bahasa indonesia', 'English', '日本語', 'basa jawa', '한국어', 'русский язык']
+
+async function BWMeimeiHimari(bahasa, file, access_token) {
+    const url = `${url_action_bw}/change-voice/speaker_id=14?bahasa=${bahasa}`;
     try {
         const response = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(requestBody),
+            body: file,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
@@ -19,26 +17,21 @@ async function BWMeimeiHimari(bahasa, access_token) {
 
         if (response.status === 200) {
             const data = await response.json();
-
             return data;
-        } else {
-            throw new Error('Request failed with status ' + response.status);
+        } else if (response.status === 400){
+            return 'LOG AUDIO ANDA TELAH MENCAPAI BATAS HAPUS LOG-AUDIO ANDA DAN MULAI RUBAH SUARA ANDA LAGI :)'
         }
     } catch (error) {
-        throw new Error('Error: ' + error);
+        return 'An error occurred while preparing the answer for your please repeat request'
     }
 }
 
-async function BWKusukabeTsumugi(bahasa, access_token) {
-    const url = `${url_action_bw}/change-voice`;
-    const requestBody = {
-        BahasaYangDigunakan: bahasa,
-        speakerID: 8
-    }
+async function BWKusukabeTsumugi(bahasa, file, access_token) {
+    const url = `${url_action_bw}/change-voice/speaker_id=8?bahasa=${bahasa}`;
     try {
         const response = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(requestBody),
+            body: file,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
@@ -48,26 +41,21 @@ async function BWKusukabeTsumugi(bahasa, access_token) {
 
         if (response.status === 200) {
             const data = await response.json();
-
             return data;
-        } else {
-            throw new Error('Request failed with status ' + response.status);
+        } else if (response.status === 400){
+            return 'LOG AUDIO ANDA TELAH MENCAPAI BATAS HAPUS LOG-AUDIO ANDA DAN MULAI RUBAH SUARA ANDA LAGI :)'
         }
     } catch (error) {
-        throw new Error('Error: ' + error);
+        return 'An error occurred while preparing the answer for your please repeat request'
     }
 }
 
-async function BWNurseT(bahasa, access_token) {
-    const url = `${url_action_bw}/change-voice`;
-    const requestBody = {
-        BahasaYangDigunakan: bahasa,
-        speakerID: 47
-    }
+async function BWNurse_T(bahasa, file, access_token) {
+    const url = `${url_action_bw}/change-voice/speaker_id=47?bahasa=${bahasa}`;
     try {
         const response = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(requestBody),
+            body: file,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
@@ -77,26 +65,21 @@ async function BWNurseT(bahasa, access_token) {
 
         if (response.status === 200) {
             const data = await response.json();
-
             return data;
-        } else {
-            throw new Error('Request failed with status ' + response.status);
+        } else if (response.status === 400){
+            return 'LOG AUDIO ANDA TELAH MENCAPAI BATAS HAPUS LOG-AUDIO ANDA DAN MULAI RUBAH SUARA ANDA LAGI :)'
         }
     } catch (error) {
-        throw new Error('Error: ' + error);
+        return 'An error occurred while preparing the answer for your please repeat request'
     }
 }
 
-async function BWNo7(bahasa, access_token) {
-    const url = `${url_action_bw}/change-voice`;
-    const requestBody = {
-        BahasaYangDigunakan: bahasa,
-        speakerID: 29
-    }
+async function BWNo7(bahasa, file, access_token) {
+    const url = `${url_action_bw}/change-voice/speaker_id=29?bahasa=${bahasa}`;
     try {
         const response = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(requestBody),
+            body: file,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
@@ -106,26 +89,21 @@ async function BWNo7(bahasa, access_token) {
 
         if (response.status === 200) {
             const data = await response.json();
-
             return data;
-        } else {
-            throw new Error('Request failed with status ' + response.status);
+        } else if (response.status === 400){
+            return 'LOG AUDIO ANDA TELAH MENCAPAI BATAS HAPUS LOG-AUDIO ANDA DAN MULAI RUBAH SUARA ANDA LAGI :)'
         }
     } catch (error) {
-        throw new Error('Error: ' + error);
+        return 'An error occurred while preparing the answer for your please repeat request'
     }
 }
 
-async function BWSayo(bahasa, access_token) {
-    const url = `${url_action_bw}/change-voice`;
-    const requestBody = {
-        BahasaYangDigunakan: bahasa,
-        speakerID: 46
-    }
+async function BWSayo(bahasa, file, access_token) {
+    const url = `${url_action_bw}/change-voice/speaker_id=46?bahasa=${bahasa}`;
     try {
         const response = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(requestBody),
+            body: file,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
@@ -135,12 +113,11 @@ async function BWSayo(bahasa, access_token) {
 
         if (response.status === 200) {
             const data = await response.json();
-
             return data;
-        } else {
-            throw new Error('Request failed with status ' + response.status);
+        } else if (response.status === 400){
+            return 'LOG AUDIO ANDA TELAH MENCAPAI BATAS HAPUS LOG-AUDIO ANDA DAN MULAI RUBAH SUARA ANDA LAGI :)'
         }
     } catch (error) {
-        throw new Error('Error: ' + error);
+        return 'An error occurred while preparing the answer for your please repeat request'
     }
 }

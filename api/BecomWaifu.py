@@ -4,7 +4,6 @@ from pydub import AudioSegment
 import speech_recognition as sr
 import tempfile
 from configs import config
-from body_request.action_body_request import changeVoice
 from database.model import logaudio, userdata
 from helping.response_helper import pesan_response
 from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium
@@ -13,8 +12,8 @@ from helping.action_helper import request_audio, to_japan
 r = sr.Recognizer()
 router = APIRouter(prefix='/BecomeWaifu', tags=['BecomeWaifu-action'])
 
-@router.post('/change-voice')
-async def change_voice(meta: changeVoice, access_token: str = Header(...), audio_file: UploadFile = File(...)):
+@router.post('/change-voice/{speaker_id}')
+async def change_voice(speaker_id: int, bahasa: str, audio_file: UploadFile = File(...), access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -40,17 +39,19 @@ async def change_voice(meta: changeVoice, access_token: str = Header(...), audio
         audio_file = temp_wav
     with sr.AudioFile(audio_file.file) as audio_file:
         audio_data = r.record(audio_file)
-        transcript = r.recognize_google(audio_data, language=meta.BahasaYangDigunakan)
+        transcript = r.recognize_google(audio_data, language=bahasa)
     translation = to_japan(transcript)
     if translation['status'] is True:
-        data_audio = request_audio(text=translation['response'].text, speaker_id=meta.speakerID)
-        save = logaudio(audio_id=audio_id, user_id=user_id, transcript=transcript, translate=translation['response'].text, audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+        data_audio = request_audio(text=translation['response'], speaker_id=speaker_id)
+        if data_audio['status'] is False:
+            raise HTTPException(detail='eror audio request', status_code=500)
+        save = logaudio(audio_id=audio_id, user_id=user_id, transcript=transcript, translate=translation['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
         await save.save()
         data=[{
             'userId': user_id,
             'audiId': audio_id,
             'transcript': transcript,
-            'translation': translation['response'].text
+            'translation': translation['response']
         }]
         data.append(data_audio)
         return JSONResponse(content=data, status_code=200)

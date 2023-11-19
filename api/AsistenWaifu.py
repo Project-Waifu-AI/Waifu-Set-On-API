@@ -43,6 +43,10 @@ async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
         if translate['status'] is True:
             speakerId = 14
             data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
+            
+            if data_audio['status'] is False:
+                raise HTTPException(detail=data_audio, status_code=500)
+            
             data = [{
                 'pesan': pesan,
                 'response': response['output'],
@@ -93,6 +97,10 @@ async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
         if translate['status'] is True:
             speakerId = 47
             data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
+            
+            if data_audio['status'] is False:
+                raise HTTPException(detail=data_audio, status_code=500)
+            
             data = [{
                 'pesan': pesan,
                 'response': response['output'],
@@ -141,6 +149,10 @@ async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
         if translate['status'] is True:
             speakerId = 8
             data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
+            
+            if data_audio['status'] is False:
+                raise HTTPException(detail=data_audio, status_code=500)
+            
             data = [{
                 'pesan': pesan,
                 'response': response['output'],
@@ -190,6 +202,10 @@ async def pesan_no7(pesan: str, access_token: str = Header(...)):
         if translate['status'] is True:
             speakerId = 29
             data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
+            
+            if data_audio['status'] is False:
+                raise HTTPException(detail=data_audio, status_code=500)
+            
             data = [{
                 'pesan': pesan,
                 'response': response['output'],
@@ -241,6 +257,10 @@ async def pesan_sayo(pesan: str, access_token: str = Header(...)):
         if translate['status'] is True:
             speakerId = 46
             data_audio = request_audio(text=translate, speaker_id=speakerId)
+            
+            if data_audio['status'] is False:
+                raise HTTPException(detail=data_audio, status_code=500)
+            
             data = [{
                 'pesan': pesan,
                 'response': response['output'] ,

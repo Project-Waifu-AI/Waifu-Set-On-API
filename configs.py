@@ -5,6 +5,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config(BaseSettings):
+    # data
+    bahasa={
+        'bahasa indonesia': 'id-ID',
+        'English': 'en-IN',
+        '日本語': 'ja-JP',
+        'basa jawa': 'jv-ID',
+        'русский язык': 'ru-RU',
+        '한국어': 'ko-KR'
+    }
+    
     # api_key
     api_key_openai: str = os.getenv("API_KEY_OPENAI")
     
