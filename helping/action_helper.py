@@ -2,6 +2,7 @@ from langdetect import detect
 from googletrans import Translator
 import requests
 import openai
+from configs import config
 from database.model import logpercakapan, userdata
 
 tl = Translator()
@@ -116,4 +117,17 @@ def to_japan_premium(input):
         return{
             'status': False,
             'response': str(e)
+        }
+        
+def cek_bahasa(bahasa: str):
+    if bahasa in config.bahasa:
+        value = config.bahasa[bahasa]
+        return {
+            'status': True,
+            'keterangan': str(value)
+        }
+    else:
+        return {
+            'status': False,
+            'keterangan': 'bahasa yang anda gunakan tidak valid'
         }
