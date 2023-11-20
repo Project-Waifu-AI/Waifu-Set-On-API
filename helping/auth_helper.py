@@ -74,6 +74,11 @@ async def check_premium(user_id):
     try:
         user = await userdata.filter(user_id=user_id).first()
         if user.premium_token is None:
+            if user.admin is True:
+                return{
+                    'status': True,
+                    'keterangan': 'admin'
+                }
             return{
                 'status': False,
                 'keterangan': 'silahkan pilih plan premium'
@@ -86,6 +91,11 @@ async def check_premium(user_id):
                     'status': False,
                     'keterangan': 'akses premium user telah berakhir'
                 }
+            elif user.admin is True:
+                return{
+                    'status': True,
+                    'keterangan': 'admin'
+                }
             else:
                 cek = decode_access_token(access_token=user.premium)
                 planing = cek.get('plan')
@@ -93,6 +103,7 @@ async def check_premium(user_id):
                     'status': True,
                     'keterangan': planing
                 }
+            
     except Exception as e:
         return{
             'status':False,
@@ -165,3 +176,9 @@ def valid_password(password: str):
             return False
     
     return True
+
+def cek_admin(email: str):
+    if email in config.admin.split(','):
+        return True
+    else:
+        return False

@@ -35,10 +35,10 @@ async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
         if premium['status'] is False:
             translate = to_japan(input=response['output'])
         else:
-            if premium['keterangan'].lower() == 'bw':
-                translate = to_japan(input=response['output'])
-            else:
+            if premium['keterangan'].lower() == 'aiu' or premium['keterangan'].lower() == 'admin':
                 translate = to_japan_premium(input=response['output'])
+            else:
+                translate = to_japan(input=response['output'])
         
         if translate['status'] is True:
             speakerId = 14
@@ -89,10 +89,10 @@ async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
         if premium['status'] is False:
             translate = to_japan(input=response['output'])
         else:
-            if premium['keterangan'].lower() == 'bw':
-                translate = to_japan(input=response['output'])
-            else:
+            if premium['keterangan'].lower() == 'aiu' or premium['keterangan'].lower() == 'admin':
                 translate = to_japan_premium(input=response['output'])
+            else:
+                translate = to_japan(input=response['output'])
 
         if translate['status'] is True:
             speakerId = 47
@@ -141,10 +141,10 @@ async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
         if premium['status'] is False:
             translate = to_japan(input=response['output'])
         else:
-            if premium['keterangan'].lower() == 'bw':
-                translate = to_japan(input=response['output'])
-            else:
+            if premium['keterangan'].lower() == 'aiu' or premium['keterangan'].lower() == 'admin':
                 translate = to_japan_premium(input=response['output'])
+            else:
+                translate = to_japan(input=response['output'])
 
         if translate['status'] is True:
             speakerId = 8
@@ -194,10 +194,10 @@ async def pesan_no7(pesan: str, access_token: str = Header(...)):
         if premium['status'] is False:
             translate = to_japan(input=response['output'])
         else:
-            if premium['keterangan'].lower() == 'bw':
-                translate = to_japan(input=response['output'])
-            else:
+            if premium['keterangan'].lower() == 'aiu' or premium['keterangan'].lower() == 'admin':
                 translate = to_japan_premium(input=response['output'])
+            else:
+                translate = to_japan(input=response['output'])
 
         if translate['status'] is True:
             speakerId = 29
@@ -249,10 +249,10 @@ async def pesan_sayo(pesan: str, access_token: str = Header(...)):
         if premium['status'] is False:
             translate = to_japan(input=response['output'])
         else:
-            if premium['keterangan'].lower() == 'bw':
-                translate = to_japan(input=response['output'])
-            else:
+            if premium['keterangan'].lower() == 'aiu' or premium['keterangan'].lower() == 'admin':
                 translate = to_japan_premium(input=response['output'])
+            else:
+                translate = to_japan(input=response['output'])
 
         if translate['status'] is True:
             speakerId = 46

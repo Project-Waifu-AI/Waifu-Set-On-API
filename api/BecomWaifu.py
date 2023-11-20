@@ -7,7 +7,7 @@ from configs import config
 from database.model import logaudio, userdata
 from helping.response_helper import pesan_response
 from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium
-from helping.action_helper import request_audio, to_japan, cek_bahasa
+from helping.action_helper import request_audio, to_japan, cek_bahasa, to_japan_premium
 
 r = sr.Recognizer()
 router = APIRouter(prefix='/BecomeWaifu', tags=['BecomeWaifu-action'])
@@ -43,7 +43,14 @@ async def change_voice(speaker_id: int, bahasa: str, audio_file: UploadFile = Fi
         if bahasaYangDigunakan['status'] is False:
             raise HTTPException(detail=bahasaYangDigunakan['keterangan'], status_code=404)
         transcript = r.recognize_google(audio_data, language=bahasaYangDigunakan['keterangan'])
-    translation = to_japan(transcript)
+    if premium_check['status'] is True:
+        if premium_check['keterangan'] == 'bw' or premium_check['keterangan'] == 'admin':
+            translation = to_japan_premium(transcript)
+        else:
+            translation = to_japan(transcript)
+    else:
+        translation = to_japan(transcript)
+
     if translation['status'] is True:
         data_audio = request_audio(text=translation['response'], speaker_id=speaker_id)
         if data_audio['status'] is False:

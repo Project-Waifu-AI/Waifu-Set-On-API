@@ -6,7 +6,7 @@ import requests
 import os
 from configs import config
 from database.model import userdata
-from helping.auth_helper import create_access_token, credentials_to_dict, apakahNamakuAda, buatNamaUnik
+from helping.auth_helper import create_access_token, credentials_to_dict, apakahNamakuAda, buatNamaUnik, cek_admin
 
 router = APIRouter(prefix='/google-auth', tags=['google-auth-WSO'])
 
@@ -75,12 +75,20 @@ async def auth2callback_register(request: Request, state: str):
                 
                 if user.akunwso is True and user.email != email:
                     raise HTTPException (detail='gmail yang anda daftarkan dengan akun wso berbeda dengan gmail yang anda coba hubungkan pada google auth')
-                
-                user.googleAuth = True
-                user.nama = namaYangDisimpan
-                user.email = email
-                user.AtsumaruKanjo += 100
-                await user.save()
+                adminkah = cek_admin(email=email)
+                if adminkah is True:
+                    user.googleAuth = True
+                    user.nama = namaYangDisimpan
+                    user.email = email
+                    user.AtsumaruKanjo += 99999999
+                    user.admin - True
+                    await user.save()
+                else:
+                    user.googleAuth = True
+                    user.nama = namaYangDisimpan
+                    user.email = email
+                    user.AtsumaruKanjo += 100
+                    await user.save()
                 token = create_access_token(user=user)
                 return JSONResponse({'access_token': token}, status_code=201)
             

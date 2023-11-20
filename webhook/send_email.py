@@ -11,7 +11,7 @@ MY_PASSWORD = config.password_email
 def send_verify_token(target_email: str, token: str):
     msg = MIMEMultipart()
 
-    subject = "Konfirmasi Token untuk Aplikasi BecomeWaifu"
+    subject = "Konfirmasi Token untuk Aplikasi WaifuSetOn"
     sender_name = "Tim WaifuSetOn"
     sender_email = "no-reply@waifuseton.com"  # Email dari domain aplikasi Anda
     

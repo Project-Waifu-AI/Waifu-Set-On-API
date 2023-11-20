@@ -1,10 +1,14 @@
 import os
+from typing import List
 from pydantic import BaseSettings, Field
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class Config(BaseSettings):
+    #admin
+    admin = os.getenv('ADMIN')
+    
     # data
     bahasa={
         'bahasa indonesia': 'id-ID',

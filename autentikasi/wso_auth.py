@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 import random
 from body_request.auth_body_request import LoginWSO, SimpanUserWSO
 from database.model import userdata
-from helping.auth_helper import check_password, create_access_token, validation_email, set_password, userIni, valid_password
+from helping.auth_helper import check_password, create_access_token, validation_email, set_password, userIni, valid_password, cek_admin
 from helping.response_helper import pesan_response, user_response
 from webhook.send_email import send_verify_token
 from configs import config
@@ -73,6 +73,7 @@ async def register(email: str):
 @router.post('/simpan-user')
 async def simpan_user(meta: SimpanUserWSO):
     user = await userdata.filter(email=meta.email).first()
+    adminkah = cek_admin(email=meta.email)
 
     if meta.password == meta.konfirmasi_password:
         if valid_password(meta.password) is False:
@@ -81,16 +82,29 @@ async def simpan_user(meta: SimpanUserWSO):
         if user:
             if user.token_konfirmasi and user.token_konfirmasi == meta.token:
                 # Token cocok dengan pengguna
-                try:
-                    user.password = set_password(password=meta.password)  # Setel kata sandi baru
-                    user.akunwso = True  # Setel akunwso menjadi Aktif
-                    user.token_konfirmasi = None  # Hapus token
-                    user.AtsumaruKanjo += 100
-                    await user.save()
-                    access_token = create_access_token(user=user)
-                    return JSONResponse({'access_token':str(access_token)}, status_code=201)
-                except Exception as e:
-                    raise HTTPException(detail=str(e), status_code=500)
+                if adminkah is True:
+                    try:
+                        user.password = set_password(password=meta.password)  # Setel kata sandi baru
+                        user.akunwso = True  # Setel akunwso menjadi Aktif
+                        user.token_konfirmasi = None  # Hapus token
+                        user.AtsumaruKanjo += 99999999
+                        user.admin = True
+                        await user.save()
+                        access_token = create_access_token(user=user)
+                        return JSONResponse({'access_token':str(access_token)}, status_code=201)
+                    except Exception as e:
+                        raise HTTPException(detail=str(e), status_code=500)
+                else:
+                    try:
+                        user.password = set_password(password=meta.password)  # Setel kata sandi baru
+                        user.akunwso = True  # Setel akunwso menjadi Aktif
+                        user.token_konfirmasi = None  # Hapus token
+                        user.AtsumaruKanjo += 100
+                        await user.save()
+                        access_token = create_access_token(user=user)
+                        return JSONResponse({'access_token':str(access_token)}, status_code=201)
+                    except Exception as e:
+                        raise HTTPException(detail=str(e), status_code=500)
             else:
                 # Token tidak cocok dengan pengguna
                 if user.googleAuth is True:
