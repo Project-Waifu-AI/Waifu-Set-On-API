@@ -45,6 +45,7 @@ class userdata(Model):
     karakterYangDimiliki = fields.JSONField(null=True)
     akunwso = fields.BooleanField(default=False)
     googleAuth = fields.BooleanField(default=False)
+    twiterAuth = fields.BooleanField(default=False)
     token_konfirmasi = fields.CharField(max_length=225, null=True)
     premium_token = fields.CharField(max_length=225, null=True)
     ban = fields.BooleanField(default=False)
