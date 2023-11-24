@@ -1,10 +1,20 @@
 import os
+from typing import List
 from pydantic import BaseSettings, Field
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class Config(BaseSettings):
+    #admin
+    admin = os.getenv('ADMIN')
+    
+    #twiter
+    client_id_twiter: str = os.getenv('CLIENT_ID_TWITER')
+    client_secret_twiter: str = os.getenv('CLIENT_SECRET_TWITER')
+    redirect_uri_login_twiter: str = os.getenv('REDIRECT_URI_LOGIN_TWITER')
+    redirect_uri_register_twiter: str = os.getenv('REDIRECT_URI_REGISTER_TWITER')
+
     # data
     bahasa={
         'bahasa indonesia': 'id-ID',
@@ -22,10 +32,10 @@ class Config(BaseSettings):
     url_database:  str = os.getenv("URL_DATABASE")
     output_file: str = Field('voice.wav')
     
-    # redirect
-    redirect_uri_register: str = Field("REDIRECT_URI_REGISTER")
-    redirect_uri_login: str = Field("REDIRECT_URI_LOGIN")
-    redirect_uri_page_masuk: str = Field("LINK_PAGE_MASUK")
+    # redirect google
+    redirect_uri_register_google: str = Field("REDIRECT_URI_REGISTER_GOOGLE")
+    redirect_uri_login_google: str = Field("REDIRECT_URI_LOGIN_GOOGLE")
+    redirect_uri_page_masuk_google: str = Field("LINK_PAGE_MASUK_GOOGLE")
     
     # informasi email
     email: str = os.getenv("EMAIL")

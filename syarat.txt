@@ -22,3 +22,5 @@ pydub
 openai
 langdetect
 numpy
+requests
+tweepy

@@ -6,7 +6,7 @@ import requests
 import os
 from configs import config
 from database.model import userdata
-from helping.auth_helper import create_access_token, credentials_to_dict, apakahNamakuAda, buatNamaUnik
+from helping.auth_helper import create_access_token, credentials_to_dict, apakahNamakuAda, buatNamaUnik, cek_admin
 
 router = APIRouter(prefix='/google-auth', tags=['google-auth-WSO'])
 
@@ -20,7 +20,7 @@ async def daftar():
         'client_secret.json',
         scopes=['email', 'profile']  
     )
-    flow.redirect_uri = config.redirect_uri_register
+    flow.redirect_uri = config.redirect_uri_register_google
     authorization_url, state = flow.authorization_url(
         access_type='offline',
         include_granted_scopes='true'
@@ -33,7 +33,7 @@ async def daftar():
         'client_secret.json',
         scopes=['email', 'profile']  
     )
-    flow.redirect_uri = config.redirect_uri_login
+    flow.redirect_uri = config.redirect_uri_login_google
     authorization_url, state = flow.authorization_url(
         access_type='offline',
         include_granted_scopes='true'
@@ -49,7 +49,7 @@ async def auth2callback_register(request: Request, state: str):
             scopes=['email', 'profile'],  
             state=state
         )
-        flow.redirect_uri = config.redirect_uri_register
+        flow.redirect_uri = config.redirect_uri_register_google
         authorization_response = str(request.url)
         flow.fetch_token(authorization_response=authorization_response)
         credentials = flow.credentials
@@ -75,11 +75,19 @@ async def auth2callback_register(request: Request, state: str):
                 
                 if user.akunwso is True and user.email != email:
                     raise HTTPException (detail='gmail yang anda daftarkan dengan akun wso berbeda dengan gmail yang anda coba hubungkan pada google auth')
-                
-                user.googleAuth = True
-                user.nama = namaYangDisimpan
-                user.email = email
-                user.AtsumaruKanjo += 100
+                adminkah = cek_admin(email=email)
+                if adminkah is True:
+                    user.googleAuth = True
+                    user.email = email
+                    user.AtsumaruKanjo += 99999999
+                    user.admin = True
+                else:
+                    user.googleAuth = True
+                    user.email = email
+                    user.AtsumaruKanjo += 100
+                if user.nama is None:
+                    user.nama = namaYangDisimpan
+                    
                 await user.save()
                 token = create_access_token(user=user)
                 return JSONResponse({'access_token': token}, status_code=201)
@@ -88,7 +96,7 @@ async def auth2callback_register(request: Request, state: str):
                 raise HTTPException (detail='email anda sudah terhubung dengan google autentikasi', status_code=403)
         
         else:
-            save = userdata(nama=nama, email=email, googleAuth=True, AtsumaruKanjo=100)
+            save = userdata(nama=namaYangDisimpan, email=email, googleAuth=True, AtsumaruKanjo=100)
             await save.save()
             user = await userdata.filter(email=email).first()
             token = create_access_token(user=user)
@@ -107,7 +115,7 @@ async def auth2callback(request: Request, state: str):
             scopes=['email', 'profile'],  
             state=state
         )
-        flow.redirect_uri = config.redirect_uri_login
+        flow.redirect_uri = config.redirect_uri_login_google
         authorization_response = str(request.url)
         flow.fetch_token(authorization_response=authorization_response)
         credentials = flow.credentials
