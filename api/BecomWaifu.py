@@ -32,9 +32,11 @@ async def change_voice(speaker_id: int, bahasa: str, audio_file: UploadFile = Fi
         audio_id = user_data.audio_id + 1
     else:
         audio_id = 1  
+    format_audio: str = audio_file.content_type
+    print(format_audio)
     if audio_file.content_type not in ['audio/wav', 'audio/x-wav', 'audio/aiff', 'audio/x-aiff', 'audio/flac']:
         temp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-        audio = AudioSegment.from_file(audio_file.file, format="mp3")  # Adjust format as needed
+        audio = AudioSegment.from_file(audio_file.file, format=format_audio.split("/", 1)[-1]) 
         audio.export(temp_wav.name, format="wav")
         audio_file = temp_wav
     with sr.AudioFile(audio_file.file) as audio_file:
