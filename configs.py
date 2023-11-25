@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config(BaseSettings):
+    #redirect autentikasi
+    redirect_uri_page_masuk: str = os.getenv('REDIRECT_PAGE_MASUK')
     #admin
     admin = os.getenv('ADMIN')
     
