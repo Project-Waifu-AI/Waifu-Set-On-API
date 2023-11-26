@@ -17,9 +17,8 @@ fields = "created_at,description"
 params = {"user.fields": fields}
 
 
-@router.get('/login')
+@router.get('/autentikasi')
 async def login_twiter():
-    global oauth
     global fetch_response
     oauth = OAuth1Session(consumer_key, client_secret=consumer_secret)
     try:
@@ -29,7 +28,7 @@ async def login_twiter():
     authorization_url = oauth.authorization_url(base_authorization_url)
     return RedirectResponse(authorization_url)
     
-@router.get('/callback-login')
+@router.get('/callback-autentikasi')
 async def callbackLogin(request: Request):
     pin = request.query_params.get('oauth_verifier')
     oauth = OAuth1Session(
@@ -52,7 +51,7 @@ async def callbackLogin(request: Request):
     response = oauth.get("https://api.twitter.com/2/users/me", params=params)
 
     if response.status_code != 200:
-        raise HTTPException(detail=f'status code:{response.status_code}, detail:{response.text}')
+        raise HTTPException(detail=f'status code:{str(response.status_code())}, detail:{response.text()}')
 
     json_response = response.json()
     return JSONResponse(content=json_response)
