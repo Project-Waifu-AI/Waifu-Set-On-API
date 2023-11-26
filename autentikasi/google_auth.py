@@ -63,13 +63,13 @@ async def auth2callback_register(request: Request, state: str):
         nama = user_info.get("name")
 
         user = await userdata.filter(email=email).first()
-
+        global namaYangDisimpan
+        if await apakahNamakuAda(nama=nama) == False:
+            namaYangDisimpan = await buatNamaUnik(nama=nama)
+        else:
+            namaYangDisimpan = nama
+        
         if user:
-
-            if await apakahNamakuAda(nama=nama) == False:
-                namaYangDisimpan = await buatNamaUnik(nama=nama)
-            else:
-                namaYangDisimpan = nama
 
             if user.googleAuth is False:
                 
@@ -90,8 +90,9 @@ async def auth2callback_register(request: Request, state: str):
                     
                 await user.save()
                 token = create_access_token(user=user)
-                return JSONResponse({'access_token': token}, status_code=201)
-            
+                response = RedirectResponse(url=config.redirect_uri_home)
+                response.set_cookie(key='access_token', value=token, domain=config.redirect_uri_home)
+                return response
             else:
                 raise HTTPException (detail='email anda sudah terhubung dengan google autentikasi', status_code=403)
         
@@ -100,8 +101,9 @@ async def auth2callback_register(request: Request, state: str):
             await save.save()
             user = await userdata.filter(email=email).first()
             token = create_access_token(user=user)
-            return JSONResponse({'access_token': token}, status_code=201) 
-    
+            response = RedirectResponse(url=config.redirect_uri_home)
+            response.set_cookie(key='access_token', value=token)
+            return response
     except ConnectionError as e:
         print(f"Kesalahan koneksi: {e}")
         return JSONResponse({"error": "Request Timed Out"}, status_code=500)
@@ -135,9 +137,11 @@ async def auth2callback(request: Request, state: str):
             else:
                 user = await userdata.filter(email=email).first()
                 token = create_access_token(user=user)
-                return JSONResponse({'access_token': token}, status_code=200)
+                response = RedirectResponse(url=config.redirect_uri_home)
+                response.set_cookie(key='access_token', value=token, domain=config.redirect_uri_home)
+                return response
         else:
             raise HTTPException (detail='gmail ini masih belum terdafatar dengan autentikasi apapun di WSO', status_code=405)
     except ConnectionError as e:
         print(f"Kesalahan koneksi: {e}")
-        return JSONResponse({"error": "Request Timed Out"}, status_code=500)
+        raise HTTPException(detail="Request Timed Out", status_code=500)

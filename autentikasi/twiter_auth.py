@@ -1,77 +1,58 @@
 from fastapi import APIRouter, HTTPException, Request, Header
 from fastapi.responses import RedirectResponse, JSONResponse
-from requests_oauthlib import OAuth2Session
+from requests_oauthlib import OAuth1Session
 from configs import config
-import os
-import base64
-import hashlib
-import os
-import re
 import requests
+import json
 
 router = APIRouter(prefix='/twiter-auth', tags=['twiter autentikasi0.2 api v.2'])
 
 # set
-scopes = ["offline.access", "tweet.read", "users.read", "tweet.write"]
-auth_url = "https://twitter.com/i/oauth2/authorize"
-token_url = "https://api.twitter.com/2/oauth2/token"
-user_info_url = "https://api.twitter.com/2/tweets"
-code_verifier = base64.urlsafe_b64encode(os.urandom(30)).decode("utf-8")
-code_verifier = re.sub("[^a-zA-Z0-9]+", "", code_verifier)
-code_challenge = hashlib.sha256(code_verifier.encode("utf-8")).digest()
-code_challenge = base64.urlsafe_b64encode(code_challenge).decode("utf-8")
-code_challenge = code_challenge.replace("=", "")
+request_token_url = "https://api.twitter.com/oauth/request_token"
+base_authorization_url = "https://api.twitter.com/oauth/authorize"
+access_token_url = "https://api.twitter.com/oauth/access_token"
+consumer_key = config.consumer_key_twiter
+consumer_secret = config.consumer_secret_twiter
+fields = "created_at,description"
+params = {"user.fields": fields}
 
-def make_token():
-    return OAuth2Session(config.client_id_twiter, redirect_uri=config.redirect_uri_login_twiter, scope=scopes)
 
 @router.get('/login')
-async def login():
-    global twiter 
-    twiter = make_token()
-    authorization_url = twiter.authorization_url(
-        auth_url, code_challenge=code_challenge, code_challenge_method="S256"
-    )
-
-    return RedirectResponse(url=authorization_url[0])
-
-@router.get('/callback-login')
-async def callback_login(code):
-    access_token = twiter.fetch_token(
-        token_url=token_url,
-        client_secret=config.client_secret_twiter,
-        code_verifier=code_verifier,
-        code=code,
-    )
+async def login_twiter():
+    global oauth
+    global fetch_response
+    oauth = OAuth1Session(consumer_key, client_secret=consumer_secret)
+    try:
+        fetch_response = oauth.fetch_request_token(request_token_url)
+    except ValueError:
+        raise HTTPException(detail="There may have been an issue with the consumer_key or consumer_secret you entered.", status_code=500)
+    authorization_url = oauth.authorization_url(base_authorization_url)
+    return RedirectResponse(authorization_url)
     
-    return JSONResponse(content=access_token)
-
-@router.get('/root')
-async def root(request:Request):
-    access_token = request.query_params.get('access_token')
-    r = requests.request(
-        "POST",
-        "https://api.twitter.com/2/users/:id",
-        headers={
-            "Authorization": "Bearer {}".format(access_token),
-            "Content-Type": "application/json",
-        },
+@router.get('/callback-login')
+async def callbackLogin(request: Request):
+    pin = request.query_params.get('oauth_verifier')
+    oauth = OAuth1Session(
+        consumer_key,
+        client_secret=consumer_secret,
+        resource_owner_key=fetch_response.get("oauth_token"),
+        resource_owner_secret=fetch_response.get("oauth_token_secret"),
+        verifier=pin,
     )
-    return JSONResponse(content=r.json())
-
-@router.post("/search-user")
-async def search_user(
-    username: str,
-    access_token: str = Header(..., description="twitter access token"),
-):
-    r = requests.request(
-        "GET",
-        "https://api.twitter.com/2/users/by/username/{}".format(
-            username
-        ),
-        headers={
-            "Authorization": "Bearer {}".format(access_token),
-            "Content-Type": "application/json",
-        },
+    oauth_tokens = oauth.fetch_access_token(access_token_url)
+    access_token = oauth_tokens["oauth_token"]
+    access_token_secret = oauth_tokens["oauth_token_secret"]
+    oauth = OAuth1Session(
+        consumer_key,
+        client_secret=consumer_secret,
+        resource_owner_key=access_token,
+        resource_owner_secret=access_token_secret,
     )
-    return JSONResponse(content=r.json())
+
+    response = oauth.get("https://api.twitter.com/2/users/me", params=params)
+
+    if response.status_code != 200:
+        raise HTTPException(detail=f'status code:{response.status_code}, detail:{response.text}')
+
+    json_response = response.json()
+    return JSONResponse(content=json_response)

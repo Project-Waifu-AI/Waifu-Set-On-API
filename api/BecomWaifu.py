@@ -2,8 +2,13 @@ from fastapi import APIRouter, HTTPException, Header, UploadFile, File
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydub import AudioSegment
 import speech_recognition as sr
+from io import BytesIO
+import os
 import tempfile
+import tweepy
+import requests
 from configs import config
+from body_request.bw_body_request import share_to_twiter
 from database.model import logaudio, userdata
 from helping.response_helper import pesan_response
 from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium
@@ -88,7 +93,8 @@ async def get_all_logaudio(access_token: str = Header(...)):
                 "audio_id": logaudio_entry.audio_id,
                 "user_id": logaudio_entry.user_id,
                 "transcript": logaudio_entry.transcript,
-                "translate": logaudio_entry.translate
+                "translate": logaudio_entry.translate,
+                'audio_download': logaudio_entry.audio_download
             }
             result.append(logaudio_data)
         return JSONResponse(result, status_code=200)
@@ -122,3 +128,33 @@ async def delete_audio(audio_id: int, access_token: str = Header(...)):
         raise http_err
     except Exception as err:
         raise HTTPException(detail=str(err), status_code=500)
+    
+@router.post('/share-to-twiter')
+async def shareTwiter(meta: share_to_twiter,access_token: str = Header(...)):
+    check = check_access_token_expired(access_token=access_token)
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=access_token)
+        user_id = payloadJWT.get('sub')
+        
+    auth = tweepy.OAuth1UserHandler(config.consumer_key_twiter, config.consumer_secret_twiter)
+    auth.set_access_token(config.access_token_twiter, config.access_token_secret_twiter)
+
+    api = tweepy.API(auth)
+        
+    data = await logaudio.filter(audio_id=meta.audio_id, user_id=user_id).first()
+    user = await userdata.filter(user_id=user_id).first()
+    get_audio = requests.get(data.audio_download)
+    audio_filename = 'share_audio.mp3'
+    with open(audio_filename, 'wb') as audio_file:
+        audio_file.write(get_audio.content)
+    with open(audio_filename, 'rb') as audio_file:
+        media = api.media_upload(filename=audio_filename, file=audio_file, media_type='audio/mp3')
+        
+    if meta.caption is None:
+        api.update_status(media_ids=[media.media_id])
+    else:
+        api.update_status(status=meta.caption, media_ids=[media.media_id])
+    os.remove(audio_filename)
+    return JSONResponse(content=pesan_response(email=user.email, pesan=f'audio dengan audio id {meta.audio_id} telah di uploud ke twiter anda'), status_code=200)
