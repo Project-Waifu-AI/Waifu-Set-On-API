@@ -47,7 +47,7 @@ async def auth2callback_register(request: Request, state: str):
         user_info_response = requests.get(userinfo_endpoint, headers={'Authorization': f'Bearer {access_token}'})
         user_info = user_info_response.json()
         nama = user_info.get("name")
-
+        
         user = await userdata.filter(email=email).first()
         global namaYangDisimpan
         if await apakahNamakuAda(nama=nama) == False:
