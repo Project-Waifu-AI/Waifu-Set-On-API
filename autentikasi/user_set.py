@@ -16,9 +16,9 @@ async def update_userData(meta: updateUser, access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
 
-    user = await userdata.filter(user_id=user_id).first()
+    user = await userdata.filter(email=email).first()
     if user:
         try:    
             if meta.nama:
@@ -38,7 +38,7 @@ async def update_userData(meta: updateUser, access_token: str = Header(...)):
             if meta.ulang_tahun is not None:
                 user.ulang_tahun = meta.ulang_tahun
                 await user.save()
-            response = pesan_response(email=user.email, pesan=f'data user dengan id {user_id} telah berhasil di update')
+            response = pesan_response(email=user.email, pesan=f'data user {email} telah berhasil di update')
             return JSONResponse(response, status_code=200)
         except Exception as e:
             raise HTTPException(detail=str(e), status_code=500)
@@ -52,9 +52,9 @@ async def user_data(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
           
-    user = await userdata.filter(user_id=user_id).first()
+    user = await userdata.filter(email=email).first()
     
     if user is None:
         raise HTTPException(detail='user data not found', status_code=404)
@@ -86,13 +86,13 @@ async def want_change_password(request: Request, meta: updatePassword):
         elif check is False:
             payloadJWT = decode_access_token(access_token=access_token)
             permintaan = payloadJWT.get('permintaan')
-            user_id = payloadJWT.get('sub')
+            email = payloadJWT.get('sub')
             if permintaan != 'change-password':
                 raise HTTPException(detail='permintaan tidak valid', status_code=403)
             valid = valid_password(password=meta.password)
             if valid is False:
                 raise HTTPException(detail='password anda lemah coy', status_code=400)
-            user = await userdata.filter(user_id=user_id).first()
+            user = await userdata.filter(email=email).first()
             user.password = set_password(password=meta.password)
             user.save()
             return JSONResponse(pesan_response(email=user.email, pesan='password anda telah berhasil di update'), status_code=200)
@@ -106,8 +106,8 @@ async def deleteAcount(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub') 
-    user = await userdata.filter(user_id=user_id).first()
+        email = payloadJWT.get('sub') 
+    user = await userdata.filter(email=email).first()
     if user is None:
         raise HTTPException(detail='user tidak ditemukan', status_code=404)
     await user.delete()

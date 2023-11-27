@@ -41,9 +41,7 @@ class Config(BaseSettings):
     output_file: str = Field('voice.wav')
     
     # redirect google
-    redirect_uri_register_google: str = Field("REDIRECT_URI_REGISTER_GOOGLE")
-    redirect_uri_login_google: str = Field("REDIRECT_URI_LOGIN_GOOGLE")
-    redirect_uri_page_masuk_google: str = Field("LINK_PAGE_MASUK_GOOGLE")
+    redirect_uri_autentikasi_google: str = Field("REDIRECT_URI_AUTENTIKASI_GOOGLE")
     
     # informasi email
     email: str = os.getenv("EMAIL")

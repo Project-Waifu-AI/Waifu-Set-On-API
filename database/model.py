@@ -4,7 +4,7 @@ from tortoise import fields
 # LOG 
 class logaudio(Model):
     audio_id = fields.IntField()
-    user_id = fields.CharField(max_length=225)
+    email = fields.CharField(max_length=320)
     transcript = fields.CharField(max_length=225)
     translate = fields.CharField(max_length=225)
     audio_streming = fields.CharField(max_length=225)
@@ -18,7 +18,7 @@ class logaudio(Model):
 
 class logpercakapan(Model):
     id_percakapan = fields.IntField()
-    user_id = fields.CharField(max_length=225)
+    email = fields.CharField(max_length=320)
     input = fields.CharField(max_length=225)
     output = fields.TextField()
     translate = fields.CharField(max_length=225)
@@ -31,14 +31,26 @@ class logpercakapan(Model):
     def __str__(self):
         return self.id_percakapan
 
-# USER
+# token dan refresh_token autentikasi tambahan
+class token_google(Model):
+    email = fields.CharField(max_length=320)
+    access_token = fields.CharField(max_length=255)
+    token_exp = fields.DateField()
+    refersh_token = fields.CharField(max_length=255)
+
+    class Meta:
+        table = 'token_google'
+
+    def __str__(self):
+        return self.email
+
+# USER & KARAKTER DATA
 class userdata(Model):
-    user_id = fields.UUIDField(pk=True)
+    email = fields.CharField(max_length=320, pk=True)
     nama = fields.CharField(max_length=225, null=True)
     admin = fields.BooleanField(default=False)
     ulang_tahun = fields.DateField(null=True)
     gender = fields.CharField(max_length=10, null=True)
-    email = fields.CharField(max_length=225, null=True)
     password = fields.BinaryField(max_length=225,null=True)
     AtsumaruKanjo = fields.IntField(default=0)
     NegaiGoto = fields.IntField(default=0)
@@ -55,7 +67,7 @@ class userdata(Model):
         table = "userdata"
 
     def __str__(self):
-        return self.user_id
+        return self.email
 
 class KarakterData(Model):
     nama = fields.CharField(max_length=225, pk=True)
@@ -66,4 +78,4 @@ class KarakterData(Model):
         table = 'karakter'
     
     def __str__(self):
-        return self.karakter_id
+        return self.nama

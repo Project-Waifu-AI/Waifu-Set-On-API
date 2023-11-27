@@ -29,9 +29,9 @@ def request_audio(text, speaker_id: int):
             'keterangan': str(e)
         }
 
-async def obrolan(input_text, userid, setKarakter):
-    logObrolan = await logpercakapan.filter(user_id=userid).all()
-    user = await userdata.filter(user_id=userid).first()
+async def obrolan(input_text, email, setKarakter):
+    logObrolan = await logpercakapan.filter(email=email).all()
+    user = await userdata.filter(email=email).first()
     obrolan = []
     obrolan.append(setKarakter)
     obrolanBaru = {

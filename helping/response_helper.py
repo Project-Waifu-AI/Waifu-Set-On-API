@@ -8,7 +8,6 @@ def pesan_response(pesan: str, email: Optional[str] = None):
 
 def user_response(user, password=None):
     response = {
-        "user_id": str(user.user_id),
         "nama": user.nama,
         "email": user.email,
         'akunwso': user.akunwso,

@@ -25,7 +25,7 @@ async def login_twiter():
         fetch_response = oauth.fetch_request_token(request_token_url)
     except ValueError:
         raise HTTPException(detail="There may have been an issue with the consumer_key or consumer_secret you entered.", status_code=500)
-    authorization_url = oauth.authorization_url(base_authorization_url)
+    authorization_url = oauth.authorization_url(base_authorization_url, params={'scope': 'email'})
     return RedirectResponse(authorization_url)
     
 @router.get('/callback-autentikasi')
@@ -51,7 +51,7 @@ async def callbackLogin(request: Request):
     response = oauth.get("https://api.twitter.com/2/users/me", params=params)
 
     if response.status_code != 200:
-        raise HTTPException(detail=f'status code:{str(response.status_code())}, detail:{response.text()}')
+        raise HTTPException(detail=str(response.text), status_code= response.status_code)
 
     json_response = response.json()
     return JSONResponse(content=json_response)

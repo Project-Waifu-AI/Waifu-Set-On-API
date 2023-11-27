@@ -1,4 +1,4 @@
-from database.model import userdata
+from database.model import userdata, token_google
 from configs import config
 from datetime import datetime, timedelta, timezone
 from database.model import logaudio
@@ -39,7 +39,7 @@ def create_access_token(user, permintaan: Optional[str]= None):
     elif user.admin is True:
         level = 'admin'
     to_encode = {
-        "sub": str(user.user_id),
+        "sub": str(user.email),
         "level": level,
         "exp": datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(hours=8),
     }
@@ -70,9 +70,9 @@ def decode_access_token(access_token: str):
     except jwt.InvalidTokenError:
         return None  # Token tidak valid
         
-async def check_premium(user_id):
+async def check_premium(email):
     try:
-        user = await userdata.filter(user_id=user_id).first()
+        user = await userdata.filter(email=email).first()
         if user.premium_token is None:
             if user.admin is True:
                 return{
@@ -97,7 +97,7 @@ async def check_premium(user_id):
                     'keterangan': 'admin'
                 }
             else:
-                cek = decode_access_token(access_token=user.premium)
+                cek = decode_access_token(access_token=user.premium_token)
                 planing = cek.get('plan')
                 return {
                     'status': True,
@@ -110,16 +110,16 @@ async def check_premium(user_id):
             'keterangan': str(e)
         }
 
-async def create_token_premium(user_id: str, plan: str):
+async def create_token_premium(email: str, plan: str):
     try:
         to_encode = {
-            "sub": user_id,
+            "sub": email,
             "plan": plan,
             "exp": datetime.utcnow().replace(tzinfo=timezone.utc) + timedelta(hours=720),
         }
         encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
-        user = await userdata.filter(user_id=user_id).first()
-        user.premium = str(encoded_token)
+        user = await userdata.filter(email=email).first()
+        user.premium_token = str(encoded_token)
         user.save
         return {
             'status': True,
@@ -182,3 +182,14 @@ def cek_admin(email: str):
         return True
     else:
         return False
+    
+async def token_set_email(email, token, exp, refersh):
+    data = await token_google.filter(email=email).first()
+
+    if data:
+        data.access_token = token
+        data.token_exp = exp
+        data.refersh_token = refersh
+        await data.save()
+    else:
+        await token_google.create(email=email, access_token=token, token_exp=exp, refersh_token=refersh)

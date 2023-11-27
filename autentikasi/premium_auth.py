@@ -14,9 +14,9 @@ async def daftarPremium(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
         
-    create_premium_data = await create_token_premium(user_id=user_id, plan='wso')
+    create_premium_data = await create_token_premium(email=email, plan='wso')
     if create_premium_data['status'] is False:
         raise HTTPException(detail=create_premium_data['keterangan'], status_code=500)
     return JSONResponse(pesan_response(pesan=create_premium_data['keterangan']))
@@ -29,9 +29,9 @@ async def daftarPremium(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
         
-    create_premium_data = await create_token_premium(user_id=user_id, plan='bw')
+    create_premium_data = await create_token_premium(email=email, plan='bw')
     if create_premium_data['status'] is False:
         raise HTTPException(detail=create_premium_data['keterangan'], status_code=500)
     return JSONResponse(pesan_response(pesan=create_premium_data['keterangan']))
@@ -44,9 +44,9 @@ async def daftarPremium(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
         
-    create_premium_data = await create_token_premium(user_id=user_id, plan='ai-u')
+    create_premium_data = await create_token_premium(email=email, plan='ai-u')
     if create_premium_data['status'] is False:
         raise HTTPException(detail=create_premium_data['keterangan'], status_code=500)
     return JSONResponse(pesan_response(pesan=create_premium_data['keterangan']))

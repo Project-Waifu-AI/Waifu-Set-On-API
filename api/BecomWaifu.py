@@ -24,15 +24,15 @@ async def change_voice(speaker_id: int, bahasa: str, audio_file: UploadFile = Fi
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
 
-    premium_check = await check_premium(user_id=user_id)
+    premium_check = await check_premium(email=email)
     if premium_check['status'] is False:
-        user_audio_count = await logaudio.filter(user_id=user_id).count()
+        user_audio_count = await logaudio.filter(email=email).count()
         if user_audio_count >= 10:
             raise HTTPException(detail='logaudio data anda telah mencapai limit. Upgrade ke plan premium atau hapus logaudio.', status_code=400)
     
-    user_data = await logaudio.filter(user_id=user_id).order_by("-audio_id").first()
+    user_data = await logaudio.filter(email=email).order_by("-audio_id").first()
     if user_data:
         audio_id = user_data.audio_id + 1
     else:
@@ -62,10 +62,10 @@ async def change_voice(speaker_id: int, bahasa: str, audio_file: UploadFile = Fi
         data_audio = request_audio(text=translation['response'], speaker_id=speaker_id)
         if data_audio['status'] is False:
             raise HTTPException(detail='eror audio request', status_code=500)
-        save = logaudio(audio_id=audio_id, user_id=user_id, transcript=transcript, translate=translation['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+        save = logaudio(audio_id=audio_id, email=email, transcript=transcript, translate=translation['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
         await save.save()
         data=[{
-            'userId': user_id,
+            'email': email,
             'audiId': audio_id,
             'transcript': transcript,
             'translation': translation['response']
@@ -82,16 +82,15 @@ async def get_all_logaudio(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
     
-    user_data = await logaudio.filter(user_id=user_id).all()
+    user_data = await logaudio.filter(email=email).all()
     if user_data:
         result = []
         for logaudio_entry in user_data:
             logaudio_data = {
-                "user_id": logaudio_entry.user_id,
+                "email": logaudio_entry.email,
                 "audio_id": logaudio_entry.audio_id,
-                "user_id": logaudio_entry.user_id,
                 "transcript": logaudio_entry.transcript,
                 "translate": logaudio_entry.translate,
                 'audio_download': logaudio_entry.audio_download
@@ -108,18 +107,17 @@ async def delete_audio(audio_id: int, access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
         
     try:
-        audio_data = await logaudio.filter(user_id=user_id, audio_id=audio_id).first()
-        user = await userdata.filter(user_id=user_id).first()
+        audio_data = await logaudio.filter(email=email, audio_id=audio_id).first()
         if audio_data:
             await audio_data.delete()
-            audio_to_update = await logaudio.filter(user_id=user_id, audio_id__gt=audio_id).all()
+            audio_to_update = await logaudio.filter(email=email, audio_id__gt=audio_id).all()
             for audio in audio_to_update:
                 audio.audio_id -= 1
                 await audio.save()
-            response = pesan_response(email=user.email, pesan=f'audio data dengan log-audio {audio_id} telah dihapus')
+            response = pesan_response(email=audio_data.email, pesan=f'audio data dengan log-audio {audio_id} telah dihapus')
             return JSONResponse(response, status_code=200)
         else:
             raise HTTPException(detail=f'audio data dengan log-audio {audio_id} tidak ditemukan', status_code=404)
@@ -136,15 +134,15 @@ async def shareTwiter(meta: share_to_twiter,access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
         
     auth = tweepy.OAuth1UserHandler(config.consumer_key_twiter, config.consumer_secret_twiter)
     auth.set_access_token(config.access_token_twiter, config.access_token_secret_twiter)
 
     api = tweepy.API(auth)
         
-    data = await logaudio.filter(audio_id=meta.audio_id, user_id=user_id).first()
-    user = await userdata.filter(user_id=user_id).first()
+    data = await logaudio.filter(audio_id=meta.audio_id, email=email).first()
+    user = await userdata.filter(email=email).first()
     get_audio = requests.get(data.audio_download)
     audio_filename = 'share_audio.mp3'
     with open(audio_filename, 'wb') as audio_file:
