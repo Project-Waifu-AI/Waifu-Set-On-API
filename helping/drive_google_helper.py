@@ -31,11 +31,9 @@ def create_folder_gdrive(access_token: str, email: str):
         file = service.files().create(body=file_metadata, fields='id').execute()
         return file.get('id')
 
-async def simpanKe_Gdrive(email, audio_id):
+async def simpanKe_Gdrive(email, audio_id, delete: bool):
     data = await logaudio.filter(email=email, audio_id=audio_id).first()
     user = await userdata.filter(email=email).first()
-    
-    
     
     get_audio = requests.get(data.audio_download)
     audio_filename = f'audio_bw_{email}_{audio_id}.mp3'
@@ -50,6 +48,10 @@ async def simpanKe_Gdrive(email, audio_id):
     }
     media = MediaFileUpload(audio_filename, mimetype='application/octet-stream')
     file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    if delete is True:
+        await data.delete()
+        
+    return file.get('id')
 
 def find_folder_id(service, nama_folder):
     query = f"name = '{nama_folder}' and mimeType = 'application/vnd.google-apps.folder' and trashed=false"
