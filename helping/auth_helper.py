@@ -183,7 +183,7 @@ def cek_admin(email: str):
     else:
         return False
     
-async def token_set_email(email, token, exp, refersh):
+async def google_creds(email, token, exp, refersh):
     data = await token_google.filter(email=email).first()
 
     if data:
