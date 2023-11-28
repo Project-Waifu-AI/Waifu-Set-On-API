@@ -125,7 +125,7 @@ async def delete_audio(audio_id: int, access_token: str = Header(...)):
         raise http_err
     except Exception as err:
         raise HTTPException(detail=str(err), status_code=500)
-    
+"""
 @router.post('/save-audio-to-drive')
 async def saveDrive(audio_id: int, access_token: str = Header):
     check = check_access_token_expired(access_token=access_token)
@@ -133,6 +133,5 @@ async def saveDrive(audio_id: int, access_token: str = Header):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        email = payloadJWT.get('sub')
-
-    
+        email = payloadJWT.get('sub') 
+"""

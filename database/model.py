@@ -36,7 +36,7 @@ class token_google(Model):
     email = fields.CharField(max_length=320)
     access_token = fields.CharField(max_length=255)
     token_exp = fields.DateField()
-    refersh_token = fields.CharField(max_length=255)
+    refersh_token = fields.CharField(max_length=255, null=True)
 
     class Meta:
         table = 'token_google'
@@ -57,7 +57,7 @@ class userdata(Model):
     karakterYangDimiliki = fields.JSONField(null=True)
     akunwso = fields.BooleanField(default=False)
     googleAuth = fields.BooleanField(default=False)
-    driveID = fields.IntField(null=True)
+    driveID = fields.CharField(null=True, max_length=320)
     token_konfirmasi = fields.CharField(max_length=225, null=True)
     premium_token = fields.CharField(max_length=225, null=True)
     ban = fields.BooleanField(default=False)

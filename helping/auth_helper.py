@@ -183,13 +183,22 @@ def cek_admin(email: str):
     else:
         return False
     
-async def google_creds(email, token, exp, refersh):
+async def save_google_creds(email, token, exp, refersh:Optional[datetime]=None):
     data = await token_google.filter(email=email).first()
-
-    if data:
-        data.access_token = token
-        data.token_exp = exp
-        data.refersh_token = refersh
-        await data.save()
-    else:
-        await token_google.create(email=email, access_token=token, token_exp=exp, refersh_token=refersh)
+    if refersh is None:
+        if data:
+            data.access_token = token
+            data.token_exp = exp
+            await data.save()
+        else:
+            save = token_google(email=email, access_token=token, token_exp=exp)
+            await save.save()
+    else: 
+        if data:
+            data.access_token = token
+            data.token_exp = exp
+            data.refersh_token = refersh
+            await data.save()
+        else:
+            save = token_google(email=email, access_token=token, token_exp=exp, refersh_token=refersh)
+            await save.save()

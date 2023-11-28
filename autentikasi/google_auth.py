@@ -5,8 +5,8 @@ import requests
 import os
 from configs import config
 from database.model import userdata, token_google
-from helping.auth_helper import create_access_token, apakahNamakuAda, buatNamaUnik, cek_admin, google_creds
-from helping.drive_google_helper import folder_set_drive
+from helping.auth_helper import create_access_token, apakahNamakuAda, buatNamaUnik, cek_admin, save_google_creds
+from helping.drive_google_helper import create_folder_gdrive
 
 router = APIRouter(prefix='/google-auth', tags=['google-auth-WSO'])
 
@@ -18,7 +18,7 @@ os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 async def daftar():
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         'client_secret.json',
-        scopes=['email', 'profile', 'https://www.googleapis.com/auth/drive']  
+        scopes=['email', 'profile', 'https://www.googleapis.com/auth/drive.file']  
     )
     flow.redirect_uri = config.redirect_uri_autentikasi_google
     authorization_url, state = flow.authorization_url(
@@ -59,36 +59,48 @@ async def auth2callback_register(request: Request, state: str):
             namaYangDisimpan = nama
         
         if user:
+            
             if user.googleAuth is False:
                 user.googleAuth = True
                 user.AtsumaruKanjo += 100
-            else:
-                token = create_access_token(user=user)
-                return JSONResponse (content={'access_token': str(token)})
             
             if user.nama is None:
                 user.nama = namaYangDisimpan  
             
             if user.driveID is None:
-                drive = folder_set_drive(access_token=access_token, email=email)
-                user.driveID = drive
+                drive = create_folder_gdrive(access_token=access_token, email=email)
+                user.driveID = str(drive)
+            
+            if cek_admin is True:
+                user.admin = True
+                user.AtsumaruKanjo += 999999999
+                user.NegaiGoto += 999999999
             
             await user.save()
             
-            await google_creds(email=email, token=access_token, exp=exp_token, refersh=refresh_token)
-
+            await save_google_creds(email=email, token=access_token, exp=exp_token, refersh=refresh_token)
+            
             token = create_access_token(user=user)
             return JSONResponse(content={
                 'access_token': token,
                 'google_auth': str(user.googleAuth),
                 'akunWSO': str(user.akunwso)
-            })
+            }, status_code=200)
+        
         else:
-            drive = folder_set_drive(access_token=access_token, email=email)
-            save = userdata(nama=namaYangDisimpan, email=email, googleAuth=True, AtsumaruKanjo=100, driveID=drive)
+            drive = create_folder_gdrive(access_token=access_token, email=email)
+            if cek_admin(email=email) is False:
+                save = userdata(nama=namaYangDisimpan, email=email, googleAuth=True, AtsumaruKanjo=100, driveID=str(drive))
+            else:
+                save = userdata(nama=namaYangDisimpan, email=email, googleAuth=True, AtsumaruKanjo=999999999, driveID=str(drive), admin=True)
+            
+            await save_google_creds(email=email, token=access_token, exp=exp_token, refersh=refresh_token)
+            
             await save.save()
             user = await userdata.filter(email=email).first()
+            
             token = create_access_token(user=user)
+            
             return JSONResponse(content={
                 'access_token': token,
                 'google_auth': str(save.googleAuth),

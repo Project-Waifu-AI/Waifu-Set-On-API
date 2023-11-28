@@ -26,7 +26,11 @@ async def login_wso(meta: LoginWSO):
         else:
             try:
                 access_token = create_access_token(user=user)
-                return JSONResponse(content={'access_token': str(access_token)}, status_code=200)
+                return JSONResponse(content={
+                    'access_token': access_token,
+                    'google_auth': str(user.googleAuth),
+                    'akunWSO': str(user.akunwso)
+                }, status_code=200)
             except Exception as e:
                 raise HTTPException(detail=str(e), status_code=500)
     
@@ -102,7 +106,11 @@ async def simpan_user(meta: SimpanUserWSO):
                         user.AtsumaruKanjo += 100
                         await user.save()
                         access_token = create_access_token(user=user)
-                        return JSONResponse({'access_token':str(access_token)}, status_code=201)
+                        return JSONResponse(content={
+                            'access_token': access_token,
+                            'google_auth': str(user.googleAuth),
+                            'akunWSO': str(user.akunwso)
+                        }, status_code=200)
                     except Exception as e:
                         raise HTTPException(detail=str(e), status_code=500)
             else:
