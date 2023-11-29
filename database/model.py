@@ -35,7 +35,7 @@ class logpercakapan(Model):
 class token_google(Model):
     email = fields.CharField(max_length=320)
     access_token = fields.CharField(max_length=255)
-    token_exp = fields.DateField()
+    token_exp = fields.DatetimeField()
     refersh_token = fields.CharField(max_length=255, null=True)
 
     class Meta:
