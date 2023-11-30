@@ -7,7 +7,7 @@ from database.model import userdata, token_google
 import requests
 import os
 import json
-import io
+import tempfile
 
 def create_drive_service(access_token):
     creds = Credentials(token=access_token)
@@ -68,14 +68,15 @@ def create_folder_gdrive(access_token: str, email: str):
 async def use_AccessToken_google(email):
     token = await token_google.filter(email=email).first()
     now = datetime.utcnow().replace(tzinfo=timezone.utc)
+    
+    with open('client_secret.json', 'r') as file:
+        data = json.loads(file.read())
+    
     client_id = data.get('web', {}).get('client_id', None)
     client_secret = data.get('web', {}).get('client_secret', None)
     
     if token.token_exp.replace(tzinfo=timezone.utc) <= now:
         
-        with open('client_secret.json', 'r') as file:
-            data = json.loads(file.read())
-
         params = {
                 "grant_type": "refresh_token",
                 "client_id": client_id,
@@ -110,7 +111,8 @@ async def simpanKe_Gdrive(data, delete: bool):
     user = await userdata.filter(email=data.email).first()
 
     get_audio = requests.get(data.audio_download)
-    audio_content = io.BytesIO(get_audio.content)
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file.write(get_audio.content)
     
     can_i = await use_AccessToken_google(email=data.email)
     
@@ -135,7 +137,7 @@ async def simpanKe_Gdrive(data, delete: bool):
     }
     try:
 
-        media = MediaFileUpload(audio_content, mimetype='application/octet-stream')
+        media = MediaFileUpload(temp_file.name, mimetype='application/octet-stream')
         file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
         
         if delete is True:

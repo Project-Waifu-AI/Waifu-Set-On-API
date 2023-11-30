@@ -1,6 +1,5 @@
 env/**
-test.py
-test1.py
+test/
 test.html
 client_secret.json
 .env

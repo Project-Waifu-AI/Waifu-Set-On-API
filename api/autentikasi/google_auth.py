@@ -77,7 +77,11 @@ async def auth2callback_register(request: Request, state: str):
                 
                 if user.driveID is None:
                     drive = create_folder_gdrive
-                    user.driveID = str(drive)
+                    if drive['status'] is False:
+                        raise HTTPException(detail=drive['keterangan'], status_code=500)
+                    else:
+                        drive_id = drive['keterangan']
+                    user.driveID = drive_id
                 
                 await user.save()
 
@@ -94,10 +98,15 @@ async def auth2callback_register(request: Request, state: str):
             
             drive = create_folder_gdrive(access_token=access_token, email=email)
             
-            if cek_admin(email=email) is False:
-                save = userdata(nama=namaYangDisimpan, email=email, googleAuth=True, AtsumaruKanjo=100, driveID=str(drive))
+            if drive['status'] is False:
+                raise HTTPException(detail=drive['keterangan'], status_code=500)
             else:
-                save = userdata(nama=namaYangDisimpan, email=email, googleAuth=True, AtsumaruKanjo=999999999, driveID=str(drive), admin=True)
+                drive_id = drive['keterangan']
+            
+            if cek_admin(email=email) is False:
+                save = userdata(nama=namaYangDisimpan, email=email, googleAuth=True, AtsumaruKanjo=100, driveID=drive_id)
+            else:
+                save = userdata(nama=namaYangDisimpan, email=email, googleAuth=True, AtsumaruKanjo=999999999, driveID=drive_id, admin=True)
             
             await save_google_creds(email=email, token=access_token, exp=exp_token, refersh=refresh_token)
             

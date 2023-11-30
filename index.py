@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database.database import init_db
 from configs import config
+from api.router import router
 
 import openai
 
@@ -24,3 +25,5 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+app.include_router(router=router)

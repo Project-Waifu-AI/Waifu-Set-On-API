@@ -16,8 +16,7 @@ class Config(BaseSettings):
     # twiter
     client_id_twiter: str = os.getenv('CLIENT_ID_TWITER')
     client_secret_twiter: str = os.getenv('CLIENT_SECRET_TWITER')
-    redirect_uri_login_twiter: str = os.getenv('REDIRECT_URI_LOGIN_TWITER')
-    redirect_uri_register_twiter: str = os.getenv('REDIRECT_URI_REGISTER_TWITER')
+    redirect_uri_autentikasi_twiter: str = os.getenv('REDIRECT_URI_AUTENTIKASI_TWITER')
     consumer_key_twiter: str = os.getenv('API_KEY_TWITER')
     consumer_secret_twiter: str = os.getenv('API_KEY_SECRET_TWITTER')
     access_token_twiter: str = os.getenv('ACCESS_TOKEN_TWITER')

@@ -138,8 +138,9 @@ async def saveDrive(audio_id: int, access_token: str = Header(...)):
         email = payloadJWT.get('sub') 
     
     data = await logaudio.filter(email=email,audio_id=audio_id).first()
+    
     if not data:
-        raise HTTPException(detail='data tidak ditemukan')
+        raise HTTPException(detail='data tidak ditemukan', status_code=404)
     
     send = await simpanKe_Gdrive(data=data, delete=False)
     
@@ -161,7 +162,7 @@ async def saveDrive(audio_id: int, access_token: str = Header(...)):
         
     data = await logaudio.filter(email=email,audio_id=audio_id).first()
     if not data:
-        raise HTTPException(detail='data tidak ditemukan')
+        raise HTTPException(detail='data tidak ditemukan', status_code=404)
     
     send = await simpanKe_Gdrive(data=data, delete=True)
     

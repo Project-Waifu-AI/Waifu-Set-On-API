@@ -13,10 +13,10 @@ from api.autentikasi.wso_auth import router as router_wso_auth
 from api.autentikasi.google_auth import router as router_google_auth
 
 # admin access
-from tambahan.admin_access import router as router_admin
+from api.tambahan.admin_access import router as router_admin
 
 # CRUD user
-from tambahan.user_set import router as router_user
+from api.tambahan.user_set import router as router_user
 
 router = APIRouter(prefix='/api')
 
