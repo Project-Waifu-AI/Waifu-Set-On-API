@@ -3,16 +3,22 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 from datetime import datetime, timezone
-from database.model import logaudio, userdata, token_google
+from database.model import userdata, token_google
 import requests
 import os
 import json
+import io
 
 def create_drive_service(access_token):
     creds = Credentials(token=access_token)
     try:
+        
         service = build("drive", "v3", credentials=creds)
-        return service
+        return {
+            'status': True,
+            'keterangan': service
+        }
+    
     except HttpError as e:
         return{
             'status': False,
@@ -20,71 +26,132 @@ def create_drive_service(access_token):
         }
     
 def create_folder_gdrive(access_token: str, email: str):
-    service = create_drive_service(access_token=access_token)
-    namaFolder = f'WSO_{email.upper()}'
+    service_response = create_drive_service(access_token=access_token)
+    
+    if service_response['status'] is False:
+        return {
+            'status': False,
+            'keterangan': service_response['keterangan']
+        }
+    else:
+        service = service_response['keterangan']
+
+    namaFolder = f'WaifuSetOn'
+    
     file_metadata = {
         "name": namaFolder,
         "mimeType": "application/vnd.google-apps.folder",
     }
+    
     cari = find_folder_id(service=service, nama_folder=namaFolder)
+    
     if cari:
-        return cari
+        return {
+            'status': True,
+            'keterangan': cari
+        }
+    
     else:
-        file = service.files().create(body=file_metadata, fields='id').execute()
-        return file.get('id')
+        try:
+            folder = service.files().create(body=file_metadata, fields='id').execute()
+        except HttpError as e:
+            return {
+                'status': False,
+                'keterangan': str(e)
+            }
+        
+        return {
+            'status': True,
+            'keterangan': folder.get('id')
+        }
 
-def refreshToken_google(refresh_token):
+async def use_AccessToken_google(email):
+    token = await token_google.filter(email=email).first()
+    now = datetime.utcnow().replace(tzinfo=timezone.utc)
+    client_id = data.get('web', {}).get('client_id', None)
+    client_secret = data.get('web', {}).get('client_secret', None)
+    
+    if token.token_exp.replace(tzinfo=timezone.utc) <= now:
+        
         with open('client_secret.json', 'r') as file:
             data = json.loads(file.read())
-
-        client_id = data.get('web', {}).get('client_id', None)
-        client_secret = data.get('web', {}).get('client_secret', None)
 
         params = {
                 "grant_type": "refresh_token",
                 "client_id": client_id,
                 "client_secret": client_secret,
-                "refresh_token": refresh_token
+                "refresh_token": token.refersh_token
         }
 
         authorization_url = "https://oauth2.googleapis.com/token"
-
-        r = requests.post(authorization_url, data=params)
-        data = r.json()
-        return data['access_token']
-
-async def use_AccessToken_google(email):
-    token = await token_google.filter(email=email).first()
-    now = datetime.utcnow().replace(tzinfo=timezone.utc)
-    if token.token_exp.replace(tzinfo=timezone.utc) <= now:
-        access_token = refreshToken_google(refresh_token=token.refersh_token)
-        return access_token
+        
+        try:
+            r = requests.post(authorization_url, data=params)
+            data = r.json()
+        
+        except Exception as e:
+            return{
+                'status': False,
+                'keterangan': str(e)
+            }
+        
+        return {
+            'status': True,
+            'keterangan': data['access_token']
+        }
+    
     else:
-        return token.access_token
+        return {
+            'status': True,
+            'keterangan': token.access_token
+        }
 
-async def simpanKe_Gdrive(email, audio_id, delete: bool):
-    data = await logaudio.filter(email=email,audio_id=audio_id).first()
-    user = await userdata.filter(email=email).first()
-    
+async def simpanKe_Gdrive(data, delete: bool):
+    user = await userdata.filter(email=data.email).first()
+
     get_audio = requests.get(data.audio_download)
-    audio_filename = f'{str(data.translate)}.mp3'
-    with open(audio_filename, 'wb') as audio_file:
-        audio_file.write(get_audio.content)
+    audio_content = io.BytesIO(get_audio.content)
     
-    access_token = await use_AccessToken_google(email=email)
-    print (access_token)
-    service = create_drive_service(access_token=access_token)
+    can_i = await use_AccessToken_google(email=data.email)
+    
+    if can_i['status'] is False:
+        return can_i
+    else:
+        access_token = can_i['keterangan']
+    
+    service_response = create_drive_service(access_token=access_token)
+    
+    if service_response['status'] is False:
+        return {
+            'status': False,
+            'keterangan': service_response['keterangan']
+        }
+    else:
+        service = service_response['keterangan']
     
     file_metadata = {
-        'name': os.path.basename(audio_filename),
+        'name': f'{str(data.translate)}.mp3',
         'parents': [user.driveID]
     }
-    media = MediaFileUpload(audio_filename, mimetype='application/octet-stream')
-    file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-    if delete is True:
-        await data.delete()
+    try:
+
+        media = MediaFileUpload(audio_content, mimetype='application/octet-stream')
+        file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
         
-    return file.get('id')
+        if delete is True:
+            await data.delete()
+            
+        return {
+            'status': True,
+            'keterangan': file.get('id')
+        }
+    
+    except HttpError as e:
+        
+        return {
+            'status': False,
+            'keterangan': str(e)
+        }
 
 def find_folder_id(service, nama_folder):
     query = f"name = '{nama_folder}' and mimeType = 'application/vnd.google-apps.folder' and trashed=false"

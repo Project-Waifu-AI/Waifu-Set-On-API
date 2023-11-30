@@ -8,7 +8,7 @@ import tempfile
 import tweepy
 import requests
 from configs import config
-from database.model import logaudio, userdata
+from database.model import logaudio
 from helping.response_helper import pesan_response
 from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium
 from helping.action_helper import request_audio, to_japan, cek_bahasa, to_japan_premium
@@ -130,14 +130,24 @@ async def delete_audio(audio_id: int, access_token: str = Header(...)):
 @router.post('/save-audio-to-drive-only')
 async def saveDrive(audio_id: int, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
+    
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub') 
-        
-    await simpanKe_Gdrive(email=email, audio_id=audio_id, delete=False)
+    
+    data = await logaudio.filter(email=email,audio_id=audio_id).first()
+    if not data:
+        raise HTTPException(detail='data tidak ditemukan')
+    
+    send = await simpanKe_Gdrive(data=data, delete=False)
+    
+    if send['status'] is False:
+        raise HTTPException(detail=send['keterangan'], status_code=500)
+    
     response = pesan_response(email=email, pesan=f'audio-id {audio_id} telah berhasil disimpan ke google drive')
+    
     return JSONResponse(response, status_code=200)
 
 @router.post('/save-audio-to-drive-and-delete')
@@ -149,6 +159,15 @@ async def saveDrive(audio_id: int, access_token: str = Header(...)):
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub') 
         
-    await simpanKe_Gdrive(email=email, audio_id=audio_id, delete=True)
+    data = await logaudio.filter(email=email,audio_id=audio_id).first()
+    if not data:
+        raise HTTPException(detail='data tidak ditemukan')
+    
+    send = await simpanKe_Gdrive(data=data, delete=True)
+    
+    if send['status'] is False:
+        raise HTTPException(detail=send['keterangan'], status_code=500)
+    
     response = pesan_response(email=email, pesan=f'audio-id {audio_id} telah berhasil disimpan ke google drive dan data dihapus dari database')
+    
     return JSONResponse(response, status_code=200)

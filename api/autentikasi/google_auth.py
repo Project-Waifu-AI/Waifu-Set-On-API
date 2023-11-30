@@ -78,6 +78,7 @@ async def auth2callback_register(request: Request, state: str):
                 if user.driveID is None:
                     drive = create_folder_gdrive
                     user.driveID = str(drive)
+                
                 await user.save()
 
             await save_google_creds(email=email, token=access_token, exp=exp_token, refersh=refresh_token)
