@@ -6,9 +6,9 @@ from body_request.gachapon_body_request import SetKarakter, tambahan
 from configs import config
 import json
 
-router = APIRouter(prefix='/admin-access', tags=['admin'])
+router = APIRouter(prefix='/admin', tags=['admin'])
 
-@router.post('/+karakter')
+@router.post('/tambah-karakter')
 async def tambah_karakter(meta: SetKarakter, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -37,7 +37,7 @@ async def tambah_karakter(meta: SetKarakter, access_token: str = Header(...)):
         else:
             raise HTTPException(status_code=403, detail=f'user anda {level}')
         
-@router.put('/update-data-karakter')
+@router.put('/update-karakter')
 async def update_karakter(meta: SetKarakter, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -65,7 +65,7 @@ async def update_karakter(meta: SetKarakter, access_token: str = Header(...)):
         else:
             raise HTTPException(status_code=403, detail=f'user anda {level}')
                         
-@router.delete('/delete-karakter-data')
+@router.delete('/delete-karakter')
 async def delete_karakter(nama_karakter: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -80,25 +80,5 @@ async def delete_karakter(nama_karakter: str, access_token: str = Header(...)):
                 return Response(f'karakter {nama_karakter} telah dihapus', status_code=200)
             else:
                 raise HTTPException(detail=f'karakter dengan {nama_karakter} tidak ditemukan', status_code=404)
-        else:
-            raise HTTPException(status_code=403, detail=f'user anda {level}')
-        
-@router.put('/update-admin-premium')
-async def updatePremium(access_token: str = Header(...)):
-    check = check_access_token_expired(access_token=access_token)
-    if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
-    elif check is False:
-        payloadJWT = decode_access_token(access_token=access_token)
-        level = payloadJWT.get('level')
-        user_id = payloadJWT.get('sub')
-        if level == 'admin':
-            try:
-                user = await userdata.filter(user_id=user_id).first()
-                user.admin = True
-                user.save()
-                return Response(f'admin dengan email {user.email} telah dimasukan kedalam daftar premium',status_code=200)
-            except Exception as e:
-                raise HTTPException(detail=str(e), status_code=500)
         else:
             raise HTTPException(status_code=403, detail=f'user anda {level}')

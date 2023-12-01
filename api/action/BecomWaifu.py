@@ -15,7 +15,7 @@ from helping.action_helper import request_audio, to_japan, cek_bahasa, to_japan_
 from helping.drive_google_helper import simpanKe_Gdrive
 
 r = sr.Recognizer()
-router = APIRouter(prefix='/BecomeWaifu', tags=['BecomeWaifu-action'])
+router = APIRouter(prefix='/bw', tags=['BecomeWaifu-action'])
 
 @router.post('/change-voice/{speaker_id}')
 async def change_voice(speaker_id: int, bahasa: str, audio_file: UploadFile = File(...), access_token: str = Header(...)):
@@ -75,7 +75,7 @@ async def change_voice(speaker_id: int, bahasa: str, audio_file: UploadFile = Fi
     else:
         raise HTTPException(detail=translation, status_code=500)
     
-@router.get('/get-all-logaudio/{audio}')
+@router.get('/get-all-audio-log')
 async def get_all_logaudio(access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -100,7 +100,7 @@ async def get_all_logaudio(access_token: str = Header(...)):
     else:
         raise HTTPException(status_code=404, detail="logaudio tidak ditemukan")
     
-@router.delete("/delete-audio/{audio_id}")
+@router.delete("/delete-audio-log/{audio_id}")
 async def delete_audio(audio_id: int, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -127,7 +127,7 @@ async def delete_audio(audio_id: int, access_token: str = Header(...)):
     except Exception as err:
         raise HTTPException(detail=str(err), status_code=500)
 
-@router.post('/save-audio-to-drive-only')
+@router.post('/save-to-drive-only')
 async def saveDrive(audio_id: int, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     
@@ -151,7 +151,7 @@ async def saveDrive(audio_id: int, access_token: str = Header(...)):
     
     return JSONResponse(response, status_code=200)
 
-@router.post('/save-audio-to-drive-and-delete')
+@router.post('/save-to-drive-delete')
 async def saveDrive(audio_id: int, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:

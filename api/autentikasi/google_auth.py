@@ -8,7 +8,7 @@ from database.model import userdata
 from helping.auth_helper import create_access_token, apakahNamakuAda, buatNamaUnik, cek_admin, save_google_creds
 from helping.drive_google_helper import create_folder_gdrive
 
-router = APIRouter(prefix='/google-auth', tags=['google-auth-WSO'])
+router = APIRouter(prefix='/auth/google', tags=['google-auth-WSO'])
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
@@ -76,7 +76,7 @@ async def auth2callback_register(request: Request, state: str):
                     user.nama = namaYangDisimpan
                 
                 if user.driveID is None:
-                    drive = create_folder_gdrive
+                    drive = create_folder_gdrive(access_token=access_token)
                     if drive['status'] is False:
                         raise HTTPException(detail=drive['keterangan'], status_code=500)
                     else:

@@ -6,7 +6,7 @@ from helping.response_helper import pesan_response
 from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium
 from configs import config
 
-router = APIRouter(prefix='/AsistenWaifu', tags=['AsistenWaifu-action'])
+router = APIRouter(prefix='/aiu', tags=['AsistenWaifu-action'])
 
 @router.get('/pesan-meimei-himari')
 async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
@@ -63,7 +63,7 @@ async def pesan_meimei_himari(pesan: str, access_token: str = Header(...)):
     else:
         raise HTTPException(detail=response['output'], status_code=500)
 
-@router.get('/pesan-nurse-T')
+@router.get('/pesan-nurseT')
 async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -115,7 +115,7 @@ async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
     else:
         raise HTTPException(detail=response['output'], status_code=500)
 
-@router.get('/pesan-kusukabe-tsumugi')
+@router.get('/pesan-kusukabae-tsumugi')
 async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -167,7 +167,7 @@ async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
     else:
         raise HTTPException(detail=response['output'], status_code=500)
 
-@router.get('/pesan-no.7')
+@router.get('/pesan-no7')
 async def pesan_no7(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -220,7 +220,7 @@ async def pesan_no7(pesan: str, access_token: str = Header(...)):
     else:
         raise HTTPException(detail=response['output'], status_code=500)
 
-@router.get('/pesan-SAYO')
+@router.get('/pesan-sayo')
 async def pesan_sayo(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -275,7 +275,7 @@ async def pesan_sayo(pesan: str, access_token: str = Header(...)):
     else:
         raise HTTPException(detail=response['output'], status_code=500)
 
-@router.delete('/delete-obrolan')
+@router.delete('/delete-all-log-percakapan')
 async def delete_obrolan(access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:

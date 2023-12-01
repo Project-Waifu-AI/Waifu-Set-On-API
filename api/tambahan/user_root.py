@@ -7,9 +7,9 @@ from webhook.send_email import send_password_change
 from helping.auth_helper import check_access_token_expired, decode_access_token, apakahNamakuAda, userIni, create_access_token, valid_password, set_password
 from helping.response_helper import pesan_response, user_response
 
-router = APIRouter(prefix='/user', tags=['user-data'])
+router = APIRouter(prefix='/user-root', tags=['user-data'])
 
-@router.put('/update-user-data')
+@router.put('/update-data')
 async def update_userData(meta: updateUser, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -45,7 +45,7 @@ async def update_userData(meta: updateUser, access_token: str = Header(...)):
     else:
         raise HTTPException(status_code=404, detail='data user tidak ditemukan')
     
-@router.get('/user-data')
+@router.get('/get-data')
 async def user_data(access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:

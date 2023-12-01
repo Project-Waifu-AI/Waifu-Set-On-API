@@ -15,7 +15,8 @@ async def startup():
 
 origins = [
     "http://localhost:3000",
-    "localhost:3000"
+    "localhost:3000",
+    'https://9ec8-103-105-55-169.ngrok-free.app'
 ]
 
 app.add_middleware(

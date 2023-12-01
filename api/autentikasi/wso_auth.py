@@ -8,7 +8,7 @@ from helping.response_helper import pesan_response, user_response
 from webhook.send_email import send_verify_token
 from configs import config
 
-router = APIRouter(prefix='/wso-auth', tags=['Waifu-Set-On-autentikasi'])
+router = APIRouter(prefix='/auth/wso', tags=['Waifu-Set-On-autentikasi'])
 
 @router.post('/login')
 async def login_wso(meta: LoginWSO):

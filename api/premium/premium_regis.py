@@ -4,9 +4,9 @@ from configs import config
 from helping.response_helper import pesan_response
 from helping.auth_helper import check_access_token_expired, decode_access_token, create_token_premium
 
-router = APIRouter(prefix='/premium', tags=['premium'])
+router = APIRouter(prefix='/premium-regis', tags=['premium'])
 
-@router.put('/daftar-premium-wso')
+@router.put('/plan-wso')
 async def daftarPremium(access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     
@@ -21,7 +21,7 @@ async def daftarPremium(access_token: str = Header(...)):
         raise HTTPException(detail=create_premium_data['keterangan'], status_code=500)
     return JSONResponse(pesan_response(pesan=create_premium_data['keterangan']))
 
-@router.put('/daftar-premium-bw')
+@router.put('/plan-bw')
 async def daftarPremium(access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     
@@ -36,7 +36,7 @@ async def daftarPremium(access_token: str = Header(...)):
         raise HTTPException(detail=create_premium_data['keterangan'], status_code=500)
     return JSONResponse(pesan_response(pesan=create_premium_data['keterangan']))
 
-@router.put('/daftar-premium-aiu')
+@router.put('/plan-aiu')
 async def daftarPremium(access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     

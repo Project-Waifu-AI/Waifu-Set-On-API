@@ -25,7 +25,7 @@ def create_drive_service(access_token):
             'keterangan': str(e)
         }
     
-def create_folder_gdrive(access_token: str, email: str):
+def create_folder_gdrive(access_token: str):
     service_response = create_drive_service(access_token=access_token)
     
     if service_response['status'] is False:

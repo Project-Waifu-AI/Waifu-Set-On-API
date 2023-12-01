@@ -15,8 +15,11 @@ from api.autentikasi.google_auth import router as router_google_auth
 # admin access
 from api.tambahan.admin_access import router as router_admin
 
-# CRUD user
-from api.tambahan.user_set import router as router_user
+# user root
+from api.tambahan.user_root import router as router_user
+
+# premium regis
+from api.premium.premium_regis import router as router_premium_regis
 
 router = APIRouter(prefix='/api')
 
@@ -37,3 +40,6 @@ router.include_router(router_admin)
 
 # router crud user
 router.include_router(router_user)
+
+# router premium regis
+router.include_router(router_premium_regis)
