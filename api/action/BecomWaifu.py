@@ -62,12 +62,12 @@ async def change_voice(speaker_id: int, bahasa: str, audio_file: UploadFile = Fi
         data_audio = request_audio(text=translation['response'], speaker_id=speaker_id)
         if data_audio['status'] is False:
             raise HTTPException(detail='eror audio request', status_code=500)
-        save = logaudio(audio_id=audio_id, email=email, transcript=transcript, translate=translation['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+        save = logaudio(audio_id=audio_id, email=email, transcript=' '.join([kata.capitalize() for kata in transcript.split()]), translate=translation['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
         await save.save()
         data=[{
             'email': email,
             'audiId': audio_id,
-            'transcript': transcript,
+            'transcript': ' '.join([kata.capitalize() for kata in transcript.split()]),
             'translation': translation['response']
         }]
         data.append(data_audio)

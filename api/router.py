@@ -12,6 +12,9 @@ from api.autentikasi.wso_auth import router as router_wso_auth
 # auth google
 from api.autentikasi.google_auth import router as router_google_auth
 
+# auth smd
+from api.autentikasi.smd_auth import router as router_smd_auth
+
 # admin access
 from api.tambahan.admin_access import router as router_admin
 
@@ -34,6 +37,9 @@ router.include_router(router_wso_auth)
 
 # router auth google
 router.include_router(router_google_auth)
+
+# router auth wso
+router.include_router(router_smd_auth)
 
 # router admin access
 router.include_router(router_admin)

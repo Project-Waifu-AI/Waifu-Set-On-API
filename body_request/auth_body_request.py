@@ -20,3 +20,13 @@ class SimpanUserWSO(BaseModel):
 class updatePassword(BaseModel):
     password: Optional[str]
     konfirmasi_password: Optional[str]
+    
+class smd_login(BaseModel):
+    username: Optional[str]
+    password: Optional[str]
+
+class smd_register(BaseModel):
+    username: Optional[str]
+    email: Optional[str]
+    displayName: Optional[str]
+    password: Optional[str]
