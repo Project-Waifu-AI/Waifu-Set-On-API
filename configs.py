@@ -42,6 +42,8 @@ class Config(BaseSettings):
     # redirect google
     redirect_uri_autentikasi_google: str = Field("REDIRECT_URI_AUTENTIKASI_GOOGLE")
     
+    # domain smd
+    smd_domain: str = os.getenv('API_SMD_DOMAIN_AUTH')
     # informasi email
     email: str = os.getenv("EMAIL")
     password_email: str = os.getenv("PASSWORD_EMAIL")

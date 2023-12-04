@@ -3,19 +3,18 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from body_request.auth_body_request import smd_login, smd_register
 from database.model import userdata
 from helping.auth_helper import create_access_token, apakahNamakuAda, buatNamaUnik, cek_admin
+from configs import config
 import requests
 import json
 
 router = APIRouter(prefix='/auth/smd', tags=['SMD AUTH'])
 
-API_SMD_DOMAIN_AUTH = 'https://663d-103-105-55-169.ngrok-free.app/api/auth/'
-
 @router.post('/login')
 async def authLogin(meta: smd_login):
-    endpoint = 'login'
+    endpoint = 'auth/login'
     try:
-        url = f'{API_SMD_DOMAIN_AUTH}{endpoint}'
-        
+        url = f'{config.smd_domain}{endpoint}'
+        print(url)
         body = {
             'username': meta.username,
             'password': meta.password
@@ -88,9 +87,9 @@ async def authLogin(meta: smd_login):
     
 @router.post('/register')
 async def authRegister(meta: smd_register):
-    endpoint = 'register'
+    endpoint = 'auth/login'
     try:
-        url = f'{API_SMD_DOMAIN_AUTH}{endpoint}'
+        url = f'{config.smd_domain}{endpoint}'
         body = {
             'username': meta.username,
             'email': meta.email,

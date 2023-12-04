@@ -2,13 +2,12 @@ from fastapi import APIRouter, HTTPException, Header, UploadFile, File
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydub import AudioSegment
 import speech_recognition as sr
-from io import BytesIO
-import os
 import tempfile
-import tweepy
 import requests
+import json
 from configs import config
-from database.model import logaudio
+from database.model import logaudio, userdata
+from body_request.bw_body_request import shareToSMD
 from helping.response_helper import pesan_response
 from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium
 from helping.action_helper import request_audio, to_japan, cek_bahasa, to_japan_premium
@@ -172,3 +171,32 @@ async def saveDrive(audio_id: int, access_token: str = Header(...)):
     response = pesan_response(email=email, pesan=f'audio-id {audio_id} telah berhasil disimpan ke google drive dan data dihapus dari database')
     
     return JSONResponse(response, status_code=200)
+
+
+@router.post('/share-to-smd')
+async def shareSMD(meta: shareToSMD, access_token: str = Header()):
+    check = check_access_token_expired(access_token=access_token)
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=access_token)
+        email = payloadJWT.get('sub') 
+        
+    data = await logaudio.filter(email=email,audio_id=meta.audio_id).first()
+    user = await userdata.filter(email=email).first()
+    if not data:
+        raise HTTPException(detail='data tidak ditemukan', status_code=404) 
+    
+    try:
+        url = f'{config.smd_domain}uploud'
+        headers = {"Content-Type": "application/json; charset=utf-8"}
+        body ={
+            "userId":user.smdID,
+            "desc":meta.caption
+        }
+        print(data)
+        response = requests.post(url, data=data, headers=headers)
+        dataResponse = response.json()
+        return JSONResponse(content=dataResponse)
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=500)
