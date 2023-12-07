@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from configs import config
-from helping.response_helper import pesan_response
-from helping.auth_helper import check_access_token_expired, decode_access_token, create_token_premium
+from helper.response import pesan_response
+from helper.access_token import check_access_token_expired, decode_access_token
+from helper.premium import create_token_premium
 
 router = APIRouter(prefix='/premium-regis', tags=['premium'])
 

@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from numpy.random import choice
-import json
-from helping.auth_helper import check_access_token_expired, decode_access_token
-from helping.response_helper import pesan_response, karakter_response
+from helper.access_token import check_access_token_expired, decode_access_token
+from helper.response import pesan_response, karakter_response
 from database.model import KarakterData, userdata
 from configs import config
 
@@ -16,15 +15,14 @@ async def gacha_normal1(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
 
-    email = await userdata.filter(user_id=user_id).first()
     karakter = await KarakterData.all()
     response = []
     listKarakter = [karakter.nama for karakter in karakter]
     probality = [1 / len(listKarakter) * len(listKarakter)]
     
-    user = await userdata.filter(user_id=user_id).first()
+    user = await userdata.filter(email=email).first()
     if user.AtsumaroKanjo >= 35:
         user.AtsumaroKanjo -= 35
         hasil = choice(listKarakter, p=probality)
@@ -38,7 +36,7 @@ async def gacha_normal1(access_token: str = Header(...)):
         
         return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
-        pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
+        pesan = pesan_response(email=email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
         raise HTTPException (detail=HTTPException, status_code=403)
     
 @router.get('gacha-normal-10')
@@ -48,15 +46,14 @@ async def gacha_normal10(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
 
-    email = await userdata.filter(user_id=user_id).first()
     karakter = await KarakterData.all()
     response = []
     listKarakter = [karakter.nama for karakter in karakter]
     probality = [1 / len(listKarakter) * len(listKarakter)]
     
-    user = await userdata.filter(user_id=user_id).first()
+    user = await userdata.filter(email=email).first()
     if user.AtsumaruKanjo >= 300:
         user.AtsumaruKanjo -= 300
         for i in range(10):
@@ -71,7 +68,7 @@ async def gacha_normal10(access_token: str = Header(...)):
         
         return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
-        pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
+        pesan = pesan_response(email=email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
         raise HTTPException (detail=pesan, status_code=403)
     
 @router.get('gacha-banner-meimei-himari-1')
@@ -81,16 +78,15 @@ async def banner_meimei_himari1(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
 
-    email = await userdata.filter(user_id=user_id).first()
     karakter = await KarakterData.all()
     response = []
     listKarakter = [karakter.nama for karakter in karakter]
     probality = [1 / len(listKarakter) * len(listKarakter)]
     MeiMeiHimari_index = listKarakter.index("meimei himari")
     probality[MeiMeiHimari_index] += 0.05
-    user = await userdata.filter(user_id=user_id).first()
+    user = await userdata.filter(email=email).first()
     if user.NegaiGoto >= 35:
         user.NegaiGoto -= 35
         hasil = choice(listKarakter, p=probality)
@@ -104,7 +100,7 @@ async def banner_meimei_himari1(access_token: str = Header(...)):
         
         return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
-        pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
+        pesan = pesan_response(email=email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
         raise HTTPException (detail=pesan, status_code=403)
     
 @router.get('gacha-banner-meimei-himari-10')
@@ -114,16 +110,15 @@ async def gacha_normal10(access_token: str = Header(...)):
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        user_id = payloadJWT.get('sub')
+        email = payloadJWT.get('sub')
 
-    email = await userdata.filter(user_id=user_id).first()
     karakter = await KarakterData.all()
     response = []
     listKarakter = [karakter.nama for karakter in karakter]
     probality = [0.001] * len(listKarakter)
     MeiMeiHimari_index = listKarakter.index("meimei himari")
     probality[MeiMeiHimari_index] += 0.05
-    user = await userdata.filter(user_id=user_id).first()
+    user = await userdata.filter(email).first()
     if user.NegaiGoto >= 300:
         user.NegaiGoto -= 300
         for i in range(10):
@@ -138,7 +133,7 @@ async def gacha_normal10(access_token: str = Header(...)):
         
         return JSONResponse (user.karakterYangDimiliki, status_code=200)
     else:
-        pesan = pesan_response(email=email.email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
+        pesan = pesan_response(email=email, pesan= f'jumlah NK anda sekarang adalah {user.NegaiKanjo}, NK anda tidak mencukupi')
         raise HTTPException (detail=pesan, status_code=403)
 
 @router.get('/get-all-karakter-data')

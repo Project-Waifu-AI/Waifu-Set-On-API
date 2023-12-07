@@ -3,8 +3,9 @@ from fastapi.responses import JSONResponse, RedirectResponse
 import random
 from body_request.auth_body_request import LoginWSO, SimpanUserWSO
 from database.model import userdata
-from helping.auth_helper import check_password, create_access_token, validation_email, set_password, userIni, valid_password, cek_admin
-from helping.response_helper import pesan_response, user_response
+from helper.access_token import create_access_token
+from helper.cek_and_set import cek_password, cek_valid_email, set_password, cek_admin, cek_data_user, cek_valid_password
+from helper.response import pesan_response, auth_response
 from webhook.send_email import send_verify_token
 from configs import config
 
@@ -12,7 +13,7 @@ router = APIRouter(prefix='/auth/wso', tags=['Waifu-Set-On-autentikasi'])
 
 @router.post('/login')
 async def login_wso(meta: LoginWSO):
-    user = await userIni(namaORemail=meta.emailORname)
+    user = await cek_data_user(namaORemail=meta.emailORname)
     
     if user is False:
         raise HTTPException(detail='nama, email anda masih belum terdaftar', status_code=403)
@@ -21,16 +22,13 @@ async def login_wso(meta: LoginWSO):
         return RedirectResponse(config.redirect_uri_page_masuk, status_code=404)
     
     else:
-        if not check_password(password=meta.password, user=user):
+        if not cek_password(password=meta.password, user=user):
             raise HTTPException(status_code=401, detail="nama, email atau password yang anda masukan salah")
         else:
             try:
                 access_token = create_access_token(user=user)
-                return JSONResponse(content={
-                    'access_token': access_token,
-                    'google_auth': str(user.googleAuth),
-                    'akunWSO': str(user.akunwso)
-                }, status_code=200)
+                response = auth_response(user=user, token=access_token)
+                return JSONResponse(content=response, status_code=200)
             except Exception as e:
                 raise HTTPException(detail=str(e), status_code=500)
     
@@ -38,7 +36,7 @@ async def login_wso(meta: LoginWSO):
 async def register(email: str):
     token_konfirmasi = ''.join([str(random.randint(0, 9)) for _ in range(5)])
     user = await userdata.filter(email=email).first()
-    validasi_email = validation_email(email=email)
+    validasi_email = cek_valid_email(email=email)
     
     if validasi_email is False:
         raise HTTPException(status_code=400, detail="email yang anda masukan tidak valid")
@@ -80,7 +78,7 @@ async def simpan_user(meta: SimpanUserWSO):
     adminkah = cek_admin(email=meta.email)
 
     if meta.password == meta.konfirmasi_password:
-        if valid_password(meta.password) is False:
+        if cek_valid_password(meta.password) is False:
             raise HTTPException(detail='password anda kurang mantap man, minimal 8 karakter, kombinasi Lower dan Upper case huruf dan ditambahkan angka juga', status_code=400) 
         
         if user:
@@ -92,10 +90,12 @@ async def simpan_user(meta: SimpanUserWSO):
                         user.akunwso = True  # Setel akunwso menjadi Aktif
                         user.token_konfirmasi = None  # Hapus token
                         user.AtsumaruKanjo += 99999999
+                        user.NegaiGoto += 999999999
                         user.admin = True
                         await user.save()
                         access_token = create_access_token(user=user)
-                        return JSONResponse({'access_token':str(access_token)}, status_code=201)
+                        response = auth_response(user=user, token=access_token)
+                        return JSONResponse(content=response, status_code=201)
                     except Exception as e:
                         raise HTTPException(detail=str(e), status_code=500)
                 else:
@@ -106,11 +106,8 @@ async def simpan_user(meta: SimpanUserWSO):
                         user.AtsumaruKanjo += 100
                         await user.save()
                         access_token = create_access_token(user=user)
-                        return JSONResponse(content={
-                            'access_token': access_token,
-                            'google_auth': str(user.googleAuth),
-                            'akunWSO': str(user.akunwso)
-                        }, status_code=200)
+                        response = auth_response(user=user, token=access_token)
+                        return JSONResponse(content=response, status_code=201)
                     except Exception as e:
                         raise HTTPException(detail=str(e), status_code=500)
             else:
@@ -120,7 +117,6 @@ async def simpan_user(meta: SimpanUserWSO):
                     user.token_konfirmasi = None  # Hapus token
                     user.AtsumaruKanjo += 100
                     await user.save()
-                    user_data = user_response(user=user)
                     raise HTTPException(detail='token konfirmasi yang anda masukan salah', status_code=404)
                 else:
                     # gak terhubung dengan auth lain , hapus data pengguna

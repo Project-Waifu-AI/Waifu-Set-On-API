@@ -5,8 +5,11 @@ import requests
 import os
 from configs import config
 from database.model import userdata
-from helping.auth_helper import create_access_token, apakahNamakuAda, buatNamaUnik, cek_admin, save_google_creds
-from helping.drive_google_helper import create_folder_gdrive
+from helper.access_token import create_access_token
+from helper.cek_and_set import cek_namaku_ada, set_name_unik, cek_admin
+from helper.response import auth_response
+from helper.google_auth import save_google_creds
+from helper.drive_google import create_folder_gdrive
 
 router = APIRouter(prefix='/auth/google', tags=['google-auth-WSO'])
 
@@ -54,8 +57,8 @@ async def auth2callback_register(request: Request, state: str):
         user = await userdata.filter(email=email).first()
         
         global namaYangDisimpan
-        if await apakahNamakuAda(nama=nama) == False:
-            namaYangDisimpan = await buatNamaUnik(nama=nama)
+        if await cek_namaku_ada(nama=nama) == False:
+            namaYangDisimpan = await set_name_unik(nama=nama)
         else:
             namaYangDisimpan = nama
         
@@ -88,11 +91,8 @@ async def auth2callback_register(request: Request, state: str):
             await save_google_creds(email=email, token=access_token, exp=exp_token, refersh=refresh_token)
             
             token = create_access_token(user=user)
-            return JSONResponse(content={
-                'access_token': token,
-                'google_auth': str(user.googleAuth),
-                'akunWSO': str(user.akunwso)
-            }, status_code=200)
+            response = auth_response(user=user, token=token)
+            return JSONResponse(content=response, status_code=200)
         
         else:
             
@@ -116,11 +116,8 @@ async def auth2callback_register(request: Request, state: str):
             
             token = create_access_token(user=user)
             
-            return JSONResponse(content={
-                'access_token': token,
-                'google_auth': str(save.googleAuth),
-                'akunWSO': str(save.akunwso)
-            })
+            response = auth_response(user=user, token=token)
+            return JSONResponse(content=response, status_code=200)
     
     except ConnectionError as e:
         raise HTTPException(detail=str(e), status_code=500)

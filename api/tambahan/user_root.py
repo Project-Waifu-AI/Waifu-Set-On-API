@@ -2,10 +2,11 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from fastapi.responses import RedirectResponse, JSONResponse
 from body_request.auth_body_request import updateUser, updatePassword
 from configs import config
-from database.model import userdata
+from database.model import userdata, logaudio, logpercakapan, token_google
 from webhook.send_email import send_password_change
-from helping.auth_helper import check_access_token_expired, decode_access_token, apakahNamakuAda, userIni, create_access_token, valid_password, set_password
-from helping.response_helper import pesan_response, user_response
+from helper.access_token import check_access_token_expired, decode_access_token, create_access_token
+from helper.cek_and_set import cek_data_user, cek_namaku_ada, cek_valid_password, set_password
+from helper.response import pesan_response, user_response
 
 router = APIRouter(prefix='/user-root', tags=['user-data'])
 
@@ -23,7 +24,7 @@ async def update_userData(meta: updateUser, access_token: str = Header(...)):
         try:    
             if meta.nama:
                 user.nama = meta.nama
-                if await apakahNamakuAda(nama=meta.nama) == True:
+                if await cek_namaku_ada(nama=meta.nama) == True:
                     await user.save()
                 else:
                     raise HTTPException(detail='nama yang ingin anda gunakan sudah digunakan oleh orang lain', status_code=405)
@@ -64,7 +65,7 @@ async def user_data(access_token: str = Header(...)):
 
 @router.post('/forgot-password')
 async def forgotPassword(email:str):
-    user = await userIni(namaORemail=email)
+    user = await cek_data_user(namaORemail=email)
     
     if user is False:
         raise HTTPException(detail='your email is not found', status_code=404)
@@ -89,7 +90,7 @@ async def want_change_password(request: Request, meta: updatePassword):
             email = payloadJWT.get('sub')
             if permintaan != 'change-password':
                 raise HTTPException(detail='permintaan tidak valid', status_code=403)
-            valid = valid_password(password=meta.password)
+            valid = cek_valid_password(password=meta.password)
             if valid is False:
                 raise HTTPException(detail='password anda lemah coy', status_code=400)
             user = await userdata.filter(email=email).first()
@@ -100,16 +101,21 @@ async def want_change_password(request: Request, meta: updatePassword):
         raise HTTPException(detail='password anda dengan konfirmasi password tidak sama', status_code=400)
 
 @router.delete('/delete-account')
-async def deleteAcount(access_token: str = Header(...)):
+async def deleteAcount(konfirmasi_hapus: str ,access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
-        email = payloadJWT.get('sub') 
+        email = payloadJWT.get('sub')
+    if konfirmasi_hapus != f'Delete Account {email}':
+        raise HTTPException(detail='Tolong Ulangi Permintaan Hapus Anda', status_code=403)
     user = await userdata.filter(email=email).first()
     if user is None:
         raise HTTPException(detail='user tidak ditemukan', status_code=404)
+    data_bw = await logaudio.filter(email=email).delete()
+    data_aiu = await logpercakapan.filter(email=email).delete()
+    data_google = await token_google.filter(email=email).delete()
     await user.delete()
     repsonse = pesan_response(email=user.email, pesan='akun anda telah berhasil dihapus')
     return JSONResponse (repsonse, status_code=200)

@@ -3,15 +3,16 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydub import AudioSegment
 import speech_recognition as sr
 import tempfile
-import requests
-import json
 from configs import config
 from database.model import logaudio, userdata
 from body_request.bw_body_request import shareToSMD
-from helping.response_helper import pesan_response
-from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium
-from helping.action_helper import request_audio, to_japan, cek_bahasa, to_japan_premium
-from helping.drive_google_helper import simpanKe_Gdrive
+from helper.response import pesan_response
+from helper.access_token import check_access_token_expired, decode_access_token
+from helper.premium import check_premium
+from helper.fitur import request_audio
+from helper.translate import to_japan, cek_bahasa, to_japan_premium
+from helper.drive_google import simpanKe_Gdrive
+from helper.smd import post_audio_to_smd
 
 r = sr.Recognizer()
 router = APIRouter(prefix='/bw', tags=['BecomeWaifu-action'])
@@ -186,17 +187,9 @@ async def shareSMD(meta: shareToSMD, access_token: str = Header()):
     user = await userdata.filter(email=email).first()
     if not data:
         raise HTTPException(detail='data tidak ditemukan', status_code=404) 
-    
-    try:
-        url = f'{config.smd_domain}uploud'
-        headers = {"Content-Type": "application/json; charset=utf-8"}
-        body ={
-            "userId":user.smdID,
-            "desc":meta.caption
-        }
-        print(data)
-        response = requests.post(url, data=data, headers=headers)
-        dataResponse = response.json()
-        return JSONResponse(content=dataResponse)
-    except Exception as e:
-        raise HTTPException(detail=str(e), status_code=500)
+    user = await userdata.filter(email=email).first()
+    log = await logaudio.filter(email=email, audio_id=meta.audio_id).first()
+    response = post_audio_to_smd(user=user, log=log, caption=meta.caption)
+    if response['status'] is True:
+        pesan = pesan_response(email=email, pesan=response['keterangan'])
+        JSONResponse(content=pesan, status_code=200)

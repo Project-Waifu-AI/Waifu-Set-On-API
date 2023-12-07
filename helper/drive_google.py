@@ -5,8 +5,8 @@ from googleapiclient.http import MediaFileUpload
 from datetime import datetime, timezone
 from database.model import userdata, token_google
 import requests
-import os
 import json
+import os
 import tempfile
 
 def create_drive_service(access_token):
@@ -109,11 +109,6 @@ async def use_AccessToken_google(email):
 
 async def simpanKe_Gdrive(data, delete: bool):
     user = await userdata.filter(email=data.email).first()
-
-    get_audio = requests.get(data.audio_download)
-    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-        temp_file.write(get_audio.content)
-    
     can_i = await use_AccessToken_google(email=data.email)
     
     if can_i['status'] is False:
@@ -121,9 +116,14 @@ async def simpanKe_Gdrive(data, delete: bool):
     else:
         access_token = can_i['keterangan']
     
+    get_audio = requests.get(data.audio_download)
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file.write(get_audio.content)
+    
     service_response = create_drive_service(access_token=access_token)
     
     if service_response['status'] is False:
+        os.remove(temp_file.name)
         return {
             'status': False,
             'keterangan': service_response['keterangan']
@@ -142,14 +142,15 @@ async def simpanKe_Gdrive(data, delete: bool):
         
         if delete is True:
             await data.delete()
-            
+        
+        os.remove(temp_file.name)    
         return {
             'status': True,
             'keterangan': file.get('id')
         }
     
     except HttpError as e:
-        
+        os.remove(temp_file.name)
         return {
             'status': False,
             'keterangan': str(e)

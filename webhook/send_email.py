@@ -44,7 +44,6 @@ def send_verify_token(target_email: str, token: str):
         server.starttls()
         server.login(MY_EMAIL, MY_PASSWORD)
         server.sendmail(sender_email, target_email, msg.as_string())
-        print('Email berhasil dikirim!')
         return True
     except Exception as e:
         print('Terjadi kesalahan:', str(e))

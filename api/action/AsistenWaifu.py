@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from database.model import logpercakapan, userdata
-from helping.action_helper import obrolan, to_japan, request_audio, to_japan_premium
-from helping.response_helper import pesan_response
-from helping.auth_helper import check_access_token_expired, decode_access_token, check_premium
+from helper.fitur import obrolan, request_audio
+from helper.translate import to_japan, to_japan_premium
+from helper.response import pesan_response
+from helper.access_token import check_access_token_expired, decode_access_token
+from helper.premium import check_premium
 from configs import config
 
 router = APIRouter(prefix='/aiu', tags=['AsistenWaifu-action'])
