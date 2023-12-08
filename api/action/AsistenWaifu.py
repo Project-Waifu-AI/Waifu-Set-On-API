@@ -117,7 +117,7 @@ async def pesan_nurse_t(pesan: str, access_token: str = Header(...)):
     else:
         raise HTTPException(detail=response['output'], status_code=500)
 
-@router.get('/pesan-kusukabae-tsumugi')
+@router.get('/pesan-kusukabe-tsumugi')
 async def pesan_kusukabe_tsumugi(pesan: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
