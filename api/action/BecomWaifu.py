@@ -192,4 +192,4 @@ async def shareSMD(meta: shareToSMD, access_token: str = Header()):
     response = post_audio_to_smd(user=user, log=log, caption=meta.caption)
     if response['status'] is True:
         pesan = pesan_response(email=email, pesan=response['keterangan'])
-        JSONResponse(content=pesan, status_code=200)
+        return JSONResponse(content=pesan, status_code=200)
