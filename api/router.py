@@ -6,6 +6,9 @@ from api.action.BecomWaifu import router as router_bw
 # AsistenWaifu
 from api.action.AsistenWaifu import router as router_aiu
 
+# websocket aiu
+from api.websocket.aiu import router as socket_aiu
+
 # auth wso
 from api.autentikasi.wso_auth import router as router_wso_auth
 
@@ -31,6 +34,9 @@ router.include_router(router_bw)
 
 # router aiu
 router.include_router(router_aiu)
+
+# socket aiu
+router.include_router(socket_aiu)
 
 # router auth wso
 router.include_router(router_wso_auth)

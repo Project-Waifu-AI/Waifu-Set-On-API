@@ -91,8 +91,10 @@ async def auth2callback_register(request: Request, state: str):
             await save_google_creds(email=email, token=access_token, exp=exp_token, refersh=refresh_token)
             
             token = create_access_token(user=user)
-            response = auth_response(user=user, token=token)
-            return JSONResponse(content=response, status_code=200)
+            response_data = auth_response(user=user, token=token)
+            response = JSONResponse(content=response_data, status_code=200)
+            response.set_cookie(key='access_token', value=token)
+            return response
         
         else:
             
@@ -116,8 +118,10 @@ async def auth2callback_register(request: Request, state: str):
             
             token = create_access_token(user=user)
             
-            response = auth_response(user=user, token=token)
-            return JSONResponse(content=response, status_code=200)
+            response_data = auth_response(user=user, token=token)
+            response = JSONResponse(content=response_data, status_code=200)
+            response.set_cookie(key='access_token', value=token)
+            return response
     
     except ConnectionError as e:
         raise HTTPException(detail=str(e), status_code=500)
