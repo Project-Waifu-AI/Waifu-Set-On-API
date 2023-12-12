@@ -13,15 +13,9 @@ openai.api_key = config.api_key_openai
 async def startup():
     init_db(app)
 
-origins = [
-    "http://localhost:3000",
-    "localhost:3000",
-    'https://9ec8-103-105-55-169.ngrok-free.app'
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
