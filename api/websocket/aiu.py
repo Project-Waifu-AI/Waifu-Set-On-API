@@ -13,8 +13,8 @@ router = APIRouter(prefix='/websoket/aiu', tags=['AIU-WEBSOCKET'])
 async def socketObrolan(websocket: WebSocket, access_token: str):
     await websocket.accept()
     
-    while True:
-        try:
+    try:
+        while True:           
             
             pesan = await websocket.receive_text()
             check = check_access_token_expired(access_token=access_token)
@@ -66,21 +66,20 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
                     
                     data.append(data_audio)
                     save = logpercakapan(id_percakapan=id_percakapan, email=email, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
-                    await save.save()            
-            
-            await websocket.send_json(data)
-        
-        except WebSocketDisconnect:
-            break
+                    await save.save()
+                    await websocket.send_json(data)
+                else:
+                    await websocket.send_text('something goes wrong')
     
-    return RedirectResponse(url=config.redirect_uri_page_masuk)
+    except WebSocketDisconnect:
+        print ('disconnect')
 
 @router.websocket('/obrolan-kusukabe-tsumugi')
 async def socketObrolan(websocket: WebSocket, access_token: str):
     await websocket.accept()
     
-    while True:
-        try:
+    try:
+        while True: 
             
             pesan = await websocket.receive_text()
             check = check_access_token_expired(access_token=access_token)
@@ -132,22 +131,19 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
                     
                     data.append(data_audio)
                     save = logpercakapan(id_percakapan=id_percakapan, email=email, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
-                    await save.save()            
-            
-            await websocket.send_json(data)
-        
-        except WebSocketDisconnect:
-            break
+                    await save.save()
+                    await websocket.send_json(data)
+                else:
+                    await websocket.send_text('something goes wrong')
     
-    return RedirectResponse(url=config.redirect_uri_page_masuk)
+    except WebSocketDisconnect:
+        print('disconnect')
 
 @router.websocket('/obrolan-nurse-t')
 async def socketObrolan(websocket: WebSocket, access_token: str):
     await websocket.accept()
-    
-    while True:
-        try:
-            
+    try:
+        while True:          
             pesan = await websocket.receive_text()
             check = check_access_token_expired(access_token=access_token)
             
@@ -199,86 +195,83 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
                     data.append(data_audio)
                     save = logpercakapan(id_percakapan=id_percakapan, email=email, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
                     await save.save()            
-            
-            await websocket.send_json(data)
-        
-        except WebSocketDisconnect:
-            break
+                    await websocket.send_json(data)
+                else:
+                    await websocket.send_text('something goes wrong')
     
-    return RedirectResponse(url=config.redirect_uri_page_masuk)
-
+    except WebSocketDisconnect:
+        print('disconnect')
+    
 @router.websocket('/obrolan-no-7')
 async def socketObrolan(websocket: WebSocket, access_token: str):
     await websocket.accept()
-    
-    while True:
-        try:
-            
-            pesan = await websocket.receive_text()
-            check = check_access_token_expired(access_token=access_token)
-            
-            if check is True:
-                break
-            else:
-                dataJWT = decode_access_token(access_token=access_token)
-                email = dataJWT.get('sub')
-            
-            user_data = await logpercakapan.filter(email=email).order_by("-id_percakapan").first()
-            
-            if user_data:
-                id_percakapan = user_data.id_percakapan + 1
-            else:
-                id_percakapan = 1  
-            
-            setkarakter = {
-                'role':'system',
-                'content':'namamu adalah NO.7,Seorang wanita misterius yang identitasnya sulit dipahami,Kepribadian Minimalis, hanya menggunakan lilin untuk penerangan di kamarnya,umur 23 tahun,tinggi badan 165 cm, suka anak-anak,hobi Membudidayakan lobak daikon, jawab singkat'
-            }
-            
-            response = await obrolan(input_text=pesan, email=email, setKarakter=setkarakter)
-            
-            if response['status'] is True:
-                premium = await check_premium(email=email)
+    try:
+        while True:
                 
-                if premium['status'] is False:
-                    translate = to_japan(input=response['output'])
+                pesan = await websocket.receive_text()
+                check = check_access_token_expired(access_token=access_token)
+                
+                if check is True:
+                    break
                 else:
-                    
-                    if premium['keterangan'].lower() == 'aiu' or premium['keterangan'].lower() == 'admin':
-                        translate = to_japan_premium(input=response['output'])
-                    else:
-                        translate = to_japan(input=response['output'])
+                    dataJWT = decode_access_token(access_token=access_token)
+                    email = dataJWT.get('sub')
                 
-                if translate['status'] is True:
-                    speakerId = 29
-                    data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
+                user_data = await logpercakapan.filter(email=email).order_by("-id_percakapan").first()
+                
+                if user_data:
+                    id_percakapan = user_data.id_percakapan + 1
+                else:
+                    id_percakapan = 1  
+                
+                setkarakter = {
+                    'role':'system',
+                    'content':'namamu adalah NO.7,Seorang wanita misterius yang identitasnya sulit dipahami,Kepribadian Minimalis, hanya menggunakan lilin untuk penerangan di kamarnya,umur 23 tahun,tinggi badan 165 cm, suka anak-anak,hobi Membudidayakan lobak daikon, jawab singkat'
+                }
+                
+                response = await obrolan(input_text=pesan, email=email, setKarakter=setkarakter)
+                
+                if response['status'] is True:
+                    premium = await check_premium(email=email)
                     
-                    if data_audio['status'] is False:
-                        raise HTTPException(detail=data_audio, status_code=500)
+                    if premium['status'] is False:
+                        translate = to_japan(input=response['output'])
+                    else:
+                        
+                        if premium['keterangan'].lower() == 'aiu' or premium['keterangan'].lower() == 'admin':
+                            translate = to_japan_premium(input=response['output'])
+                        else:
+                            translate = to_japan(input=response['output'])
                     
-                    data = [{
-                        'pesan': pesan,
-                        'response': response['output'],
-                        'translate': translate['response'],
-                    }]
-                    
-                    data.append(data_audio)
-                    save = logpercakapan(id_percakapan=id_percakapan, email=email, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
-                    await save.save()            
-            
-            await websocket.send_json(data)
-        
-        except WebSocketDisconnect:
-            break
+                    if translate['status'] is True:
+                        speakerId = 29
+                        data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
+                        
+                        if data_audio['status'] is False:
+                            raise HTTPException(detail=data_audio, status_code=500)
+                        
+                        data = [{
+                            'pesan': pesan,
+                            'response': response['output'],
+                            'translate': translate['response'],
+                        }]
+                        
+                        data.append(data_audio)
+                        save = logpercakapan(id_percakapan=id_percakapan, email=email, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
+                        await save.save()            
+                        await websocket.send_json(data)
+                    else:
+                        await websocket.send_text('something goes wrong')
     
-    return RedirectResponse(url=config.redirect_uri_page_masuk)
+    except WebSocketDisconnect:
+        print('disconnect')
 
 @router.websocket('/obrolan-sayo')
 async def socketObrolan(websocket: WebSocket, access_token: str):
     await websocket.accept()
     
-    while True:
-        try:
+    try:
+        while True:
             
             pesan = await websocket.receive_text()
             check = check_access_token_expired(access_token=access_token)
@@ -331,10 +324,9 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
                     data.append(data_audio)
                     save = logpercakapan(id_percakapan=id_percakapan, email=email, input=pesan, output=response['output'], translate=translate['response'], audio_streming=data_audio['streaming_audio'], audio_download=data_audio['download_audio'])
                     await save.save()            
-            
-            await websocket.send_json(data)
-        
-        except WebSocketDisconnect:
-            break
+                    await websocket.send_json(data)
+                else:
+                    await websocket.send_text('something goes wrong')
     
-    return RedirectResponse(url=config.redirect_uri_page_masuk)
+    except WebSocketDisconnect:
+        print("Client disconnected")

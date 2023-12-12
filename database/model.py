@@ -48,6 +48,7 @@ class token_google(Model):
 class userdata(Model):
     email = fields.CharField(max_length=320, pk=True)
     nama = fields.CharField(max_length=225, null=True)
+    status = fields.CharField(max_length=225, null=True)
     admin = fields.BooleanField(default=False)
     ulang_tahun = fields.DateField(null=True)
     gender = fields.CharField(max_length=10, null=True)

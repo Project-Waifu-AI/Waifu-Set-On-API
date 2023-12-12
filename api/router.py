@@ -24,6 +24,8 @@ from api.tambahan.admin_access import router as router_admin
 # user root
 from api.tambahan.user_root import router as router_user
 
+# user root websocket
+from api.websocket.user import router as socket_user
 # premium regis
 from api.premium.premium_regis import router as router_premium_regis
 
@@ -52,6 +54,9 @@ router.include_router(router_admin)
 
 # router crud user
 router.include_router(router_user)
+
+# socket crud user
+router.include_router(socket_user)
 
 # router premium regis
 router.include_router(router_premium_regis)
