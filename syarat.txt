@@ -1,6 +1,7 @@
 tortoise-orm
 tortoise-orm[asyncmy]
 fastapi
+fastapi_jwt_auth
 starlette
 uvicorn[standard]
 websockets

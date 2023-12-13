@@ -1,5 +1,4 @@
-from fastapi import APIRouter, WebSocket, Header, HTTPException, WebSocketDisconnect, WebSocketException
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException
 from configs import config
 from database.model import logpercakapan
 from helper.fitur import obrolan, request_audio
@@ -17,7 +16,6 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
     try:
         while True:
             permintaan = await websocket.receive_json()
-            
             # check access_token setiap ws menerima json
             check = check_access_token_expired(access_token=access_token)
             if check is True:
@@ -25,42 +23,49 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
             else:
                 dataJWT = decode_access_token(access_token=access_token)
                 email = dataJWT.get('sub')
+            output_eror = pesan_response(email=email, pesan='something gone wrong')
             
             # action obrolan aiu semua karakter
             if permintaan['action']['type'] == 'obrolan':
                 # set data karakter untuk dibuat request
                 pesan = permintaan['data']
                 user_data = await logpercakapan.filter(email=email).order_by("-id_percakapan").first()
+                
                 if permintaan['action']['karakter'] == 'meimei-himari':
                     speakerId = 14
                     setkarakter = {
                         'role':'system',
                         'content':'namamu adalah meimei himari,penuai dari dunia bawah,memiliki mata untuk hal-hal yang indah,umur 18 tahun,ras reaper,tanggal lahir 1 september,hal paling disukai anak perempuan yang lucu,kepribadian baik hati dan rapi, jawab singkat'
                     }
+                
                 elif permintaan['action']['karakter'] == 'kusukabe-tsumugi':
                     speakerId = 8
                     setkarakter = {
                         'role':'system',
                         'content':'namamu adalah kusukabe tsumugi,gadis manusia yang bersekolah di sekolah menengah atas di Prefektur Saitama,Kepribadian terlihat nakal tetapi sebenarnya memiliki sisi yang serius,umur 18 tahun,tinggi badan 155 cm, hobi mengunjungi situs web streaming video,makanan favorit kari jepang, tempat lahir saitama jepang, jawab singkat'
                     }
+                
                 elif permintaan['action']['karakter'] == 'no-7':
                     speakerId = 29
                     setkarakter = {
                         'role':'system',
                         'content':'namamu adalah NO.7,Seorang wanita misterius yang identitasnya sulit dipahami,Kepribadian Minimalis, hanya menggunakan lilin untuk penerangan di kamarnya,umur 23 tahun,tinggi badan 165 cm, suka anak-anak,hobi Membudidayakan lobak daikon, jawab singkat'
                     }
+                
                 elif permintaan['action']['karakter'] == 'nurse-t':
                     speakerId = 47
                     setkarakter = {
                         'role':'system',
                         'content':'namamu adalah nurse-T,Robot berbentuk perawat yang dibuat oleh seorang dokter,Kepribadian ditetapkan sebagai seorang gadis,umur 5 bulan,tanggal lahir 3 desember,tinggi badan 150 - 160 cm, nama panggilan TT, produsen Robot soba kecil(dokter), jawab singkat'
                     }
+                
                 elif permintaan['action']['karakter'] == 'sayo':
                     setkarakter = {
                         'role':'system',
                         'content':'namamu adalah SAYO,Gadis kucing yang banyak bicara,Kepribadian Minimalis,tinggi badan 135 cm (termasuk telinga kucin),makanan favorit makanan faforit makanan kaleng, jawab singkat'
                     }
                     speakerId = 46
+                
                 else:
                     break
     
@@ -88,7 +93,7 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
                         data_audio = request_audio(text=translate['response'], speaker_id=speakerId)
                         
                         if data_audio['status'] is False:
-                            raise HTTPException(detail=data_audio, status_code=500)
+                            await websocket.send_json()
                         
                         data = [{
                             'pesan': pesan,
@@ -101,18 +106,17 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
                         await save.save()            
                         await websocket.send_json(data)
                     else:
-                        output = pesan_response(email=email, pesan='something gone wrong')
-                        await websocket.send_json(output)
+                        await websocket.send_json(output_eror)
                         
                         
             elif permintaan['action']['type'] == 'delete-all-log-percakapan':
                 data = await logpercakapan.filter(email=email).first()
                 await data.delete()
                 response = pesan_response(email=data.email, pesan='log obrolan berhasil dihapus')
-                await websocket.send_json(output)
+                await websocket.send_json(output_eror)
             
             else:
                 break
             
-    except WebSocketDisconnect:
+    except WebSocketDisconnect or WebSocketException:
         print("Client disconnected")
