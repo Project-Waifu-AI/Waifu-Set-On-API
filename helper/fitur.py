@@ -1,6 +1,9 @@
+from openai import OpenAI
 import requests
-import openai
 from database.model import logpercakapan, userdata
+from configs import config
+
+client_openai = OpenAI(api_key=config.api_key_openai)
 
 def request_audio(text, speaker_id: int):
     try:
@@ -49,7 +52,7 @@ async def obrolan(input_text, email, setKarakter):
     else:
         obrolan.append(obrolanBaru)
     try:
-        response = openai.ChatCompletion.create(
+        response = client_openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=obrolan,
             temperature = 0.5,
@@ -65,3 +68,46 @@ async def obrolan(input_text, email, setKarakter):
             'status': False,
             'output': str(e)
         }
+        
+def generateWaifu(prompt, ukuran, admin, jumlah):
+    if ukuran == 'persegi-sama-sisi': 
+        ukuran_hitung = '1024x1024'
+    elif ukuran == 'persegi-panjang-horizontal':
+        ukuran_hitung = '1024x1792'
+    elif ukuran == 'persegi-panjang-vertikal':
+        ukuran_hitung = '1792x1024'
+        
+    if admin is True:
+        try:
+            response = client_openai.images.generate(
+                model="dall-e-3",
+                prompt=f"{prompt}, anime style images",
+                size=ukuran_hitung,
+                quality="hd",
+                n=jumlah,
+            )
+        except Exception as e:
+            return {
+                'status': False,
+                'keterangan': str(e)
+            }
+        
+    if admin is False:
+        try:
+            response = client_openai.images.generate(
+                model="dall-e-3",
+                prompt=f"{prompt}, anime style images",
+                size=ukuran_hitung,
+                quality="standard",
+                n=jumlah,
+            )
+        except Exception as e:
+            return {
+                'status': False,
+                'keterangan': str(e)
+            }
+        
+    return {
+        'status': True,
+        'keterangan': response.data[0].url
+    }

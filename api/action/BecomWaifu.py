@@ -54,9 +54,9 @@ async def change_voice(speaker_id: int, bahasa: str, audio_file: UploadFile = Fi
         if premium_check['keterangan'] == 'bw' or premium_check['keterangan'] == 'admin':
             translation = to_japan_premium(transcript)
         else:
-            translation = to_japan(transcript)
+            translation = to_japan(transcript, bahasa=bahasaYangDigunakan)
     else:
-        translation = to_japan(transcript)
+        translation = to_japan(transcript, bahasa=bahasaYangDigunakan)
 
     if translation['status'] is True:
         data_audio = request_audio(text=translation['response'], speaker_id=speaker_id)

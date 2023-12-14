@@ -4,10 +4,7 @@ from database.database import init_db
 from configs import config
 from api.router import router
 
-import openai
-
 app = FastAPI()
-openai.api_key = config.api_key_openai
 
 @app.on_event("startup")
 async def startup():

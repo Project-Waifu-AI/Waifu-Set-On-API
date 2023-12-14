@@ -1,15 +1,22 @@
 from langdetect import detect
-from googletrans import Translator
-import openai
+from typing import Optional
+from google_trans_new import google_translator
 from configs import config
+from openai import OpenAI
 
-tl = Translator()
+client_openai = OpenAI(api_key=config.api_key_openai)
 
-def to_japan(input):
-    detected_language = detect(input)
+tl = google_translator(url_suffix="com",timeout=5)
+
+def to_japan(input: str, bahasa: Optional[str] = None):
+    if bahasa == None:
+        src = detect(input)
+    else:
+        src = bahasa
+    
     try:  
-        if detected_language != 'ja':
-            response = tl.translate(input, src=detected_language, dest='ja').text
+        if src != 'ja':
+            response = tl.translate(input.lower(), lang_src=src, lang_tgt='ja')
             return {
                 'status': True,
                 'response': response
@@ -37,7 +44,7 @@ def to_japan_premium(input):
     set.append(trans)
     
     try:
-        translate = openai.ChatCompletion.create(
+        translate = client_openai.chat.completions.create(
             model='gpt-4',
             messages=set
         )

@@ -24,15 +24,15 @@ class Config(BaseSettings):
     
     # data
     bahasa={
-        'bahasa indonesia': 'id-ID',
-        'English': 'en-IN',
-        '日本語': 'ja-JP',
-        'basa jawa': 'jv-ID',
-        'русский язык': 'ru-RU',
-        '한국어': 'ko-KR'
+        'bahasa indonesia': 'id',
+        'English': 'en',
+        '日本語': 'ja',
+        'basa jawa': 'jv',
+        'русский язык': 'ru',
+        '한국어': 'ko'
     }
     
-    # api_key
+    # api_key_opneai
     api_key_openai: str = os.getenv("API_KEY_OPENAI")
     
     # configs tambahan
@@ -44,6 +44,7 @@ class Config(BaseSettings):
     
     # domain smd
     smd_domain: str = os.getenv('API_SMD_DOMAIN_AUTH')
+    
     # informasi email
     email: str = os.getenv("EMAIL")
     password_email: str = os.getenv("PASSWORD_EMAIL")

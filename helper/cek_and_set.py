@@ -66,3 +66,25 @@ def cek_admin(email: str):
         return True
     else:
         return False
+    
+def cek_kalimat_promting(kalimat):
+    indonesi_forbiden = [
+    "Ubah gaya gambar menjadi potongan lukisan.",
+    "Ganti style gambar menjadi sketsa.",
+    "Terapkan efek lukisan pada gambar.",
+    "Rubah jenis style gambar menjadi vintage.",
+    "Tambahkan efek kanvas pada foto.",
+    "Buat gambar terlihat seperti lukisan minyak.",
+    "Terapkan gaya sketsa pensil pada foto.",
+    "Ganti tampilan gambar menjadi kartun.",
+    "Buat efek lukisan abstrak pada gambar.",
+    "Rubah foto menjadi gaya seni pop."
+    ]
+
+
+    kata_ditemukan = [kata for kata in indonesi_forbiden if kata.lower() in kalimat.lower()]
+    
+    if kata_ditemukan:
+        return True
+    else:
+        return False
