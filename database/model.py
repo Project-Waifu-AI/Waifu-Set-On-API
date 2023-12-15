@@ -32,10 +32,17 @@ class logpercakapan(Model):
         return self.id_percakapan
 
 class logdelusion(Model):
-    delusion_id = fields.IntField
+    delusion_id = fields.IntField()
     email = fields.CharField(max_length=320)
-    delusion = fields.CharField(max_length=225)
+    delusion_prompt = fields.CharField(max_length=225)
+    delusion_shape = fields.CharField(max_length=100)
     delusion_result = fields.BinaryField() 
+    
+    class Meta:
+        table = 'logdelusion'
+        
+    def __str__(self):
+        return self.email
 
 # token dan refresh_token autentikasi tambahan
 class token_google(Model):

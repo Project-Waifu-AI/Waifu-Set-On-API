@@ -68,23 +68,28 @@ def cek_admin(email: str):
         return False
     
 def cek_kalimat_promting(kalimat):
-    indonesi_forbiden = [
-    "Ubah gaya gambar menjadi potongan lukisan.",
-    "Ganti style gambar menjadi sketsa.",
-    "Terapkan efek lukisan pada gambar.",
-    "Rubah jenis style gambar menjadi vintage.",
-    "Tambahkan efek kanvas pada foto.",
-    "Buat gambar terlihat seperti lukisan minyak.",
-    "Terapkan gaya sketsa pensil pada foto.",
-    "Ganti tampilan gambar menjadi kartun.",
-    "Buat efek lukisan abstrak pada gambar.",
-    "Rubah foto menjadi gaya seni pop."
+    forbiden = [
+    'realistic',
+    'real',
+    'real person',
+    'asli',
     ]
 
 
-    kata_ditemukan = [kata for kata in indonesi_forbiden if kata.lower() in kalimat.lower()]
+    kata_ditemukan = [kata for kata in forbiden if kata.lower() in kalimat.lower()]
     
     if kata_ditemukan:
         return True
     else:
         return False
+
+def cek_and_set_ukuran_delusion(ukuran: str):
+    if ukuran == 'persegi-sama-sisi': 
+        ukuran_hitung = '1024x1024'
+    elif ukuran == 'persegi-panjang-horizontal':
+        ukuran_hitung = '1024x1792'
+    elif ukuran == 'persegi-panjang-vertikal':
+        ukuran_hitung = '1792x1024'
+    else:
+        return False
+    return ukuran_hitung

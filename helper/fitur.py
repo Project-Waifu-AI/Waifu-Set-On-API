@@ -69,20 +69,14 @@ async def obrolan(input_text, email, setKarakter):
             'output': str(e)
         }
         
-def generateWaifu(prompt, ukuran, admin, jumlah):
-    if ukuran == 'persegi-sama-sisi': 
-        ukuran_hitung = '1024x1024'
-    elif ukuran == 'persegi-panjang-horizontal':
-        ukuran_hitung = '1024x1792'
-    elif ukuran == 'persegi-panjang-vertikal':
-        ukuran_hitung = '1792x1024'
+def generateDelusion(prompt: str, ukuran: str, premium: str, jumlah: str):
         
-    if admin is True:
+    if premium is True:
         try:
             response = client_openai.images.generate(
                 model="dall-e-3",
                 prompt=f"{prompt}, anime style images",
-                size=ukuran_hitung,
+                size=ukuran,
                 quality="hd",
                 n=jumlah,
             )
@@ -92,12 +86,12 @@ def generateWaifu(prompt, ukuran, admin, jumlah):
                 'keterangan': str(e)
             }
         
-    if admin is False:
+    if premium is False:
         try:
             response = client_openai.images.generate(
                 model="dall-e-3",
                 prompt=f"{prompt}, anime style images",
-                size=ukuran_hitung,
+                size=ukuran,
                 quality="standard",
                 n=jumlah,
             )
@@ -111,3 +105,6 @@ def generateWaifu(prompt, ukuran, admin, jumlah):
         'status': True,
         'keterangan': response.data[0].url
     }
+    
+def varint_delusion():
+    print ('nothing')

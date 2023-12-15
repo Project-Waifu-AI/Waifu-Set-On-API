@@ -27,7 +27,7 @@ async def change_voice(speaker_id: int, bahasa: str, audio_file: UploadFile = Fi
         email = payloadJWT.get('sub')
 
     premium_check = await check_premium(email=email)
-    if premium_check['status'] is False:
+    if premium_check['status'] is False or premium_check['status'] is True and premium_check['keterangan'] != 'bw':
         user_audio_count = await logaudio.filter(email=email).count()
         if user_audio_count >= 10:
             raise HTTPException(detail='logaudio data anda telah mencapai limit. Upgrade ke plan premium atau hapus logaudio.', status_code=400)
