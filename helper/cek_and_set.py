@@ -1,8 +1,13 @@
-from database.model import userdata, token_google
+from database.model import userdata
+from database.model import logdelusion
 from configs import config
+import requests
+import tempfile
+import base64
 import random
 import bcrypt
 import re
+import os
 
 def cek_password(password: str, user):
     bytes = password.encode('utf-8')
@@ -93,3 +98,44 @@ def cek_and_set_ukuran_delusion(ukuran: str):
     else:
         return False
     return ukuran_hitung
+
+async def set_save_delusion(jumlah, data, first_id, email, input, ukuran):
+    
+    delusion_id = first_id - 1
+
+    url_index = -1
+    
+    data = []
+    
+    for _ in range(jumlah):
+        delusion_id += 1
+        url_index += 1
+        
+        try:
+            get_images = requests.get(url=data['keterangan']['data'][url_index])
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file.write(get_images.content)
+            images = open(temp_file.name, 'rb').read()
+            images = base64.b64encode(images)    
+            save = logdelusion(
+                delusion_id=delusion_id,
+                email=email,
+                delusion_prompt=input,
+                delusion_shape=ukuran,
+                delusion_result=images
+            )
+            await save.save()
+            os.remove(temp_file.name)
+            response = {
+                'delusion_id': delusion_id,
+                'delusion_shape': ukuran,
+                'delusion_image': data['keterangan']['data'][url_index]
+            }
+            data.append(response)
+        except Exception as e:
+            delusion_id -= 1
+            url_index -= 1
+            jumlah += 1
+    
+    return data
+        

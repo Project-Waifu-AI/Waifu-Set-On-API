@@ -1,13 +1,14 @@
-from fastapi import APIRouter, HTTPException, UploadFile, Header
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi import APIRouter, HTTPException, Header
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 import requests
 import base64
-from io import BytesIO
+import io
+from PIL import Image
 import tempfile
-from body_request.dw_body_request import CreateDelusion
+from body_request.dw_body_request import CreateDelusion, VariantDelusion
 from helper.premium import check_premium
 from helper.fitur import generateDelusion
-from helper.cek_and_set import cek_kalimat_promting, cek_and_set_ukuran_delusion
+from helper.cek_and_set import cek_kalimat_promting, cek_and_set_ukuran_delusion, set_save_delusion
 from database.model import logdelusion
 from helper.access_token import check_access_token_expired, decode_access_token
 from configs import config
@@ -49,13 +50,18 @@ async def createWaifu(meta: CreateDelusion, access_token: str = Header(...)):
     ukuran_hitung = cek_and_set_ukuran_delusion(meta.ukuran)
     if ukuran_hitung is False:
         raise HTTPException(detail='ukurannya salah bro', status_code=400)    
-    create = generateDelusion(prompt=meta.input, ukuran=ukuran_hitung, premium=premium, jumlah=meta.jumlah)
     
+    create = generateDelusion(prompt=meta.input, ukuran=ukuran_hitung, premium=premium, jumlah=meta.jumlah)
     if create['status'] is False:
         raise HTTPException(detail=create['keterangan'], status_code=500)
     
+    
     try:
         get_images = requests.get(url=create['keterangan'])
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            temp_file.write(get_images.content)
+        images = open(temp_file.name, 'rb').read()
+        images = base64.b64encode(images)    
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=500)
     
@@ -64,8 +70,9 @@ async def createWaifu(meta: CreateDelusion, access_token: str = Header(...)):
         email=email,
         delusion_prompt=meta.input,
         delusion_shape=meta.ukuran,
-        delusion_result=BytesIO(get_images.content)
+        delusion_result=images
     )
+    
     await save.save()
     response = {
         'delusion_id': delusion_id,
@@ -75,10 +82,8 @@ async def createWaifu(meta: CreateDelusion, access_token: str = Header(...)):
 
     return JSONResponse(content=response, status_code=200)
 
-
-'''    
-@router.put('/variant-delusion')
-async def variantWaifu(input: str, access_token: str = Header):
+@router.get('/stream-delusion')
+async def streamingPicture(id: str, access_token: str):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -86,9 +91,23 @@ async def variantWaifu(input: str, access_token: str = Header):
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
+        
+    userdata = await logdelusion.filter(delusion_id=id, email=email).first()
+    if not userdata:
+        raise HTTPException(detail='image not found', status_code=404)
     
-    if cek_kalimat_promting(kalimat=meta.input) is False:
-        raise HTTPException(detail='prompt is forbiden', status_code=400)
+    image_data = base64.b64decode(userdata.delusion_result)
+    return StreamingResponse(io.BytesIO(image_data), media_type="image/png")
+
+@router.put('/variant-delusion')
+async def variantWaifu(meta: VariantDelusion, access_token: str = Header):
+    check = check_access_token_expired(access_token=access_token)
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=access_token)
+        email = payloadJWT.get('sub')
     
     premium_check = await check_premium(email=email)
     if premium_check['status'] is False or premium_check['status'] is True and premium_check['keterangan'] != 'dw':    
@@ -103,4 +122,18 @@ async def variantWaifu(input: str, access_token: str = Header):
             raise HTTPException(detail='bang udahlah jangan buat banyak banyak sekali jalan atuh', status_code=400)
         premium = True
         
-'''
+    userdata = await logdelusion.filter(delusion_id=id, email=email).first()
+    if not userdata:
+        raise HTTPException(detail='image not found', status_code=404)
+    
+    image_data = base64.b64decode(userdata.delusion_result)
+    img = Image.open(io.BytesIO(image_data))
+    
+    if userdata.delusion_shape != 'persegi-sama-sisi' & meta.resize == False:
+        raise HTTPException(detail='format size tidak sah ijinkan risize', status_code=400)
+    
+    if meta.resize is True:
+        img = img.resize((1024, 1024))
+        resized_buffer = io.BytesIO()
+        img.save(resized_buffer, format='PNG')
+        img = Image.open(io.BytesIO(resized_buffer))

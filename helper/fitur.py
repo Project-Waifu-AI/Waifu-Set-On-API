@@ -1,9 +1,9 @@
-from openai import OpenAI
+import openai
 import requests
 from database.model import logpercakapan, userdata
 from configs import config
 
-client_openai = OpenAI(api_key=config.api_key_openai)
+client_openai = openai.OpenAI(api_key=config.api_key_openai)
 
 def request_audio(text, speaker_id: int):
     try:
@@ -70,11 +70,10 @@ async def obrolan(input_text, email, setKarakter):
         }
         
 def generateDelusion(prompt: str, ukuran: str, premium: str, jumlah: str):
-        
     if premium is True:
         try:
             response = client_openai.images.generate(
-                model="dall-e-3",
+                model="dall-e-2",
                 prompt=f"{prompt}, anime style images",
                 size=ukuran,
                 quality="hd",
@@ -100,11 +99,21 @@ def generateDelusion(prompt: str, ukuran: str, premium: str, jumlah: str):
                 'status': False,
                 'keterangan': str(e)
             }
-        
-    return {
+            
+def varint_delusion(image_array, jumlah):
+    try:
+        response = client_openai.images.create_variation(
+            image=image_array,
+            n=jumlah,
+            model="dall-e-2",
+            size="1024x1024"
+        )
+    except openai.OpenAIError as e:
+        return{
+            'status': False,
+            'keterangan': str(e)
+        }
+    return{
         'status': True,
-        'keterangan': response.data[0].url
+        'keterangan': {response.data}
     }
-    
-def varint_delusion():
-    print ('nothing')

@@ -6,6 +6,7 @@ class CreateDelusion(BaseModel):
     ukuran: Optional[str]
     jumlah: Optional[int]
     
-class VariantWaifu(BaseModel):
+class VariantDelusion(BaseModel):
     id: Optional[str]
     jumlah: Optional[int]
+    resize: Optional[bool] = False
