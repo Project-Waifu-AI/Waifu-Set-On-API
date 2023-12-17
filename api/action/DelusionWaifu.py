@@ -8,7 +8,7 @@ import tempfile
 from body_request.dw_body_request import CreateDelusion, VariantDelusion
 from helper.premium import check_premium
 from helper.fitur import generateDelusion
-from helper.cek_and_set import cek_kalimat_promting, cek_and_set_ukuran_delusion, set_save_delusion
+from helper.cek_and_set import cek_kalimat_promting, cek_and_set_ukuran_delusion, set_response_save_delusion
 from database.model import logdelusion
 from helper.access_token import check_access_token_expired, decode_access_token
 from configs import config
@@ -51,35 +51,12 @@ async def createWaifu(meta: CreateDelusion, access_token: str = Header(...)):
     if ukuran_hitung is False:
         raise HTTPException(detail='ukurannya salah bro', status_code=400)    
     
-    create = generateDelusion(prompt=meta.input, ukuran=ukuran_hitung, premium=premium, jumlah=meta.jumlah)
-    if create['status'] is False:
-        raise HTTPException(detail=create['keterangan'], status_code=500)
+    create = generateDelusion(prompt=meta.input, ukuran=ukuran_hitung, premium=False, jumlah=meta.jumlah)
     
+    if create[0]['status'] is False:
+        raise HTTPException(detail=create[0]['keterangan'], status_code=500)
     
-    try:
-        get_images = requests.get(url=create['keterangan'])
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_file.write(get_images.content)
-        images = open(temp_file.name, 'rb').read()
-        images = base64.b64encode(images)    
-    except Exception as e:
-        raise HTTPException(detail=str(e), status_code=500)
-    
-    save = logdelusion(
-        delusion_id=delusion_id,
-        email=email,
-        delusion_prompt=meta.input,
-        delusion_shape=meta.ukuran,
-        delusion_result=images
-    )
-    
-    await save.save()
-    response = {
-        'delusion_id': delusion_id,
-        'delusion_shape': meta.ukuran,
-        'delusion_image': str(create['keterangan'])
-    }
-
+    response = await set_response_save_delusion(jumlah=meta.jumlah, data=create, first_id=delusion_id, input=meta.input, ukuran=meta.ukuran, email=email)
     return JSONResponse(content=response, status_code=200)
 
 @router.get('/stream-delusion')
@@ -98,6 +75,7 @@ async def streamingPicture(id: str, access_token: str):
     
     image_data = base64.b64decode(userdata.delusion_result)
     return StreamingResponse(io.BytesIO(image_data), media_type="image/png")
+
 
 @router.put('/variant-delusion')
 async def variantWaifu(meta: VariantDelusion, access_token: str = Header):

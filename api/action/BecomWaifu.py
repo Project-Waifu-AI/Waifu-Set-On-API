@@ -193,3 +193,5 @@ async def shareSMD(meta: shareToSMD, access_token: str = Header()):
     if response['status'] is True:
         pesan = pesan_response(email=email, pesan=response['keterangan'])
         return JSONResponse(content=pesan, status_code=200)
+    else:
+        raise HTTPException(detail='something wrong', status_code=500)

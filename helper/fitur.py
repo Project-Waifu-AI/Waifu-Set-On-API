@@ -70,50 +70,114 @@ async def obrolan(input_text, email, setKarakter):
         }
         
 def generateDelusion(prompt: str, ukuran: str, premium: str, jumlah: str):
-    if premium is True:
-        try:
-            response = client_openai.images.generate(
-                model="dall-e-2",
-                prompt=f"{prompt}, anime style images",
-                size=ukuran,
-                quality="hd",
-                n=jumlah,
-            )
+    data = []
+    index = -1
+    if premium == True:    
+        try:  
+          response = client_openai.images.generate(
+              model="dall-e-2",
+              prompt=f"{prompt}, anime style images",
+              size=ukuran,
+              quality="hd",
+              n=jumlah,
+          )
+              
+          for _ in range (jumlah):
+              index += 1 
+              url_data = {
+                  'status': True,
+                  'keterangan': response.data[index].url
+              }
+              data.append(url_data)
+          return data
         except Exception as e:
-            return {
-                'status': False,
-                'keterangan': str(e)
+          data.append(
+            {
+              'status': False,
+              'keterangan': str(e)
             }
+          )
+    
+    elif premium == False:    
+        try:
+          response = client_openai.images.generate(
+              model="dall-e-2",
+              prompt=f"{prompt}, anime style images",
+              size=ukuran,
+              quality="standard",
+              n=jumlah,
+          )
+          
+          for _ in range (jumlah):
+              index += 1 
+              url_data = {
+                  'status': True,
+                  'keterangan': response.data[index].url
+              }
+              data.append(url_data)
+        except Exception as e:
+          data.append(
+            {
+              'status': False,
+              'keterangan': str(e)
+            }
+          )
         
-    if premium is False:
-        try:
-            response = client_openai.images.generate(
-                model="dall-e-3",
-                prompt=f"{prompt}, anime style images",
-                size=ukuran,
-                quality="standard",
-                n=jumlah,
-            )
+        return data
+    
+    
+def generateDelusionVariant(images_data, premium: str, jumlah: str):
+    data = []
+    index = -1
+    if premium == True:    
+        try:  
+          response = client_openai.images.generate(
+              model="dall-e-2",
+              prompt=f"{prompt}, anime style images",
+              size=ukuran,
+              quality="hd",
+              n=jumlah,
+          )
+              
+          for _ in range (jumlah):
+              index += 1 
+              url_data = {
+                  'status': True,
+                  'keterangan': response.data[index].url
+              }
+              data.append(url_data)
+          return data
         except Exception as e:
-            return {
-                'status': False,
-                'keterangan': str(e)
+          data.append(
+            {
+              'status': False,
+              'keterangan': str(e)
             }
-            
-def varint_delusion(image_array, jumlah):
-    try:
-        response = client_openai.images.create_variation(
-            image=image_array,
-            n=jumlah,
-            model="dall-e-2",
-            size="1024x1024"
-        )
-    except openai.OpenAIError as e:
-        return{
-            'status': False,
-            'keterangan': str(e)
-        }
-    return{
-        'status': True,
-        'keterangan': {response.data}
-    }
+          )
+    
+    elif premium == False:    
+        try:
+          response = client_openai.images.generate(
+              model="dall-e-2",
+              prompt=f"{prompt}, anime style images",
+              size=ukuran,
+              quality="standard",
+              n=jumlah,
+          )
+          
+          for _ in range (jumlah):
+              index += 1 
+              url_data = {
+                  'status': True,
+                  'keterangan': response.data[index].url
+              }
+              data.append(url_data)
+        except Exception as e:
+          data.append(
+            {
+              'status': False,
+              'keterangan': str(e)
+            }
+          )
+        
+        return data

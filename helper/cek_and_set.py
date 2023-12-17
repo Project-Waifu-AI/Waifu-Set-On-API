@@ -99,20 +99,20 @@ def cek_and_set_ukuran_delusion(ukuran: str):
         return False
     return ukuran_hitung
 
-async def set_save_delusion(jumlah, data, first_id, email, input, ukuran):
+async def set_response_save_delusion(jumlah, data, first_id, email, input, ukuran):
     
     delusion_id = first_id - 1
 
     url_index = -1
     
-    data = []
+    data_response = []
     
     for _ in range(jumlah):
         delusion_id += 1
         url_index += 1
-        
+
         try:
-            get_images = requests.get(url=data['keterangan']['data'][url_index])
+            get_images = requests.get(url=data[url_index]['keterangan'])
             with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                 temp_file.write(get_images.content)
             images = open(temp_file.name, 'rb').read()
@@ -129,13 +129,14 @@ async def set_save_delusion(jumlah, data, first_id, email, input, ukuran):
             response = {
                 'delusion_id': delusion_id,
                 'delusion_shape': ukuran,
-                'delusion_image': data['keterangan']['data'][url_index]
+                'delusion_image': data[url_index]['keterangan']
             }
-            data.append(response)
+            data_response.append(response)
+        
         except Exception as e:
             delusion_id -= 1
             url_index -= 1
             jumlah += 1
     
-    return data
+    return data_response
         
