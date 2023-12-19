@@ -7,8 +7,7 @@ class logaudio(Model):
     email = fields.CharField(max_length=320)
     transcript = fields.CharField(max_length=225)
     translate = fields.CharField(max_length=225)
-    audio_streming = fields.CharField(max_length=225)
-    audio_download = fields.CharField(max_length=225)
+    karakter = fields.CharField(max_length=225)
 
     class Meta:
         table = "logaudio"
