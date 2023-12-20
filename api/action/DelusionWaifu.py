@@ -75,7 +75,7 @@ async def streamingPicture(id: str, access_token: str):
     return StreamingResponse(io.BytesIO(image_data), media_type="image/png")
 
 @router.put('/variant-delusion')
-async def variantWaifu(meta: VariantDelusion, access_token: str = Header):
+async def variantDelusion(meta: VariantDelusion, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
@@ -83,7 +83,7 @@ async def variantWaifu(meta: VariantDelusion, access_token: str = Header):
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
-    
+        
     premium_check = await check_premium(email=email)
     if premium_check['status'] is False or premium_check['status'] is True and premium_check['keterangan'] != 'dw':    
         user_delusion_count = await logdelusion.filter(email=email).count()
@@ -95,33 +95,29 @@ async def variantWaifu(meta: VariantDelusion, access_token: str = Header):
         if meta.jumlah >= 5:
             raise HTTPException(detail='bang udahlah jangan buat banyak banyak sekali jalan atuh', status_code=400)
         
-    userdata = await logdelusion.filter(delusion_id=id, email=email).first()
-    if not userdata:
-        raise HTTPException(detail='image not found', status_code=404)
-    
-    image_data = base64.b64decode(userdata.delusion_result)
-    img = Image.open(io.BytesIO(image_data))
-    
-    if userdata.delusion_shape != 'persegi-sama-sisi' & meta.resize == False:
-        raise HTTPException(detail='format size tidak sah ijinkan risize', status_code=400)
-    
-    if meta.resize is True:
-        img = img.resize((1024, 1024))
-        resized_buffer = io.BytesIO()
-        img.save(resized_buffer, format='PNG')
-        img = Image.open(io.BytesIO(resized_buffer))
-        
-    variant = generateDelusionVariant(images_data=img, jumlah=meta.jumlah)
-    if variant[0]['status'] is False:
-        raise HTTPException(detail=variant[0]['keterangan'], status_code=400)
-    
-    user_data = await logdelusion.filter(email=email).order_by("-delusion_id").first()
-    
-    if user_data:
-        delusion_id = user_data.delusion_id + 1
+    user_delusion = await logdelusion.filter(email=email, delusion_id=meta.id).first()
+    if user_delusion:
+        delusion_id = user_delusion.delusion_id + 1
     else:
         delusion_id = 1
-        
-    response = await set_response_save_delusion(jumlah=meta.jumlah, data=variant, first_id=delusion_id, input=userdata.delusion_prompt, ukuran='1024x1024', email=email)
     
+    if user_delusion.delusion_shape !=  'persegi-sama-sisi' and meta.resize != True:
+        raise HTTPException(detail='bentuk tidak valid ubah ukuran', status_code=400)
+    
+    image_data = base64.b64decode(user_delusion.delusion_result)
+    
+    if meta.resize is True:
+        image = Image.open(io.BytesIO(image_data))
+        new_size = (1024, 1024)
+        resized_data = image.resize(new_size)
+
+        buffered = io.BytesIO()
+        resized_data.save(buffered, format=image.format)
+        image_data = base64.b64encode(buffered.getvalue()).decode()
+        
+    create = generateDelusionVariant(images_data=image_data, jumlah=meta.jumlah)
+    if create[0]['status'] == False:
+        raise HTTPException(detail=create[0]['keterangan'])
+    
+    response = await set_response_save_delusion(jumlah=meta.jumlah, data=create, first_id=delusion_id, input=user_delusion.delusion_prompt, ukuran='persegi-sama-sisi', email=email)
     return JSONResponse(content=response, status_code=200)

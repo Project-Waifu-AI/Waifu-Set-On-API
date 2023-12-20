@@ -12,10 +12,10 @@ async def userStatus(websocket: WebSocket, access_token: str):
         while True:
             permintaan = await websocket.receive_json()
             check = check_access_token_expired(access_token=access_token)
+            dataJWT = decode_access_token(access_token=access_token)
+            email = dataJWT.get('sub')
+            user = await userdata.filter(email=email).first()
             if check is False:
-                dataJWT = decode_access_token(access_token=access_token)
-                email = dataJWT.get('sub')
-                user = await userdata.filter(email=email).first()
                 
                 if permintaan['action'] == 'set-online':
                     user.status = 'online'

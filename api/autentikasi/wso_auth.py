@@ -58,7 +58,7 @@ async def register(email: str):
                 else:
                     raise HTTPException(detail=str(sendEmail01), status_code=500)
             else:
-                raise HTTPException(detail='email anda telah terdaftar pada akunbw tidak dapat membuat lagi', status_code=403)
+                raise HTTPException(detail='email anda telah terdaftar pada akun wso tidak dapat membuat lagi', status_code=403)
     else:
         sendEmail02 = send_verify_token(target_email=email, token=token_konfirmasi)
         if sendEmail02 is True:

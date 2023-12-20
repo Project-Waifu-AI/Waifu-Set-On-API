@@ -41,6 +41,9 @@ router.include_router(router_bw)
 # router aiu
 router.include_router(router_aiu)
 
+# router delusionwaifu
+router.include_router(router_dw)
+
 # socket aiu
 router.include_router(socket_aiu)
 
@@ -64,6 +67,3 @@ router.include_router(socket_user)
 
 # router premium regis
 router.include_router(router_premium_regis)
-
-# router delusionwaifu
-router.include_router(router_dw)

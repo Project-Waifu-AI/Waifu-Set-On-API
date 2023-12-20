@@ -7,6 +7,6 @@ class CreateDelusion(BaseModel):
     jumlah: Optional[int]
     
 class VariantDelusion(BaseModel):
-    id: Optional[str]
+    id: Optional[int]
     jumlah: Optional[int]
     resize: Optional[bool] = False
