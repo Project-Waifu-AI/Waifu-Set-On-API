@@ -19,8 +19,9 @@ async def userStatus(websocket: WebSocket, access_token: str):
             if check is False:
                 
                 if permintaan['action'] == 'set-online':
-                    user.status = 'online'
-                    await user.save()
+                    if user != 'online':
+                        user.status = 'online'
+                        await user.save()
                     await websocket.send_json('online')
                 
                 elif permintaan['action'] == 'get-data':
