@@ -11,6 +11,7 @@ async def userStatus(websocket: WebSocket, access_token: str):
     try:
         while True:
             permintaan = await websocket.receive_json()
+            print(permintaan)
             check = check_access_token_expired(access_token=access_token)
             dataJWT = decode_access_token(access_token=access_token)
             email = dataJWT.get('sub')
