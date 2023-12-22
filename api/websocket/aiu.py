@@ -2,7 +2,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketExceptio
 from configs import config
 from database.model import logpercakapan
 from helper.fitur import obrolan, request_audio
-from helper.translate import to_japan, to_japan_premium
+from helper.translate import translate_target, translate_target_premium
 from helper.access_token import check_access_token_expired, decode_access_token
 from helper.response import pesan_response
 from helper.premium import check_premium
@@ -81,13 +81,13 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
                     premium = await check_premium(email=email)
                     
                     if premium['status'] is False:
-                        translate = to_japan(input=response['output'])
+                        translate = translate_target(input=response['output'], bahasa_asal=None, bahasa_target='ja')
                     else:
                         
                         if premium['keterangan'].lower() == 'aiu' or premium['keterangan'].lower() == 'admin':
-                            translate = to_japan_premium(input=response['output'])
+                            translate = translate_target_premium(input=response['output'], bahasa_target='jepang')
                         else:
-                            translate = to_japan(input=response['output'])
+                            translate = translate_target(input=response['output'], bahasa_asal=None, bahasa_target='ja')
                     
                     if translate['status'] is True:
                         data_audio = request_audio(text=translate['response'], speaker_id=speakerId)

@@ -7,35 +7,11 @@ from openai import OpenAI
 client_openai = OpenAI(api_key=config.api_key_openai)
 
 tl = google_translator(url_suffix="com",timeout=5)
-
-def to_japan(input: str, bahasa: Optional[str] = None):
-    if bahasa == None:
-        src = detect(input)
-    else:
-        src = bahasa
     
-    try:  
-        if src != 'ja':
-            response = tl.translate(input.lower(), lang_src=src, lang_tgt='ja')
-            return {
-                'status': True,
-                'response': response
-            }
-        else:
-            return {
-                'status': True,
-                'response': input
-            }
-    except Exception as e:
-        return{
-            'status': False,
-            'response': str(e)
-        }
-    
-def to_japan_premium(input):
+def translate_target_premium(input: str, bahasa_target: str):
     set = [
         {
-            'role': 'system', 'content': 'translate langsung bahasa yang diinputkan ke bahasa jepang'
+            'role': 'system', 'content': f'translate langsung bahasa yang diinputkan ke bahasa {bahasa_target}'
         }
     ]
     trans={
@@ -59,7 +35,23 @@ def to_japan_premium(input):
             'status': False,
             'response': str(e)
         }
-        
+
+def translate_target(input: str, bahasa_target: str, bahasa_asal: str | None):
+    if bahasa_asal is None:
+        bahasa_asal = detect(input)
+    
+    try:  
+        response = tl.translate(input.lower(), lang_src=bahasa_asal, lang_tgt=bahasa_target)
+        return {
+            'status': True,
+            'response': response
+        }
+    except Exception as e:
+        return{
+            'status': False,
+            'response': str(e)
+        }
+       
 def cek_bahasa(bahasa: str):
     if bahasa in config.bahasa:
         value = config.bahasa[bahasa]

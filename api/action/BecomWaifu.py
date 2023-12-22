@@ -3,9 +3,6 @@ from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, Stre
 from pydub import AudioSegment
 import speech_recognition as sr
 import tempfile
-import requests
-import base64
-import io
 from configs import config
 from database.model import logaudio, userdata
 from body_request.bw_body_request import shareToSMD
@@ -14,7 +11,7 @@ from helper.access_token import check_access_token_expired, decode_access_token
 from helper.premium import check_premium
 from helper.fitur import request_audio
 from helper.cek_and_set import set_karakter_id
-from helper.translate import to_japan, cek_bahasa, to_japan_premium
+from helper.translate import cek_bahasa, translate_target, translate_target_premium
 from helper.drive_google import simpanKe_Gdrive
 from helper.smd import post_audio_to_smd
 
@@ -54,14 +51,12 @@ async def change_voice(nama_karakter: str, bahasa: str, audio_file: UploadFile =
         if bahasaYangDigunakan['status'] is False:
             raise HTTPException(detail=bahasaYangDigunakan['keterangan'], status_code=404)
         transcript = r.recognize_google(audio_data, language=bahasaYangDigunakan['keterangan'])
-    if premium_check['status'] is True:
-        if premium_check['keterangan'] == 'bw' or premium_check['keterangan'] == 'admin':
-            translation = to_japan_premium(transcript)
-        else:
-            translation = to_japan(transcript, bahasa=bahasaYangDigunakan)
+    
+    if premium_check['status'] == True and premium_check['keterangan'] == 'bw' or premium_check['keterangan'] == 'admin':
+        translation = translate_target_premium(input=transcript, bahasa_target='jepang')
     else:
-        translation = to_japan(transcript, bahasa=bahasaYangDigunakan)
-
+        translation = translate_target(input=transcript, bahasa_asal=bahasaYangDigunakan, bahasa_target='ja')
+    
     speaker_id = set_karakter_id(nama=nama_karakter)
     if speaker_id is False:
         raise HTTPException(detail='karakter tidak ditemukan', status_code=404)
