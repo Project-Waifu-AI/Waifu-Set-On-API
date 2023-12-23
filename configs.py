@@ -41,7 +41,8 @@ class Config(BaseSettings):
     
     # redirect google
     redirect_uri_autentikasi_google: str = Field("REDIRECT_URI_AUTENTIKASI_GOOGLE")
-    
+    redirect_root_google: str = Field("http://waifuseton.wso:8000/api/auth/google/root")
+
     # domain smd
     smd_domain: str = os.getenv('API_SMD_DOMAIN_AUTH')
     
