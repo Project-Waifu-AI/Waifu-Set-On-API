@@ -101,15 +101,14 @@ async def want_change_password(request: Request, meta: updatePassword):
         raise HTTPException(detail='password anda dengan konfirmasi password tidak sama', status_code=400)
 
 @router.delete('/delete-account')
-async def deleteAcount(konfirmasi_hapus: str ,access_token: str = Header(...)):
+async def deleteAcount(access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
-    if konfirmasi_hapus != f'Delete Account {email}':
-        raise HTTPException(detail='Tolong Ulangi Permintaan Hapus Anda', status_code=403)
+    
     user = await userdata.filter(email=email).first()
     if user is None:
         raise HTTPException(detail='user tidak ditemukan', status_code=404)

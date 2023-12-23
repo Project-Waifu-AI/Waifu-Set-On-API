@@ -113,20 +113,14 @@ async def obrolanAIU(meta: obrolan_aiu, access_token: str = Header(...)):
     if jawaban['status'] == False:
         raise HTTPException(detail=jawaban['keterangan'], status_code=404)
     
-    if meta.bahasa != 'bahasa indonesia':
+    if meta.bahasa != '日本語':
         if premium == False:
-            jawaban_response = translate_target(input=jawaban['keterangan'], bahasa_target=bahasa, bahasa_asal='id')
-            jawaban_japan = translate_target(input=jawaban, bahasa_asal=bahasa, bahasa_target='ja')
+            jawaban_response = translate_target(input=jawaban['keterangan'], bahasa_target=bahasa, bahasa_asal='ja')
         else:
             jawaban_response = translate_target_premium(input=jawaban['keterangan'], bahasa_target=meta.bahasa)
-            jawaban_japan = translate_target_premium(input=jawaban['keterangan'], bahasa_target='jepang')     
     else:
-        if premium == False:
-            jawaban_response = jawaban['keterangan']
-            jawaban_japan = translate_target(input=jawaban, bahasa_asal=bahasa, bahasa_target='ja')
-        else:
-            jawaban_response = jawaban['keterangan']
-            jawaban_japan = translate_target_premium(input=jawaban['keterangan'], bahasa_target='jepang')   
+        jawaban_response = jawaban['keterangan']
+        jawaban_japan = jawaban['keterangan']   
     
     karakter_id = set_karakter_id(nama=meta.karakter)
     if karakter_id is False:
