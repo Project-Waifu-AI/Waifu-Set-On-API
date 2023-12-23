@@ -32,8 +32,8 @@ async def daftar():
     return RedirectResponse(authorization_url)
 
 #endpoint callback
-@router.get("/callback-autentikasi")
-async def auth2callback_register(request: Request, state: str):
+@router.get("/callback-autentikasi", response_class=RedirectResponse)
+async def auth2callback_register(request: Request, state: str) -> RedirectResponse:
     try:
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             'client_secret.json',
@@ -92,13 +92,13 @@ async def auth2callback_register(request: Request, state: str):
             
             token = create_access_token(user=user)
             response_data = auth_response(user=user, token=token)
-            response = RedirectResponse(url=config.redirect_uri_home, status_code=200)
-            response.set_cookie(key='access_token', value=token)
+            response = RedirectResponse(url=config.redirect_uri_home)
+            response.set_cookie(key='access_token', value=token, domain="https://1750-103-105-55-169.ngrok-free.app/")
             return response
         
         else:
             
-            drive = create_folder_gdrive(access_token=access_token, email=email)
+            drive = create_folder_gdrive(access_token=access_token)
             
             if drive['status'] is False:
                 raise HTTPException(detail=drive['keterangan'], status_code=500)
@@ -119,9 +119,17 @@ async def auth2callback_register(request: Request, state: str):
             token = create_access_token(user=user)
             
             response_data = auth_response(user=user, token=token)
-            response = RedirectResponse(url=config.redirect_uri_home, status_code=200)
-            response.set_cookie(key='access_token', value=token)
+            response = RedirectResponse(url=config.redirect_uri_home)
+            response.set_cookie(key='access_token', value=token, domain="https://1750-103-105-55-169.ngrok-free.app/")
             return response
+
     
     except ConnectionError as e:
         raise HTTPException(detail=str(e), status_code=500)
+    
+    
+@router.get('/test', response_class=RedirectResponse)
+def test() -> RedirectResponse:
+    response = RedirectResponse(url=config.redirect_uri_home)
+    response.set_cookie(key="works", value="here is your data", domain=config.redirect_uri_home)
+    return response
