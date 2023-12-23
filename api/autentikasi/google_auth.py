@@ -92,8 +92,9 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
             
             token = create_access_token(user=user)
             response_data = auth_response(user=user, token=token)
-            response = RedirectResponse(url=config.redirect_uri_home)
-            response.set_cookie(key='access_token', value=token, httponly=True)
+            redirect_url = f'{config.redirect_root_google}?token={token}'
+            response = RedirectResponse(redirect_url)
+            response.set_cookie(key='access-token', value=token, httponly=True)
             return response
         
         else:
@@ -127,7 +128,6 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
     
     except ConnectionError as e:
         raise HTTPException(detail=str(e), status_code=500)
-    
     
 @router.get('/root')
 def submit(request: Request, token: str):
