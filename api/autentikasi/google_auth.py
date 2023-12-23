@@ -94,7 +94,7 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
             response_data = auth_response(user=user, token=token)
             redirect_url = f'{config.redirect_root_google}?token={token}'
             response = RedirectResponse(redirect_url)
-            response.set_cookie(key='access-token', value=token, httponly=True)
+            response.set_cookie(key='access_token', value=token, httponly=True)
             return response
         
         else:
@@ -122,7 +122,7 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
             response_data = auth_response(user=user, token=token)
             redirect_url = f'{config.redirect_root_google}?token={token}'
             response = RedirectResponse(redirect_url)
-            response.set_cookie(key='access-token', value=token, httponly=True)
+            response.set_cookie(key='access_token', value=token, httponly=True)
             return response
 
     
@@ -132,5 +132,5 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
 @router.get('/root')
 def submit(request: Request, token: str):
     response = RedirectResponse(config.redirect_uri_home, status_code=302)
-    response.set_cookie(key='access-token', value=token, httponly=True)
+    response.set_cookie(key='access_token', value=token, domain=waifuseton.wso)
     return response
