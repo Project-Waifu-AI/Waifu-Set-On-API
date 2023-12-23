@@ -132,5 +132,5 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
 @router.get('/root')
 def submit(request: Request, token: str):
     response = RedirectResponse(config.redirect_uri_home, status_code=302)
-    response.set_cookie(key='access_token', value=token, domain=waifuseton.wso)
+    response.set_cookie(key='access_token', value=token, domain="waifuseton.wso", path='/')
     return response
