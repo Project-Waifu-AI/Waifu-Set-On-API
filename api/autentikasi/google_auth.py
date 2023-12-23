@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Cookie
 from fastapi.responses import RedirectResponse, JSONResponse
 import google_auth_oauthlib.flow
 import requests
@@ -94,7 +94,7 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
             response_data = auth_response(user=user, token=token)
             redirect_url = f'{config.redirect_root_google}?token={token}'
             response = RedirectResponse(redirect_url)
-            response.set_cookie(key='access_token', value=token, httponly=True)
+            response.set_cookie(key='token', value=token, httponly=True)
             return response
         
         else:
@@ -122,7 +122,7 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
             response_data = auth_response(user=user, token=token)
             redirect_url = f'{config.redirect_root_google}?token={token}'
             response = RedirectResponse(redirect_url)
-            response.set_cookie(key='access_token', value=token, httponly=True)
+            response.set_cookie(key='token', value=token, httponly=True)
             return response
 
     
@@ -131,6 +131,15 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
     
 @router.get('/root')
 def submit(request: Request, token: str):
-    response = RedirectResponse(config.redirect_uri_home, status_code=302)
+    target_url = config.redirect_uri_home
+    access_token: str = Cookie(default=None)
+    response = requests.get(target_url, cookies={'access_token': access_token})
+
+    if 'access_token' in response.cookies:
+        response = RedirectResponse(target_url, status_code=302)
+        response.delete_cookie(key='access_token', domain="waifuseton.wso", path='/')
+    else:
+        response = RedirectResponse(target_url, status_code=302)
+
     response.set_cookie(key='access_token', value=token, domain="waifuseton.wso", path='/')
     return response
