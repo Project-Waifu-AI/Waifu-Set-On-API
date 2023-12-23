@@ -92,7 +92,7 @@ async def auth2callback_register(request: Request, state: str):
             
             token = create_access_token(user=user)
             response_data = auth_response(user=user, token=token)
-            response = JSONResponse(content=response_data, status_code=200)
+            response = RedirectResponse(url=config.redirect_uri_home, status_code=200)
             response.set_cookie(key='access_token', value=token)
             return response
         
@@ -119,7 +119,7 @@ async def auth2callback_register(request: Request, state: str):
             token = create_access_token(user=user)
             
             response_data = auth_response(user=user, token=token)
-            response = JSONResponse(content=response_data, status_code=200)
+            response = RedirectResponse(url=config.redirect_uri_home, status_code=200)
             response.set_cookie(key='access_token', value=token)
             return response
     

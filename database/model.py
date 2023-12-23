@@ -17,12 +17,11 @@ class logaudio(Model):
 
 class logpercakapan(Model):
     id_percakapan = fields.IntField()
+    karakter = fields.CharField(max_length=225)
     email = fields.CharField(max_length=320)
     input = fields.CharField(max_length=225)
     output = fields.TextField()
     translate = fields.CharField(max_length=225)
-    audio_streming = fields.CharField(max_length=225)
-    audio_download = fields.CharField(max_length=225) 
 
     class Meta:
         table = "logpercakapan"
