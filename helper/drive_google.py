@@ -107,7 +107,7 @@ async def use_AccessToken_google(email):
             'keterangan': token.access_token
         }
 
-async def simpanKe_Gdrive(data, delete: bool):
+async def simpanKe_Gdrive(data, download_audio,delete: bool):
     user = await userdata.filter(email=data.email).first()
     can_i = await use_AccessToken_google(email=data.email)
     
@@ -116,7 +116,7 @@ async def simpanKe_Gdrive(data, delete: bool):
     else:
         access_token = can_i['keterangan']
     
-    get_audio = requests.get(data.audio_download)
+    get_audio = requests.get(download_audio)
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         temp_file.write(get_audio.content)
     

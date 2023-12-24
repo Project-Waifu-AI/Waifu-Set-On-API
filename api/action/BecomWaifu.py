@@ -162,11 +162,16 @@ async def saveDrive(audio_id: int, access_token: str = Header(...)):
         email = payloadJWT.get('sub') 
     
     data = await logaudio.filter(email=email,audio_id=audio_id).first()
-    
     if not data:
         raise HTTPException(detail='data tidak ditemukan', status_code=404)
     
-    send = await simpanKe_Gdrive(data=data, delete=False)
+    speaker_id = set_karakter_id(data.karakter)
+    
+    audio_data = request_audio(text=data.translate, speaker_id=speaker_id)
+    if audio_data['status'] is False:
+        raise HTTPException(detail=audio_data['keterangan'], status_code=400)
+    
+    send = await simpanKe_Gdrive(data=data, delete=False, download_audio=audio_data['download_audio'])
     
     if send['status'] is False:
         raise HTTPException(detail=send['keterangan'], status_code=500)
@@ -188,7 +193,13 @@ async def saveDrive(audio_id: int, access_token: str = Header(...)):
     if not data:
         raise HTTPException(detail='data tidak ditemukan', status_code=404)
     
-    send = await simpanKe_Gdrive(data=data, delete=True)
+    speaker_id = set_karakter_id(data.karakter)
+    
+    audio_data = request_audio(text=data.translate, speaker_id=speaker_id)
+    if audio_data['status'] is False:
+        raise HTTPException(detail=audio_data['keterangan'], status_code=400)
+    
+    send = await simpanKe_Gdrive(data=data, delete=True, download_audio=audio_data['download_audio'])
     
     if send['status'] is False:
         raise HTTPException(detail=send['keterangan'], status_code=500)
@@ -208,12 +219,17 @@ async def shareSMD(meta: shareToSMD, access_token: str = Header()):
         email = payloadJWT.get('sub') 
         
     data = await logaudio.filter(email=email,audio_id=meta.audio_id).first()
-    user = await userdata.filter(email=email).first()
     if not data:
         raise HTTPException(detail='data tidak ditemukan', status_code=404) 
     user = await userdata.filter(email=email).first()
-    log = await logaudio.filter(email=email, audio_id=meta.audio_id).first()
-    response = post_audio_to_smd(user=user, log=log, caption=meta.caption)
+    
+    speaker_id = set_karakter_id(data.karakter)
+    
+    audio_data = request_audio(text=data.translate, speaker_id=speaker_id)
+    if audio_data['status'] is False:
+        raise HTTPException(detail=audio_data['keterangan'], status_code=400)
+    
+    response = post_audio_to_smd(user=user, audio_download=audio_data['download_audio'], caption=meta.caption)
     if response['status'] is True:
         pesan = pesan_response(email=email, pesan=response['keterangan'])
         return JSONResponse(content=pesan, status_code=200)

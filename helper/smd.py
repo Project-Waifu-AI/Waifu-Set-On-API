@@ -5,8 +5,8 @@ import base64
 import time
 from configs import config
 
-def post_audio_to_smd(user, log, caption):
-    get_audio = requests.get(url=log.audio_download)
+def post_audio_to_smd(user, caption, audio_download):
+    get_audio = requests.get(url=audio_download)
     if get_audio is None:
         return {
             'status': False,
