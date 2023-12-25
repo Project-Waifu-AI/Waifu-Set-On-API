@@ -130,16 +130,15 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
         raise HTTPException(detail=str(e), status_code=500)
     
 @router.get('/root')
-def submit(request: Request, token: str):
+def submit(request: Request, token: str, access_token: str = Cookie(default=None)):
     target_url = config.redirect_uri_home
-    access_token: str = Cookie(default=None)
     response = requests.get(target_url, cookies={'access_token': access_token})
 
     if 'access_token' in response.cookies:
         response = RedirectResponse(target_url, status_code=302)
-        response.delete_cookie(key='access_token', domain="waifuseton.wso", path='/')
+        response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
     else:
         response = RedirectResponse(target_url, status_code=302)
 
-    response.set_cookie(key='access_token', value=token, domain="waifuseton.wso", path='/')
+    response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
     return response

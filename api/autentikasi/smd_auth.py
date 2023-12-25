@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Request, Cookie
+from fastapi.responses import JSONResponse, RedirectResponse
 from body_request.auth_body_request import smd_login, smd_register
 from database.model import userdata
 from helper.access_token import create_access_token
@@ -142,5 +142,21 @@ async def authRegister(meta: smd_register):
         
         token = create_access_token(user=user)
         
-        response = auth_response(user=user, token=token)
-        return JSONResponse(content=response, status_code=200)
+        redirect_url = f'{config.redirect_root_smd}?token={token}'
+        response = RedirectResponse(redirect_url)
+        response.set_cookie(key='token', value=token, httponly=True)
+        return response
+
+@router.get('/root')
+def submit(request: Request, token: str, access_token: str = Cookie(default=None)):
+    target_url = config.redirect_uri_home
+    response = requests.get(target_url, cookies={'access_token': access_token})
+
+    if 'access_token' in response.cookies:
+        response = RedirectResponse(target_url, status_code=302)
+        response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
+    else:
+        response = RedirectResponse(target_url, status_code=302)
+
+    response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+    return response

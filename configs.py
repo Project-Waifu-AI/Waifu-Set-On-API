@@ -40,11 +40,12 @@ class Config(BaseSettings):
     output_file: str = Field('voice.wav')
     
     # redirect google
-    redirect_uri_autentikasi_google: str = Field("REDIRECT_URI_AUTENTIKASI_GOOGLE")
-    redirect_root_google: str = Field("http://waifuseton.wso:8000/api/auth/google/root")
+    redirect_uri_autentikasi_google: str = os.getenv("REDIRECT_URI_AUTENTIKASI_GOOGLE")
+    redirect_root_google: str = os.getenv("REDIRECT_ROOT_GOOGLE")
 
     # domain smd
     smd_domain: str = os.getenv('API_SMD_DOMAIN_AUTH')
+    redirect_root_smd: str = os.getenv("REDIRECT_ROOT_SMD")
     
     # informasi email
     email: str = os.getenv("EMAIL")
