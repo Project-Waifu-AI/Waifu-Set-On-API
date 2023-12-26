@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Cookie
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.responses import RedirectResponse
 import google_auth_oauthlib.flow
 import requests
 import os

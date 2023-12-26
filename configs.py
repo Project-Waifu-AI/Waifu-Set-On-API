@@ -41,11 +41,14 @@ class Config(BaseSettings):
     
     # redirect google
     redirect_uri_autentikasi_google: str = os.getenv("REDIRECT_URI_AUTENTIKASI_GOOGLE")
-    redirect_root_google: str = os.getenv("REDIRECT_ROOT_GOOGLE")
 
     # domain smd
     smd_domain: str = os.getenv('API_SMD_DOMAIN_AUTH')
+    
+    # root
     redirect_root_smd: str = os.getenv("REDIRECT_ROOT_SMD")
+    redirect_root_google: str = os.getenv("REDIRECT_ROOT_GOOGLE")
+    redirect_root_wso: str = os.getenv('REDIRECT_ROOT_WSO')
     
     # informasi email
     email: str = os.getenv("EMAIL")

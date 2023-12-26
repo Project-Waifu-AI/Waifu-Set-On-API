@@ -1,10 +1,9 @@
 from fastapi import APIRouter, HTTPException, Request, Cookie
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from body_request.auth_body_request import smd_login, smd_register
 from database.model import userdata
 from helper.access_token import create_access_token
 from helper.cek_and_set import cek_namaku_ada, set_name_unik, cek_admin
-from helper.response import auth_response
 from configs import config
 import requests
 
@@ -58,8 +57,11 @@ async def authLogin(meta: smd_login):
             await user.save()
         
         token = create_access_token(user=user)
-        response = auth_response(user=user, token=token)
-        return JSONResponse(content=response, status_code=200)
+        
+        redirect_url = f'{config.redirect_root_smd}?token={token}'
+        response = RedirectResponse(redirect_url)
+        response.set_cookie(key='token', value=token, httponly=True)
+        return response
     
     else:
         
@@ -74,8 +76,10 @@ async def authLogin(meta: smd_login):
         
         token = create_access_token(user=user)
         
-        response = auth_response(user=user, token=token)
-        return JSONResponse(content=response, status_code=200)
+        redirect_url = f'{config.redirect_root_smd}?token={token}'
+        response = RedirectResponse(redirect_url)
+        response.set_cookie(key='token', value=token, httponly=True)
+        return response
     
 @router.post('/register')
 async def authRegister(meta: smd_register):
@@ -125,9 +129,10 @@ async def authRegister(meta: smd_register):
             
             await user.save()
         
-        token = create_access_token(user=user)
-        response = auth_response(user=user, token=token)
-        return JSONResponse(content=response, status_code=200)
+        redirect_url = f'{config.redirect_root_smd}?token={token}'
+        response = RedirectResponse(redirect_url)
+        response.set_cookie(key='token', value=token, httponly=True)
+        return response
     
     else:
         
@@ -147,7 +152,7 @@ async def authRegister(meta: smd_register):
         response.set_cookie(key='token', value=token, httponly=True)
         return response
 
-@router.get('/root')
+@router.post('/root')
 def submit(request: Request, token: str, access_token: str = Cookie(default=None)):
     target_url = config.redirect_uri_home
     response = requests.get(target_url, cookies={'access_token': access_token})
