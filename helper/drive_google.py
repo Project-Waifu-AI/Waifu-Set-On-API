@@ -5,6 +5,7 @@ from googleapiclient.http import MediaFileUpload
 from datetime import datetime, timezone
 from database.model import userdata, token_google
 import requests
+import time
 import json
 import os
 import tempfile
@@ -136,14 +137,12 @@ async def simpanKe_Gdrive(data, download_audio,delete: bool):
         'parents': [user.driveID]
     }
     try:
-
         media = MediaFileUpload(temp_file.name, mimetype='application/octet-stream')
         file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
         
         if delete is True:
             await data.delete()
         
-        os.remove(temp_file.name)    
         return {
             'status': True,
             'keterangan': file.get('id')

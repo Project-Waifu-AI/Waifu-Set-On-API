@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, Cookie
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from body_request.auth_body_request import smd_login, smd_register
 from database.model import userdata
 from helper.access_token import create_access_token, check_access_token_expired, decode_access_token
@@ -57,20 +57,9 @@ async def authLogin(meta: smd_login, access_token: str = Cookie(default=None)):
             await user.save()
         
         token = create_access_token(user=user)
-                
-        target_url = config.redirect_uri_home
-        response = requests.get(target_url, cookies={'access_token': access_token})
-
-        if 'access_token' in response.cookies:
-            response = RedirectResponse(target_url, status_code=302)
-            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
-        else:
-            response = RedirectResponse(target_url, status_code=302)
-
-        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+            
+        redirect_url = f'{config.redirect_root_smd}?token={token}'
+        response = JSONResponse(content={'url': redirect_url}, status_code=200)
         return response
     
     else:
@@ -85,20 +74,9 @@ async def authLogin(meta: smd_login, access_token: str = Cookie(default=None)):
         user = await userdata.filter(email=email).first()
         
         token = create_access_token(user=user)
-                
-        target_url = config.redirect_uri_home
-        response = requests.get(target_url, cookies={'access_token': access_token})
-
-        if 'access_token' in response.cookies:
-            response = RedirectResponse(target_url, status_code=302)
-            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
-        else:
-            response = RedirectResponse(target_url, status_code=302)
-
-        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+            
+        redirect_url = f'{config.redirect_root_smd}?token={token}'
+        response = JSONResponse(content={'url': redirect_url}, status_code=200)
         return response
     
 @router.post('/register')
@@ -150,20 +128,9 @@ async def authRegister(meta: smd_register, access_token: str = Cookie(default=No
             await user.save()
         
         token = create_access_token(user=user)
-                
-        target_url = config.redirect_uri_home
-        response = requests.get(target_url, cookies={'access_token': access_token})
-
-        if 'access_token' in response.cookies:
-            response = RedirectResponse(target_url, status_code=302)
-            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
-        else:
-            response = RedirectResponse(target_url, status_code=302)
-
-        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+            
+        redirect_url = f'{config.redirect_root_smd}?token={token}'
+        response = JSONResponse(content={'url': redirect_url}, status_code=200)
         return response
     
     else:
@@ -178,18 +145,34 @@ async def authRegister(meta: smd_register, access_token: str = Cookie(default=No
         user = await userdata.filter(email=email).first()
         
         token = create_access_token(user=user)
-                
-        target_url = config.redirect_uri_home
-        response = requests.get(target_url, cookies={'access_token': access_token})
-
-        if 'access_token' in response.cookies:
-            response = RedirectResponse(target_url, status_code=302)
-            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
-        else:
-            response = RedirectResponse(target_url, status_code=302)
-
-        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
-        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+            
+        redirect_url = f'{config.redirect_root_smd}?token={token}'
+        response = JSONResponse(content={'url': redirect_url}, status_code=200)
         return response
+    
+@router.get('/root')
+async def submit(request: Request, token: str, access_token: str = Cookie(default=None)):
+    target_url = config.redirect_uri_home
+    response = requests.get(target_url, cookies={'access_token': access_token})
+
+    if 'access_token' in response.cookies:
+        response = RedirectResponse(target_url, status_code=302)
+        response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
+    else:
+        response = RedirectResponse(target_url, status_code=302)
+
+    check = check_access_token_expired(access_token=token)
+
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=token)
+        email = payloadJWT.get('sub')
+    
+    user = await userdata.filter(email=email).first()
+    
+    response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+    return response
