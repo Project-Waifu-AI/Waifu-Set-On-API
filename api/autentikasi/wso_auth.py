@@ -13,7 +13,7 @@ from configs import config
 router = APIRouter(prefix='/auth/wso', tags=['Waifu-Set-On-autentikasi'])
 
 @router.post('/login')
-async def login_wso(meta: LoginWSO):
+async def login_wso(meta: LoginWSO, access_token: str = Cookie(default=None)):
     user = await cek_data_user(namaORemail=meta.emailORname)
     
     if user is False:
@@ -29,9 +29,19 @@ async def login_wso(meta: LoginWSO):
             try:
                 token = create_access_token(user=user)
                 
-                redirect_url = f'{config.redirect_root_wso}?token={token}'
-                response = RedirectResponse(redirect_url)
-                response.set_cookie(key='token', value=token, httponly=True)
+                target_url = config.redirect_uri_home
+                response = requests.get(target_url, cookies={'access_token': access_token})
+
+                if 'access_token' in response.cookies:
+                    response = RedirectResponse(target_url, status_code=302)
+                    response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
+                else:
+                    response = RedirectResponse(target_url, status_code=302)
+
+                response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+                response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
+                response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
+                response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
                 return response
             except Exception as e:
                 raise HTTPException(detail=str(e), status_code=500)
@@ -77,7 +87,7 @@ async def register(email: str):
             raise HTTPException(detail=str(e), status_code=500)
     
 @router.post('/simpan-user')
-async def simpan_user(meta: SimpanUserWSO):
+async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=None)):
     user = await userdata.filter(email=meta.email).first()
     adminkah = cek_admin(email=meta.email)
 
@@ -98,9 +108,20 @@ async def simpan_user(meta: SimpanUserWSO):
                         user.admin = True
                         await user.save()
                         token = create_access_token(user=user)
-                        redirect_url = f'{config.redirect_root_wso}?token={token}'
-                        response = RedirectResponse(redirect_url)
-                        response.set_cookie(key='token', value=token, httponly=True)
+
+                        target_url = config.redirect_uri_home
+                        response = requests.get(target_url, cookies={'access_token': access_token})
+
+                        if 'access_token' in response.cookies:
+                            response = RedirectResponse(target_url, status_code=302)
+                            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
+                        else:
+                            response = RedirectResponse(target_url, status_code=302)
+
+                        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+                        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
+                        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
+                        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
                         return response
                     except Exception as e:
                         raise HTTPException(detail=str(e), status_code=500)
@@ -112,9 +133,20 @@ async def simpan_user(meta: SimpanUserWSO):
                         user.AtsumaruKanjo += 100
                         await user.save()
                         token = create_access_token(user=user)
-                        redirect_url = f'{config.redirect_root_wso}?token={token}'
-                        response = RedirectResponse(redirect_url)
-                        response.set_cookie(key='token', value=token, httponly=True)
+                        
+                        target_url = config.redirect_uri_home
+                        response = requests.get(target_url, cookies={'access_token': access_token})
+
+                        if 'access_token' in response.cookies:
+                            response = RedirectResponse(target_url, status_code=302)
+                            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
+                        else:
+                            response = RedirectResponse(target_url, status_code=302)
+
+                        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+                        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
+                        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
+                        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
                         return response
                     except Exception as e:
                         raise HTTPException(detail=str(e), status_code=500)
@@ -135,17 +167,3 @@ async def simpan_user(meta: SimpanUserWSO):
             raise HTTPException(detail='pengguna tidak ditemukan', status_code=404)
     else:
         raise HTTPException(detail='passowrd dan konfirmasi password tidak sama', status_code=418)
-    
-@router.post('/root')
-def submit(request: Request, token: str, access_token: str = Cookie(default=None)):
-    target_url = config.redirect_uri_home
-    response = requests.get(target_url, cookies={'access_token': access_token})
-
-    if 'access_token' in response.cookies:
-        response = RedirectResponse(target_url, status_code=302)
-        response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
-    else:
-        response = RedirectResponse(target_url, status_code=302)
-
-    response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
-    return response

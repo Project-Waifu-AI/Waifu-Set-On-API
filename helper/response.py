@@ -35,11 +35,3 @@ def karakter_response(karakter):
                 'informasi tambahan': karakter.informasi_tambahan,
                 }
     return karakter_dict
-
-def auth_response(user, token):
-    return{
-        'access_token': token,
-        'wso_auth': user.akunwso,
-        'google_auth': user.googleAuth,
-        'smd_auth': user.smdAuth
-    }

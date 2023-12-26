@@ -10,7 +10,7 @@ import requests
 router = APIRouter(prefix='/auth/smd', tags=['SMD AUTH'])
 
 @router.post('/login')
-async def authLogin(meta: smd_login):
+async def authLogin(meta: smd_login, access_token: str = Cookie(default=None)):
     endpoint = 'auth/login'
     url = f'{config.smd_domain}{endpoint}'
     body = {
@@ -57,10 +57,20 @@ async def authLogin(meta: smd_login):
             await user.save()
         
         token = create_access_token(user=user)
-        
-        redirect_url = f'{config.redirect_root_smd}?token={token}'
-        response = RedirectResponse(redirect_url)
-        response.set_cookie(key='token', value=token, httponly=True)
+                
+        target_url = config.redirect_uri_home
+        response = requests.get(target_url, cookies={'access_token': access_token})
+
+        if 'access_token' in response.cookies:
+            response = RedirectResponse(target_url, status_code=302)
+            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
+        else:
+            response = RedirectResponse(target_url, status_code=302)
+
+        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
         return response
     
     else:
@@ -75,14 +85,24 @@ async def authLogin(meta: smd_login):
         user = await userdata.filter(email=email).first()
         
         token = create_access_token(user=user)
-        
-        redirect_url = f'{config.redirect_root_smd}?token={token}'
-        response = RedirectResponse(redirect_url)
-        response.set_cookie(key='token', value=token, httponly=True)
+                
+        target_url = config.redirect_uri_home
+        response = requests.get(target_url, cookies={'access_token': access_token})
+
+        if 'access_token' in response.cookies:
+            response = RedirectResponse(target_url, status_code=302)
+            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
+        else:
+            response = RedirectResponse(target_url, status_code=302)
+
+        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
         return response
     
 @router.post('/register')
-async def authRegister(meta: smd_register):
+async def authRegister(meta: smd_register, access_token: str = Cookie(default=None)):
     endpoint = 'auth/login'
     url = f'{config.smd_domain}{endpoint}'
     body = {
@@ -129,9 +149,21 @@ async def authRegister(meta: smd_register):
             
             await user.save()
         
-        redirect_url = f'{config.redirect_root_smd}?token={token}'
-        response = RedirectResponse(redirect_url)
-        response.set_cookie(key='token', value=token, httponly=True)
+        token = create_access_token(user=user)
+                
+        target_url = config.redirect_uri_home
+        response = requests.get(target_url, cookies={'access_token': access_token})
+
+        if 'access_token' in response.cookies:
+            response = RedirectResponse(target_url, status_code=302)
+            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
+        else:
+            response = RedirectResponse(target_url, status_code=302)
+
+        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
         return response
     
     else:
@@ -146,22 +178,18 @@ async def authRegister(meta: smd_register):
         user = await userdata.filter(email=email).first()
         
         token = create_access_token(user=user)
-        
-        redirect_url = f'{config.redirect_root_smd}?token={token}'
-        response = RedirectResponse(redirect_url)
-        response.set_cookie(key='token', value=token, httponly=True)
+                
+        target_url = config.redirect_uri_home
+        response = requests.get(target_url, cookies={'access_token': access_token})
+
+        if 'access_token' in response.cookies:
+            response = RedirectResponse(target_url, status_code=302)
+            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
+        else:
+            response = RedirectResponse(target_url, status_code=302)
+
+        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
+        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
         return response
-
-@router.post('/root')
-def submit(request: Request, token: str, access_token: str = Cookie(default=None)):
-    target_url = config.redirect_uri_home
-    response = requests.get(target_url, cookies={'access_token': access_token})
-
-    if 'access_token' in response.cookies:
-        response = RedirectResponse(target_url, status_code=302)
-        response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
-    else:
-        response = RedirectResponse(target_url, status_code=302)
-
-    response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
-    return response

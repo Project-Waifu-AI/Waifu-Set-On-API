@@ -5,9 +5,8 @@ import requests
 import os
 from configs import config
 from database.model import userdata
-from helper.access_token import create_access_token
+from helper.access_token import create_access_token, decode_access_token, check_access_token_expired
 from helper.cek_and_set import cek_namaku_ada, set_name_unik, cek_admin
-from helper.response import auth_response
 from helper.google_auth import save_google_creds
 from helper.drive_google import create_folder_gdrive
 
@@ -91,7 +90,6 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
             await save_google_creds(email=email, token=access_token, exp=exp_token, refersh=refresh_token)
             
             token = create_access_token(user=user)
-            response_data = auth_response(user=user, token=token)
             redirect_url = f'{config.redirect_root_google}?token={token}'
             response = RedirectResponse(redirect_url)
             response.set_cookie(key='token', value=token, httponly=True)
@@ -119,7 +117,6 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
             
             token = create_access_token(user=user)
             
-            response_data = auth_response(user=user, token=token)
             redirect_url = f'{config.redirect_root_google}?token={token}'
             response = RedirectResponse(redirect_url)
             response.set_cookie(key='token', value=token, httponly=True)
@@ -130,7 +127,7 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
         raise HTTPException(detail=str(e), status_code=500)
     
 @router.get('/root')
-def submit(request: Request, token: str, access_token: str = Cookie(default=None)):
+async def submit(request: Request, token: str, access_token: str = Cookie(default=None)):
     target_url = config.redirect_uri_home
     response = requests.get(target_url, cookies={'access_token': access_token})
 
@@ -140,5 +137,18 @@ def submit(request: Request, token: str, access_token: str = Cookie(default=None
     else:
         response = RedirectResponse(target_url, status_code=302)
 
+    check = check_access_token_expired(access_token=access_token)
+
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=access_token)
+        email = payloadJWT.get('sub')
+    
+    user = await userdata.filter(email=email).first()
+    
     response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
     return response
