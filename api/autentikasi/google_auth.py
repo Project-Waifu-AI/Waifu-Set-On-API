@@ -137,12 +137,12 @@ async def submit(request: Request, token: str, access_token: str = Cookie(defaul
     else:
         response = RedirectResponse(target_url, status_code=302)
 
-    check = check_access_token_expired(access_token=access_token)
+    check = check_access_token_expired(access_token=token)
 
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
-        payloadJWT = decode_access_token(access_token=access_token)
+        payloadJWT = decode_access_token(access_token=token)
         email = payloadJWT.get('sub')
     
     user = await userdata.filter(email=email).first()

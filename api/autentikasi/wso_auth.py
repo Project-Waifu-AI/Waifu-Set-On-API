@@ -4,7 +4,7 @@ import random
 import requests
 from body_request.auth_body_request import LoginWSO, SimpanUserWSO
 from database.model import userdata
-from helper.access_token import create_access_token
+from helper.access_token import create_access_token, check_access_token_expired, decode_access_token
 from helper.cek_and_set import cek_password, cek_valid_email, set_password, cek_admin, cek_data_user, cek_valid_password
 from helper.response import pesan_response
 from webhook.send_email import send_verify_token
@@ -28,21 +28,9 @@ async def login_wso(meta: LoginWSO, access_token: str = Cookie(default=None)):
         else:
             try:
                 token = create_access_token(user=user)
-                
-                target_url = config.redirect_uri_home
-                response = requests.get(target_url, cookies={'access_token': access_token})
-
-                res = pesan_response(email=meta.emailORname, pesan='sukses njay')
-                if 'access_token' in response.cookies:
-                    response = JSONResponse(content=res, status_code=200)
-                    response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
-                else:
-                    response = JSONResponse(content=res, status_code=200)
-
-                response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
-                response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
-                response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
-                response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+            
+                redirect_url = f'{config.redirect_root_wso}?token={token}'
+                response = JSONResponse(content={'url': redirect_url}, status_code=200)
                 return response
             except Exception as e:
                 raise HTTPException(detail=str(e), status_code=500)
@@ -109,21 +97,8 @@ async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=No
                         user.admin = True
                         await user.save()
                         token = create_access_token(user=user)
-
-                        target_url = config.redirect_uri_home
-                        response = requests.get(target_url, cookies={'access_token': access_token})
-
-                        res = pesan_response(email=meta.email, pesan='sukses njay')
-                        if 'access_token' in response.cookies:
-                            response = JSONResponse(content=res, status_code=200)
-                            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
-                        else:
-                            response = JSONResponse(content=res, status_code=200)
-
-                        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
-                        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
-                        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
-                        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+                        redirect_url = f'{config.redirect_root_wso}?token={token}'
+                        response = JSONResponse(content={'url': redirect_url}, status_code=201)
                         return response
                     except Exception as e:
                         raise HTTPException(detail=str(e), status_code=500)
@@ -135,21 +110,9 @@ async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=No
                         user.AtsumaruKanjo += 100
                         await user.save()
                         token = create_access_token(user=user)
-                        
-                        target_url = config.redirect_uri_home
-                        response = requests.get(target_url, cookies={'access_token': access_token})
 
-                        res = pesan_response(email=meta.email, pesan='sukses njay')
-                        if 'access_token' in response.cookies:
-                            response = JSONResponse(content=res, status_code=200)
-                            response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
-                        else:
-                            response = JSONResponse(content=res, status_code=200)
-
-                        response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
-                        response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
-                        response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
-                        response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+                        redirect_url = f'{config.redirect_root_wso}?token={token}'
+                        response = JSONResponse(content={'url': redirect_url}, status_code=200)
                         return response
                     except Exception as e:
                         raise HTTPException(detail=str(e), status_code=500)
@@ -170,3 +133,30 @@ async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=No
             raise HTTPException(detail='pengguna tidak ditemukan', status_code=404)
     else:
         raise HTTPException(detail='passowrd dan konfirmasi password tidak sama', status_code=418)
+
+@router.get('/root')
+async def submit(request: Request, token: str, access_token: str = Cookie(default=None)):
+    target_url = config.redirect_uri_home
+    response = requests.get(target_url, cookies={'access_token': access_token})
+
+    if 'access_token' in response.cookies:
+        response = RedirectResponse(target_url, status_code=302)
+        response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
+    else:
+        response = RedirectResponse(target_url, status_code=302)
+
+    check = check_access_token_expired(access_token=token)
+
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=token)
+        email = payloadJWT.get('sub')
+    
+    user = await userdata.filter(email=email).first()
+    
+    response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+    return response
