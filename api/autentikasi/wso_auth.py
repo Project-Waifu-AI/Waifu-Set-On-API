@@ -32,11 +32,12 @@ async def login_wso(meta: LoginWSO, access_token: str = Cookie(default=None)):
                 target_url = config.redirect_uri_home
                 response = requests.get(target_url, cookies={'access_token': access_token})
 
+                res = pesan_response(email=meta.emailORname, pesan='sukses njay')
                 if 'access_token' in response.cookies:
-                    response = RedirectResponse(target_url, status_code=302)
+                    response = JSONResponse(content=res, status_code=200)
                     response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
                 else:
-                    response = RedirectResponse(target_url, status_code=302)
+                    response = JSONResponse(content=res, status_code=200)
 
                 response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
                 response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
@@ -112,11 +113,12 @@ async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=No
                         target_url = config.redirect_uri_home
                         response = requests.get(target_url, cookies={'access_token': access_token})
 
+                        res = pesan_response(email=meta.email, pesan='sukses njay')
                         if 'access_token' in response.cookies:
-                            response = RedirectResponse(target_url, status_code=302)
+                            response = JSONResponse(content=res, status_code=200)
                             response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
                         else:
-                            response = RedirectResponse(target_url, status_code=302)
+                            response = JSONResponse(content=res, status_code=200)
 
                         response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
                         response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
@@ -137,11 +139,12 @@ async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=No
                         target_url = config.redirect_uri_home
                         response = requests.get(target_url, cookies={'access_token': access_token})
 
+                        res = pesan_response(email=meta.email, pesan='sukses njay')
                         if 'access_token' in response.cookies:
-                            response = RedirectResponse(target_url, status_code=302)
+                            response = JSONResponse(content=res, status_code=200)
                             response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
                         else:
-                            response = RedirectResponse(target_url, status_code=302)
+                            response = JSONResponse(content=res, status_code=200)
 
                         response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
                         response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
