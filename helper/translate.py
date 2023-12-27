@@ -21,7 +21,7 @@ def translate_target_premium(input: str, bahasa_target: str):
     
     try:
         translate = client_openai.chat.completions.create(
-            model='gpt-4',
+            model='gpt-3.5-turbo',
             messages=set
         )
         print (translate)
