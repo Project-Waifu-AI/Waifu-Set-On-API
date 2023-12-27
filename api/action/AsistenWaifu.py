@@ -96,13 +96,13 @@ async def obrolanAIU(meta: obrolan_aiu, access_token: str = Header(...)):
     
     bahasa = cek_bahasa(bahasa=meta.bahasa)
     if bahasa['status'] == False:
-        raise HTTPException(detail=bahasa['response'], status_code=404)
+        raise HTTPException(detail=bahasa['keterangan'], status_code=404)
     
     if meta.bahasa != 'bahasa indonesia':
         if premium == True:
             input_user = translate_target_premium(input=meta.input, bahasa_target='indonesia')
         else:
-            input_user = translate_target(input=meta.input, bahasa_asal=bahasa['response'], bahasa_target='id')  
+            input_user = translate_target(input=meta.input, bahasa_asal=bahasa['keterangan'], bahasa_target='id')  
         if input_user['status'] == False:
             raise HTTPException(detail=input_user['response'])
         input_user = input_user['response']
@@ -110,17 +110,25 @@ async def obrolanAIU(meta: obrolan_aiu, access_token: str = Header(...)):
         input_user = meta.input
         
     jawaban = obrolan_bot(input=input_user, karakter=meta.karakter)
+    print (jawaban)
     if jawaban['status'] == False:
         raise HTTPException(detail=jawaban['keterangan'], status_code=404)
     
     if meta.bahasa != '日本語':
         if premium == False:
-            jawaban_response = translate_target(input=jawaban['keterangan'], bahasa_target=bahasa, bahasa_asal='ja')
+            translate_response = translate_target(input=jawaban['keterangan'], bahasa_target=bahasa['keterangan'], bahasa_asal='ja')
+            if translate_response['status'] == False:
+                raise HTTPException(detail=translate_response['response'], status_code=500)
+            jawaban_response = translate_response['response']
         else:
-            jawaban_response = translate_target_premium(input=jawaban['keterangan'], bahasa_target=meta.bahasa)
+            translate_response = translate_target_premium(input=jawaban['keterangan'], bahasa_target=meta.bahasa)
+            if translate_response['status'] == False:
+                raise HTTPException(detail=translate_response['response'], status_code=500)
+            jawaban_response = translate_response['response']
     else:
         jawaban_response = jawaban['keterangan']
-        jawaban_japan = jawaban['keterangan']   
+    
+    jawaban_japan = jawaban['keterangan']   
     
     karakter_id = set_karakter_id(nama=meta.karakter)
     if karakter_id is False:

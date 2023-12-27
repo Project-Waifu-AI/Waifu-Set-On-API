@@ -3,15 +3,15 @@ from helper.cek_and_set import set_karakter_id
 
 def obrolan_bot(input: str, karakter: str):
     if karakter.lower() == 'kusukabe tsumugi':
-        base_pengetahuan: dict = load_knowledge_base('dataset/kusukabeTsumugi.json')
+        base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/kusukabeTsumugi.json')
     elif karakter.lower() == 'nurse-t':
-        base_pengetahuan: dict = load_knowledge_base('dataset/nurseT.json')
+        base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/nurseT.json')
     elif karakter.lower() == 'meimei himari':
-        base_pengetahuan: dict = load_knowledge_base('dataset/meimeiHimari.json')
+        base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/meimeiHimari.json')
     elif karakter.lower() == 'sayo':
-        base_pengetahuan: dict = load_knowledge_base('dataset/sayo.json')
+        base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/sayo.json')
     elif karakter.lower() == 'no 7':
-        base_pengetahuan: dict = load_knowledge_base('dataset/no7.json')
+        base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/no7.json')
     
     karakter_id = set_karakter_id(nama=karakter)
     if karakter_id == False:
