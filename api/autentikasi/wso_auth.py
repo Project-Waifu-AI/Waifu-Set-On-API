@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Cookie
 from fastapi.responses import JSONResponse, RedirectResponse
+from typing import Optional
 import random
 import requests
 from body_request.auth_body_request import LoginWSO, SimpanUserWSO
@@ -97,7 +98,7 @@ async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=No
                         user.admin = True
                         await user.save()
                         token = create_access_token(user=user)
-                        redirect_url = f'{config.redirect_root_wso}?token={token}'
+                        redirect_url = f'{config.redirect_root_wso}?token={token}&tujuan=register'
                         response = JSONResponse(content={'url': redirect_url}, status_code=201)
                         return response
                     except Exception as e:
@@ -111,7 +112,7 @@ async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=No
                         await user.save()
                         token = create_access_token(user=user)
 
-                        redirect_url = f'{config.redirect_root_wso}?token={token}'
+                        redirect_url = f'{config.redirect_root_wso}?token={token}&tujuan=register'
                         response = JSONResponse(content={'url': redirect_url}, status_code=200)
                         return response
                     except Exception as e:
@@ -135,8 +136,11 @@ async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=No
         raise HTTPException(detail='passowrd dan konfirmasi password tidak sama', status_code=418)
 
 @router.get('/root')
-async def submit(request: Request, token: str, access_token: str = Cookie(default=None)):
-    target_url = config.redirect_uri_home
+async def submit(request: Request, token: str, tujuan: Optional[str] = None, access_token: str = Cookie(default=None)):
+    if tujuan == 'register':
+        target_url = config.redirect_uri_update
+    else:
+        target_url = config.redirect_uri_home
     response = requests.get(target_url, cookies={'access_token': access_token})
 
     if 'access_token' in response.cookies:

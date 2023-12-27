@@ -9,7 +9,7 @@ class Config(BaseSettings):
     # redirect autentikasi
     redirect_uri_page_masuk: str = os.getenv('REDIRECT_PAGE_MASUK')
     redirect_uri_home: str = os.getenv('REDIRECT_HOME')
-    
+    redirect_uri_update: str = os.getenv('REDIRECT_UPDATE')
     # admin
     admin = os.getenv('ADMIN')
     
