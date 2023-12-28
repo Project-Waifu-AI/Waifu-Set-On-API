@@ -161,6 +161,10 @@ async def saveDrive(audio_id: int, access_token: str = Header(...)):
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub') 
     
+    user = await userdata.filter(email=email).first()
+    if user.googleAuth is False:
+        raise HTTPException(detail='your account is not yet connected to google auth', status_code=400)
+    
     data = await logaudio.filter(email=email,audio_id=audio_id).first()
     if not data:
         raise HTTPException(detail='data tidak ditemukan', status_code=404)
@@ -188,6 +192,10 @@ async def saveDrive(audio_id: int, access_token: str = Header(...)):
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub') 
+    
+    user = await userdata.filter(email=email).first()
+    if user.googleAuth is False:
+        raise HTTPException(detail='your account is not yet connected to google auth', status_code=400)
         
     data = await logaudio.filter(email=email,audio_id=audio_id).first()
     if not data:
@@ -217,12 +225,13 @@ async def shareSMD(meta: shareToSMD, access_token: str = Header()):
     elif check is False:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub') 
-        
+    
     data = await logaudio.filter(email=email,audio_id=meta.audio_id).first()
     if not data:
         raise HTTPException(detail='data tidak ditemukan', status_code=404) 
     user = await userdata.filter(email=email).first()
-    
+    if user.smdAuth is False:
+        raise HTTPException(detail='your account is not yet connected to smd auth', status_code=400)
     speaker_id = set_karakter_id(data.karakter)
     
     audio_data = request_audio(text=data.translate, speaker_id=speaker_id)
