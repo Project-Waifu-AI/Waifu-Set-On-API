@@ -13,7 +13,7 @@ from helper.fitur import request_audio
 from helper.cek_and_set import set_karakter_id
 from helper.translate import cek_bahasa, translate_target, translate_target_premium
 from helper.drive_google import simpanKe_Gdrive
-from helper.smd import post_audio_to_smd
+from helper.smd import post_audio_to_smd_blob, post_audio_to_smd_file
 
 r = sr.Recognizer()
 router = APIRouter(prefix='/bw', tags=['BecomeWaifu-action'])
@@ -238,7 +238,7 @@ async def shareSMD(meta: shareToSMD, access_token: str = Header()):
     if audio_data['status'] is False:
         raise HTTPException(detail=audio_data['keterangan'], status_code=400)
     
-    response = post_audio_to_smd(user=user, audio_download=audio_data['download_audio'], caption=meta.caption)
+    response = post_audio_to_smd_file(user=user, audio_download=audio_data['download_audio'], caption=meta.caption)
     if response['status'] is True:
         pesan = pesan_response(email=email, pesan=response['keterangan'])
         return JSONResponse(content=pesan, status_code=200)
