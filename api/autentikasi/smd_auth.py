@@ -81,7 +81,7 @@ async def authLogin(meta: smd_login, access_token: str = Cookie(default=None)):
     
 @router.post('/register')
 async def authRegister(meta: smd_register, access_token: str = Cookie(default=None)):
-    endpoint = 'auth/login'
+    endpoint = 'auth/register'
     url = f'{config.smd_domain}{endpoint}'
     body = {
         'username': meta.username,
