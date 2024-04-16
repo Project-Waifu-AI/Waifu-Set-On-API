@@ -9,6 +9,7 @@
 #  syarat
 1. gunakan python version < 12 dan >9
 2. jika terdapat eror saat pip di windows coba gunakan WSL
-3. copy isi file txt google_trans_new_fix ke file google_trans_new file milik lib google_trans_new
+3. download ffmpeg
+4. copy isi file txt google_trans_new_fix ke file google_trans_new file milik lib google_trans_new
 
 BUG / ERROR SEGERA HUBUNGI dimas.ngadinegaran@gmail.com
