@@ -5,3 +5,6 @@ class obrolan_aiu(BaseModel):
     karakter: Optional[str]
     input: Optional[str]
     bahasa: Optional[str]
+
+class Gemini_aiu(BaseModel):
+    message:str

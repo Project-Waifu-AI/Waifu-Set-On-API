@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
-from database.model import logpercakapan
-from helper.fitur import obrolan, request_audio
+from database.model import logpercakapan, logpercakapan_gemini
+from helper.fitur import obrolan, request_audio, gemini_chatbot
 from helper.translate import cek_bahasa, translate_target, translate_target_premium
 from helper.response import pesan_response
-from body_request.aiu_body_request import obrolan_aiu
+from body_request.aiu_body_request import obrolan_aiu, Gemini_aiu
 from helper.aiu.model import obrolan_bot
 from helper.cek_and_set import set_karakter_id, set_karakter_persona
 from helper.access_token import check_access_token_expired, decode_access_token
@@ -178,3 +178,45 @@ async def delete_obrolan(access_token: str = Header(...)):
         return JSONResponse(response, status_code=200)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post('/obrolan-gemini')
+async def obrolan_gemini(gemini_aiu: Gemini_aiu, access_token: str = Header(...)):
+    try:
+        check = check_access_token_expired(access_token=access_token)
+        if check:
+            return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+        
+        payloadJWT = decode_access_token(access_token=access_token)
+        email = payloadJWT.get('sub')
+        if not email:
+            return JSONResponse({"error": "Email tidak tersedia dalam token akses"}, status_code=400)
+
+        user_data = await logpercakapan_gemini.filter(email=email).order_by("-id").first()
+        if user_data:
+            id_percakapan = user_data.id + 1
+        else:
+            id_percakapan = 1
+        
+        history = await logpercakapan_gemini.filter(email=email).order_by("-id").limit(10).all()
+        print(f"History for {email}: {history}")
+
+        response = await gemini_chatbot(gemini_aiu.message, history)
+        
+       
+        save = logpercakapan_gemini(
+            id=id_percakapan,
+            email=email,
+            input_text=gemini_aiu.message,
+            output_text=response,
+            role="user"  
+        )
+        await save.save()
+
+        data = {
+            'pesan': gemini_aiu.message,
+            'response': response,
+        }
+        return JSONResponse(data, status_code=200)
+
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)

@@ -92,3 +92,18 @@ class KarakterData(Model):
     
     def __str__(self):
         return self.nama
+    
+
+class logpercakapan_gemini(Model):
+    id = fields.IntField(pk=True)
+    email = fields.CharField(max_length=320)
+    input_text = fields.TextField()
+    output_text = fields.TextField()
+    role = fields.CharField(max_length=10)
+    dibuat = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "logpercakapan_gemini"
+
+    def __str__(self):
+        return str(self.id)

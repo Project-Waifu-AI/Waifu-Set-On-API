@@ -74,7 +74,7 @@ async def register(email: str):
             except Exception as e:
                 raise HTTPException(detail=str(e), status_code=500)
         else:
-            raise HTTPException(detail=str(e), status_code=500)
+            raise HTTPException(detail=sendEmail02, status_code=500)
     
 @router.post('/simpan-user')
 async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=None)):

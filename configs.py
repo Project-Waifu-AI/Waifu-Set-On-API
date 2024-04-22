@@ -32,6 +32,9 @@ class Config(BaseSettings):
         '한국어': 'ko'
     }
     
+    # api_key_gemini
+    api_key_gemini: str = os.getenv("API_KEY_GEMINI")
+
     # api_key_opneai
     api_key_openai: str = os.getenv("API_KEY_OPENAI")
     

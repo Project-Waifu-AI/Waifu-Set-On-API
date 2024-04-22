@@ -1,8 +1,10 @@
 import openai
 import requests
-from database.model import logpercakapan, userdata
+import google.generativeai as genai
+from database.model import logpercakapan, logpercakapan_gemini, userdata
 from configs import config
 
+client_gemini = genai.configure(api_key=config.api_key_gemini)
 client_openai = openai.OpenAI(api_key=config.api_key_openai)
 
 def request_audio(text, speaker_id: int):
@@ -153,3 +155,35 @@ def generateDelusionVariant(images_data, jumlah: str):
         )
         
         return data
+
+
+
+async def gemini_chatbot(input_text, email):
+    try:
+
+        history = await logpercakapan_gemini.filter(email=email).order_by("-id").limit(10).all()
+        print(f"Retrieved history: {history}")
+        
+        model = genai.GenerativeModel("gemini-pro")
+        messages = []
+        for item in history:
+            messages.append({
+                "role": "user",
+                "parts": [item.input_text]
+            })
+
+            messages.append({
+                "role": "model",
+                "parts": [item.output_text]
+            })
+
+        messages.append({
+            "role": "user",
+            "parts": [input_text]
+        })
+        
+        response = model.generate_content(messages)
+        return response.text
+
+    except Exception as e:
+        return str(e)
