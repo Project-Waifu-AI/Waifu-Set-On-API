@@ -117,6 +117,7 @@ async def obrolanAIU(meta: obrolan_aiu, access_token: str = Header(...)):
     if meta.bahasa != '日本語':
         if premium == False:
             translate_response = translate_target(input=jawaban['keterangan'], bahasa_target=bahasa['keterangan'], bahasa_asal='ja')
+            print(translate_response)
             if translate_response['status'] == False:
                 raise HTTPException(detail=translate_response['response'], status_code=500)
             jawaban_response = translate_response['response']

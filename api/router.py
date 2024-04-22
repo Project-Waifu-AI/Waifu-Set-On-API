@@ -33,6 +33,9 @@ from api.premium.premium_regis import router as router_premium_regis
 # DelusionWaifu
 from api.action.DelusionWaifu import router as router_dw
 
+# Notid Pembayaran
+from api.pembayaran.notif import router as router_notif_pemabayaran
+
 router = APIRouter(prefix='/api')
 
 # router bw
@@ -67,3 +70,6 @@ router.include_router(socket_user)
 
 # router premium regis
 router.include_router(router_premium_regis)
+
+# router notid pembayaran
+router.include_router(router_notif_pemabayaran)

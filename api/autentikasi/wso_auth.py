@@ -14,7 +14,7 @@ from configs import config
 router = APIRouter(prefix='/auth/wso', tags=['Waifu-Set-On-autentikasi'])
 
 @router.post('/login')
-async def login_wso(meta: LoginWSO, access_token: str = Cookie(default=None)):
+async def login_wso(meta: LoginWSO):
     user = await cek_data_user(namaORemail=meta.emailORname)
     
     if user is False:
@@ -77,7 +77,7 @@ async def register(email: str):
             raise HTTPException(detail=sendEmail02, status_code=500)
     
 @router.post('/simpan-user')
-async def simpan_user(meta: SimpanUserWSO, access_token: str = Cookie(default=None)):
+async def simpan_user(meta: SimpanUserWSO):
     user = await userdata.filter(email=meta.email).first()
     adminkah = cek_admin(email=meta.email)
 
