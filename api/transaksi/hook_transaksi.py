@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from helper.cek_and_set import cek_data_user
 from helper.premium import create_token_premium
-from database.model import anonimBuyer
+from database.model import anonim_buyer
 
 router = APIRouter(prefix='/transaksi', tags=['pembayaran-wso'])
 
@@ -11,25 +11,26 @@ async def plan_socialbuz(req: Request):
     try:
         data = await req.json()
         print(data)
-        id_pembayaran = data.get('id')
-        email = data.get('buyer_email') or 'anonim'
-        nama = data.get('buyer_name') or 'anonim'
-        no_telp = data.get('buyer_whatsapp') or '---'
-        jumlah_dibayar = data.get('price')
-        currency = data.get('currency')
-        product = data.get('title')
 
-        if cek_data_user(email) is False:
-            try:
-                await anonimBuyer.save(id_pembayaran=id_pembayaran, email=email, nama=nama, no_telp=no_telp, jumlah_dibayar=jumlah_dibayar, currency=currency, object_buy=product)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=e)
-        
-        create_premium_data = await create_token_premium(email=email, plan=product)
-        if create_premium_data['status'] is False:
-            raise HTTPException(detail=create_premium_data['keterangan'], status_code=500)
-        
-        return JSONResponse ({'message': 'Webhook received successfully'})
+        user_data = await cek_data_user(data.get('buyer_email'))
+        if not user_data:
+            save = anonim_buyer(
+                id_transaksi=str(data.get('id')),
+                email=data.get('buyer_email') or 'anonim',
+                nama=data.get('buyer_name') or 'anonim',
+                no_telp=data.get('buyer_whatsapp') or '---',
+                jumlah_dibayar=data.get('price'),
+                currency=data.get('currency'),
+                object_buy=data.get('title'),
+                service ='socialbuz'
+            )
+            await save.save()
+        else:
+            create_premium_data = await create_token_premium(email=data.get('buyer_email'), plan=data.get('title'))
+            if create_premium_data['status'] is False:
+                raise HTTPException(detail=create_premium_data['keterangan'], status_code=500)
+
+        return JSONResponse({'message': 'Webhook received successfully'})
     except Exception as e:
         raise HTTPException(status_code=500, detail=e)
 

@@ -82,7 +82,7 @@ class userdata(Model):
     def __str__(self):
         return self.email
 
-class anonimBuyer(Model):
+class anonim_buyer(Model):
     id_transaksi = fields.CharField(max_length=320, pk=True)
     email = fields.CharField(max_length=225)
     nama = fields.CharField(max_length=225, null=True)
@@ -93,10 +93,10 @@ class anonimBuyer(Model):
     currency = fields.CharField(max_length=100)
 
     class Meta:
-        tables = 'anonimn-buyer'
+        tables = 'anonimn_buyer'
 
     def __str__(self):
-        return self.email
+        return self.id_transaksi
 
 class KarakterData(Model):
     nama = fields.CharField(max_length=225, pk=True)
