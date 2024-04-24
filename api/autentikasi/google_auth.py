@@ -150,5 +150,5 @@ async def submit(request: Request, token: str, access_token: str = Cookie(defaul
     response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
     response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
     response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
-    response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='wso_auth', value=user.wsoAuth, domain="waifu-set-on.wso", path='/')
     return response

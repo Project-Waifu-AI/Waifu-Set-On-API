@@ -67,7 +67,7 @@ class userdata(Model):
     AtsumaruKanjo = fields.IntField(default=0)
     NegaiGoto = fields.IntField(default=0)
     karakterYangDimiliki = fields.JSONField(null=True)
-    akunwso = fields.BooleanField(default=False)
+    wsoAuth = fields.BooleanField(default=False)
     googleAuth = fields.BooleanField(default=False)
     smdAuth = fields.BooleanField(default=False)
     driveID = fields.CharField(null=True, max_length=320)
@@ -78,6 +78,22 @@ class userdata(Model):
 
     class Meta:
         table = "userdata"
+
+    def __str__(self):
+        return self.email
+
+class anonimBuyer(Model):
+    id_transaksi = fields.CharField(max_length=320, pk=True)
+    email = fields.CharField(max_length=225)
+    nama = fields.CharField(max_length=225, null=True)
+    no_telp = fields.CharField(max_length=225, null=True)
+    service = fields.CharField(max_length=100)
+    object_buy = fields.CharField(max_length=225)
+    jumlah_dibayar = fields.IntField()
+    currency = fields.CharField(max_length=100)
+
+    class Meta:
+        tables = 'anonimn-buyer'
 
     def __str__(self):
         return self.email

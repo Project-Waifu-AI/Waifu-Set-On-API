@@ -1,5 +1,4 @@
-from database.model import userdata
-from database.model import logdelusion
+from database.model import userdata, logdelusion
 from configs import config
 import requests
 import tempfile

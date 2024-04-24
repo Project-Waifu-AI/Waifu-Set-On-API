@@ -54,7 +54,7 @@ async def create_token_premium(email: str, plan: str):
         encoded_token = jwt.encode(to_encode, config.secret_key, algorithm=config.algoritma)
         user = await userdata.filter(email=email).first()
         user.premium_token = str(encoded_token)
-        user.save
+        await user.save()
         return {
             'status': True,
             'keterangan': f'{user.email} selamat telah menjadi premium plan {plan}'

@@ -34,7 +34,7 @@ from api.premium.premium_regis import router as router_premium_regis
 from api.action.DelusionWaifu import router as router_dw
 
 # Notid Pembayaran
-from api.pembayaran.notif import router as router_notif_pemabayaran
+from api.transaksi.hook_transaksi import router as router_notif_pemabayaran
 
 router = APIRouter(prefix='/api')
 

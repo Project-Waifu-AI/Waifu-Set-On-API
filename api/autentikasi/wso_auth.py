@@ -20,7 +20,7 @@ async def login_wso(meta: LoginWSO):
     if user is False:
         raise HTTPException(detail='nama, email anda masih belum terdaftar', status_code=403)
 
-    if user.akunwso is False:
+    if user.wsoAuth is False:
         return RedirectResponse(config.redirect_uri_page_masuk, status_code=404)
     
     else:
@@ -49,7 +49,7 @@ async def register(email: str):
         if user.ban:
             raise HTTPException(status_code=403, detail="akun anda telah di ban")
         else:
-            if user.akunwso is False:
+            if user.wsoAuth is False:
                 sendEmail01=send_verify_token(target_email=email, token=token_konfirmasi)
                 if sendEmail01 is True:
                     try:
@@ -91,7 +91,7 @@ async def simpan_user(meta: SimpanUserWSO):
                 if adminkah is True:
                     try:
                         user.password = set_password(password=meta.password)  # Setel kata sandi baru
-                        user.akunwso = True  # Setel akunwso menjadi Aktif
+                        user.wsoAuth = True  # Setel akunwso menjadi Aktif
                         user.token_konfirmasi = None  # Hapus token
                         user.AtsumaruKanjo += 99999999
                         user.NegaiGoto += 999999999
@@ -106,7 +106,7 @@ async def simpan_user(meta: SimpanUserWSO):
                 else:
                     try:
                         user.password = set_password(password=meta.password)  # Setel kata sandi baru
-                        user.akunwso = True  # Setel akunwso menjadi Aktif
+                        user.wsoAuth = True  # Setel akunwso menjadi Aktif
                         user.token_konfirmasi = None  # Hapus token
                         user.AtsumaruKanjo += 100
                         await user.save()
@@ -162,5 +162,5 @@ async def submit(request: Request, token: str, tujuan: Optional[str] = None, acc
     response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
     response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
     response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
-    response.set_cookie(key='wso_auth', value=user.akunwso, domain="waifu-set-on.wso", path='/')
+    response.set_cookie(key='wso_auth', value=user.wsoAuth, domain="waifu-set-on.wso", path='/')
     return response
