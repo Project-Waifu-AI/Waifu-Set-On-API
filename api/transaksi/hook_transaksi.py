@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
+from datetime import datetime
 from helper.cek_and_set import cek_data_user
 from helper.premium import create_token_premium
-from database.model import anonim_buyer
+from database.model import anonim_buyer, hall_of_support
 
 router = APIRouter(prefix='/transaksi', tags=['pembayaran-wso'])
 
@@ -10,20 +11,22 @@ router = APIRouter(prefix='/transaksi', tags=['pembayaran-wso'])
 async def plan_socialbuz(req: Request):
     try:
         data = await req.json()
-        print(data)
 
         user_data = await cek_data_user(data.get('buyer_email'))
         if not user_data:
+            
             save = anonim_buyer(
-                id_transaksi=str(data.get('id')),
-                email=data.get('buyer_email') or 'anonim',
-                nama=data.get('buyer_name') or 'anonim',
-                no_telp=data.get('buyer_whatsapp') or '---',
-                jumlah_dibayar=data.get('price'),
-                currency=data.get('currency'),
-                object_buy=data.get('title'),
-                service ='socialbuz'
+                id_transaksi = str(data.get('id')),
+                service = 'socialbuz',
+                email = data.get('buyer_email') or 'anonim',
+                nama = data.get('buyer_name') or 'anonim',
+                no_telp = data.get('buyer_whatsapp') or '---',
+                object_buy = data.get('title'),
+                nominal = int(data.get('price')),
+                currency = data.get('currency'),
+                waktu = data.get('created_at')
             )
+            
             await save.save()
         else:
             create_premium_data = await create_token_premium(email=data.get('buyer_email'), plan=data.get('title'))
@@ -32,51 +35,48 @@ async def plan_socialbuz(req: Request):
 
         return JSONResponse({'message': 'Webhook received successfully'})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=e)
-
-# socialbuz shop struct json webhook request
-'''
-{"id":8645410,"amount":10000,"currency":"IDR","amount_settled":10000,
-"currency_settled":"IDR","buyer_name":"Jessica","buyer_email":"jessica@example.com",
-"buyer_whatsapp":"","item_id":1,"title":"Produk","price":10000,
-"link":"https://sociabuzz.com/shop","created_at":"2024-04-20T13:13:52+07:00"}
-'''
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post('/support-socialbuz')
 async def support_socialbuz(req: Request):
     try:
         data = await req.json()
-        print(data.get('email_supporter'))
+
+        save = hall_of_support(
+            id_transaksi = data.get('id'),
+            service = 'socialbuz',
+            email = data.get('email_supporter'),
+            nama = data.get('supporter'),
+            pesan = data.get('message'),
+            nominal = data.get('amount_settled'),
+            currency = data.get( 'currency_settled'),
+            waktu = data.get('created_at')
+        )
+        await save.save()
+
         return {'message': 'Webhook received successfully'}
     except Exception as e:
         print(f"Error processing request: {e}")
         return {'message': 'Error processing webhook request'}
 
-#socialbuz stribe struct json webhook request
-'''
-b'{"id":"2409329842","amount":10000,"currency":"IDR",
-"amount_settled":10000,"currency_settled":"IDR",
-"media_type":"","media_url":"","supporter":"Jessica",
-"email_supporter":"jessica@example.com",
-"message":"Ini hanya test notifikasi",
-"created_at":"2024-04-23T16:49:09+07:00"}'
-'''
-
-@router.post('/planning-saweria')
+@router.post('/support-saweria')
 async def plan_saweria(req: Request):
     try:
         data = await req.json()
-        print(data)
+
+        save = hall_of_support(
+            id_transaksi = data.get('id'),
+            service = 'saweria',
+            email = data.get('donator_email'),
+            nama = data.get('donator_name'),
+            pesan = data.get('message'),
+            nominal = data.get('amount_raw'),
+            currency = 'IDR',
+            waktu = data.get('created_at')
+        )
+        await save.save()
+
         return {'message': 'Webhook received successfully'}
     except Exception as e:
         print(f"Error processing request: {e}")
-        return {'message': 'Error processing webhook request'}    
-
-# saweria struct json webhook request
-'''
-{"version": "2022.01", "created_at": "2021-01-01T12:00:00+00:00", 
-"id": "00000000-0000-0000-0000-000000000000", "type": "donation", 
-"amount_raw": 69420, "cut": 3471, "donator_name": "Someguy", 
-"donator_email": "someguy@example.com", "donator_is_user": false, 
-"message": "THIS IS A FAKE MESSAGE! HAVE A GOOD ONE"}
-'''
+        return {'message': 'Error processing webhook request'}
