@@ -126,3 +126,8 @@ class KarakterData(Model):
     
     def __str__(self):
         return self.nama
+    
+class HookList(Model):
+    ID = fields.CharField(max_length=225, pk=True)
+    tujuan = fields.CharField(max_length=225)
+    service = fields.CharField(max_length=225)
