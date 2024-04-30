@@ -8,3 +8,7 @@ class obrolan_aiu(BaseModel):
 
 class Gemini_aiu(BaseModel):
     message:str
+
+class ChatRequest(BaseModel):
+    input_text: str
+    email: str

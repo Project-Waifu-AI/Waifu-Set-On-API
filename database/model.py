@@ -96,11 +96,9 @@ class KarakterData(Model):
 
 class logpercakapan_gemini(Model):
     id = fields.IntField(pk=True)
-    email = fields.CharField(max_length=320)
-    input_text = fields.TextField()
-    output_text = fields.TextField()
-    role = fields.CharField(max_length=10)
-    dibuat = fields.DatetimeField(auto_now_add=True)
+    user_input = fields.TextField()
+    bot_output = fields.TextField()
+    timestamp = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
         table = "logpercakapan_gemini"
