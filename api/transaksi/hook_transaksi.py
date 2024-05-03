@@ -7,8 +7,8 @@ from database.model import anonim_buyer, hall_of_support
 
 router = APIRouter(prefix='/transaksi', tags=['pembayaran-wso'])
 
-@router.post('/planning-socilabuz')
-async def plan_socialbuz(req: Request):
+@router.post('/planning-socilabuz/{id}')
+async def plan_socialbuz(id: str, req: Request):
     try:
         if await cek_hookID(id=id) is False:
             raise HTTPException(detail='invalid hook parameter', status_code=404)
@@ -41,8 +41,8 @@ async def plan_socialbuz(req: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post('/support-socialbuz')
-async def support_socialbuz(req: Request):
+@router.post('/support-socialbuz/{id}')
+async def support_socialbuz(id: str, req: Request):
     
     try:
         if await cek_hookID(id=id) is False:
