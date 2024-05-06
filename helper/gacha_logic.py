@@ -1,56 +1,56 @@
 import random
 from datetime import datetime
-from database.model import userdata, GachaHistory
+from database.model import userdata, GachaHistory, KarakterData
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 from helper.access_token import check_access_token_expired, decode_access_token
 from configs import config
 
 
-class Character:
-    def __init__(self, name, rarity):
-        self.name = name
-        self.rarity = rarity
+# class Character:
+#     def __init__(self, name, rarity):
+#         self.name = name
+#         self.rarity = rarity
 
-    def __str__(self):
-        return f"{self.name} ({self.rarity}★)"
+#     def __str__(self):
+#         return f"{self.name} ({self.rarity}★)"
 
-# karakter dibawah ini hanya untuk percobaan belum karakter yang akan di gacha nanti hanya untuk mengetes fungsi gacha
-limited_5_star_characters = [Character("Archon", 5), Character("Harbinger", 5)]
-limited_4_star_characters = [Character("Knight", 4), Character("Samurai", 4)]
-limited_3_star_characters = [Character("Warrior", 3), Character("Archer", 3)]
+# # karakter dibawah ini hanya untuk percobaan belum karakter yang akan di gacha nanti hanya untuk mengetes fungsi gacha
+# limited_5_star_characters = [Character("Archon", 5), Character("Harbinger", 5)]
+# limited_4_star_characters = [Character("Knight", 4), Character("Samurai", 4)]
+# limited_3_star_characters = [Character("Warrior", 3), Character("Archer", 3)]
 
-non_limited_5_star_characters = [Character("Dragonborn", 5), Character("Celestial", 5)]
-non_limited_4_star_characters = [Character("Mage", 4), Character("Ranger", 4)]
-non_limited_3_star_characters = [Character("Soldier", 3), Character("Rogue", 3)]
+# non_limited_5_star_characters = [Character("Dragonborn", 5), Character("Celestial", 5)]
+# non_limited_4_star_characters = [Character("Mage", 4), Character("Ranger", 4)]
+# non_limited_3_star_characters = [Character("Soldier", 3), Character("Rogue", 3)]
 
-# fungsi untuk pity gacha
-def get_character(limited=False):
-    roll = random.randint(1, 100)
-    if roll <= 5:
-        if limited:
-            if random.randint(1, 100) <= 50:  # 80% chance of getting a limited 5-star
-                return random.choice(limited_5_star_characters)
-            else:
-                return random.choice(non_limited_5_star_characters)
+async def get_character(limited=False, rarity=None):
+    items= []
+    if rarity is None:
+        roll = random.randint(1, 100)
+        if roll <= 5:
+            rarity = 5
+        elif roll <= 25:
+            rarity = 4
         else:
-            return random.choice(non_limited_5_star_characters)
-    elif roll <= 40:
-        if limited:
-            if random.randint(1, 100) <= 50:  # 80% chance of getting a limited 4-star
-                return random.choice(limited_4_star_characters)
-            else:
-                return random.choice(non_limited_4_star_characters)
+            rarity = 3
+    if rarity == 5:
+        if limited: 
+            # Get a specific limited item (you can modify this to suit your needs)
+            limited_item = await KarakterData.get(name="testchar", is_limited=True)
+
+            # Combine the limited item with non-limited items of the same rarity
+            items = [limited_item] + [item for item in await KarakterData.filter(rarity=rarity, is_limited=False)]
+
         else:
-            return random.choice(non_limited_4_star_characters)
+            items = await KarakterData.filter(rarity=rarity, is_limited=False)
     else:
-        if limited:
-            if random.randint(1, 100) <= 50:  # 80% chance of getting a limited 3-star
-                return random.choice(limited_3_star_characters)
-            else:
-                return random.choice(non_limited_3_star_characters)
-        else:
-            return random.choice(non_limited_3_star_characters)
+        items = await KarakterData.filter(rarity=rarity)
+
+    if not items:
+        raise Exception(f"No items found with rarity {rarity} and is_limited={limited}")
+    
+    return random.choice(items)
 
 
 async def gacha_pull(email, times, limited=False):

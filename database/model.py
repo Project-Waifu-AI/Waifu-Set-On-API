@@ -123,6 +123,8 @@ class KarakterData(Model):
     bahasaYangDigunakan = fields.CharField(max_length=225)
     informasi_tambahan = fields.JSONField(null=True)
     speakerID = fields.JSONField(null=True)
+    rarity=fields.IntField()
+    is_limited=fields.BooleanField(default=False)
     
     class Meta:
         table = 'karakter'
