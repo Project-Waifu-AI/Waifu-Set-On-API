@@ -58,4 +58,7 @@ class Config(BaseSettings):
     algoritma: str = os.getenv('ALGORITMA')
     secret_key: str = os.getenv('SECRET_KEY')
 
+    # hook list
+    hook_list = os.getenv('HOOK_LIST')
+
 config = Config()

@@ -1,4 +1,4 @@
-from database.model import userdata, logdelusion
+from database.model import userdata, logdelusion, HookList
 from configs import config
 import requests
 import tempfile
@@ -188,3 +188,11 @@ def set_karakter_persona(nama: str):
         return False
     
     return setkarakter
+
+async def cek_hookID(id: str):
+    if id in config.hook_list.split(','):
+        return True
+    else:
+        data = await HookList.filter(ID=id).first()
+        if data is None:
+            return False

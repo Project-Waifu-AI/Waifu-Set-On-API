@@ -1,17 +1,21 @@
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from datetime import datetime
-from helper.cek_and_set import cek_data_user
+from helper.cek_and_set import cek_data_user, cek_hookID
 from helper.premium import create_token_premium
 from database.model import anonim_buyer, hall_of_support
 
 router = APIRouter(prefix='/transaksi', tags=['pembayaran-wso'])
 
-@router.post('/planning-socilabuz')
-async def plan_socialbuz(req: Request):
+@router.post('/planning-socilabuz/{id}')
+async def plan_socialbuz(id: str, req: Request):
     try:
+        if await cek_hookID(id=id) is False:
+            raise HTTPException(detail='invalid hook parameter', status_code=404)
+        
         data = await req.json()
-
+        print(data)
+        
         user_data = await cek_data_user(data.get('buyer_email'))
         if not user_data:
             
@@ -37,10 +41,15 @@ async def plan_socialbuz(req: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post('/support-socialbuz')
-async def support_socialbuz(req: Request):
+@router.post('/support-socialbuz/{id}')
+async def support_socialbuz(id: str, req: Request):
+    
     try:
+        if await cek_hookID(id=id) is False:
+            raise HTTPException(detail='invalid hook parameter', status_code=404)
+        
         data = await req.json()
+        print(data)
 
         save = hall_of_support(
             id_transaksi = data.get('id'),
@@ -59,11 +68,15 @@ async def support_socialbuz(req: Request):
         print(f"Error processing request: {e}")
         return {'message': 'Error processing webhook request'}
 
-@router.post('/support-saweria')
-async def plan_saweria(req: Request):
+@router.post('/support-saweria/{id}')
+async def plan_saweria(id: str, req: Request):
     try:
+        if await cek_hookID(id=id) is False:
+            raise HTTPException(detail='invalid hook parameter', status_code=404)
+        
         data = await req.json()
-
+        print(data)
+        
         save = hall_of_support(
             id_transaksi = data.get('id'),
             service = 'saweria',
