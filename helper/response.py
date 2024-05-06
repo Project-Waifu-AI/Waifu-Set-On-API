@@ -10,7 +10,7 @@ def user_response(user, password=None):
     response = {
         "nama": user.nama,
         "email": user.email,
-        'akunwso': user.akunwso,
+        'akunwso': user.wsoAuth,
         'googleauth': user.googleAuth,
         'gender': user.gender,
         'ulang tahun': str(user.ulang_tahun),
