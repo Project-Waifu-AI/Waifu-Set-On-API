@@ -36,6 +36,9 @@ from api.action.DelusionWaifu import router as router_dw
 # Notid Pembayaran
 from api.transaksi.hook_transaksi import router as router_notif_pemabayaran
 
+# Websocket Community Chat
+from api.websocket.cc import router as community_chat_socket
+
 router = APIRouter(prefix='/api')
 
 # router bw
@@ -73,3 +76,6 @@ router.include_router(router_premium_regis)
 
 # router notid pembayaran
 router.include_router(router_notif_pemabayaran)
+
+# router community chat
+router.include_router(community_chat_socket)

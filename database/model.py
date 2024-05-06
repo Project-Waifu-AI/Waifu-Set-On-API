@@ -108,3 +108,13 @@ class KarakterData(Model):
     
     def __str__(self):
         return self.nama
+    
+# Log Community Chat
+class logcommunitychat(Model):
+    id = fields.IntField(pk=True)
+    sender = fields.CharField(max_length=255, null=True)
+    group = fields.CharField(max_length=255, null=True)
+    sent_time = fields.DatetimeField(null=True)
+    text = fields.CharField(max_length=255, null=True)
+    media_type = fields.CharField(max_length=255, null=True)
+    media = fields.BinaryField(null=True)

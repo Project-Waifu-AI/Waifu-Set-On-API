@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>WebSocket Example</title>
+</head>
+
+<body>
+    <h1>WebSocket Example</h1>
+    <div>
+        <input type="text" id="messageInput" placeholder="Type a message">
+        <button onclick="sendMessage()">Send</button>
+    
+        <select name="group_opt" id="group_opt" onchange="groupChange()">
+            <option value="default">default</option>
+        </select>
+
+        <input type="file" id="fileToUpload">
+
+    </div>
+    <div id="output"></div>
+
+    <script>
+        const accessToken = prompt("Enter your user access token"); // Prompt the user for their user ID
+
+        const ws = new WebSocket(`ws://localhost:8000/api/websoket/community-chat/chatting?access_token=${accessToken}`);
+        const fileToUpload = document.getElementById("fileToUpload");
+        const groupOptions = document.getElementById("group_opt");
+
+        ws.onopen = function (event) {
+            const message = JSON.stringify({
+                "action": "LoginNotif",
+            });
+            ws.send(message);
+
+            console.log("Connected!")
+        };
+        let initialData
+        let msg 
+        ws.onmessage = function (event) {
+            try {
+                // handle if msg is a json
+                data = JSON.parse(event.data)
+                msg = data
+
+                
+            } catch {
+                // handle if msg is a bytes
+                msg.media.blob = event.data
+            }
+
+            if(data.action == "Chat" || data.action == "ChatRestore") {
+                if(data.withMedia == true && !data.media.blob) {
+                    // skip to next msg to get the media blob
+                    return true
+                }
+            }
+
+            if(data.action == "InitialData") {
+                initialData = data
+
+                for (const group of data.group_list) {
+                    const option = document.createElement("option");
+                    option.value = group;
+                    option.text = group;
+                    groupOptions.appendChild(option);
+                }
+            }
+            console.log(msg)
+        };
+
+        function sendMessage() {
+            const messageInput = document.getElementById("messageInput");
+            const now = new Date();
+            let withMedia = false
+
+            if (fileToUpload.value != "") {
+                withMedia = true
+            }
+
+            data = {
+                "action": "Chat",
+                "text": messageInput.value,
+                "group": groupOptions.value,
+                "withMedia": withMedia
+            }
+
+            if(withMedia == true) {
+                data["media"] = {
+                    "type": fileToUpload.files[0].type,
+                }
+            }
+
+            const message = JSON.stringify(data);
+
+            ws.send(message);
+            if(withMedia == true) {
+                sendMedia()
+            }
+            messageInput.value = "";
+        }
+
+        
+        function sendMedia() {
+            ws.send(fileToUpload.files[0])
+            fileToUpload.value = ""
+        }
+
+        function groupChange() {
+            ws.send(JSON.stringify({
+                "action": "GroupChange",
+                "currentGroup": groupOptions.value
+            }))
+            console.clear()
+            console.log("groub have changed!")
+        }
+
+    </script>
+</body>
+
+</html>

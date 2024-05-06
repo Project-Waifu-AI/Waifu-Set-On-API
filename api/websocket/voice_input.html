@@ -1,0 +1,52 @@
+<!DOCTYPE html
+<html>
+<head>
+  <title>Voice Recognition Example</title>
+</head>
+<body>
+  <h1>Voice Recognition Example</h1>
+  <button id="startButton">Start Recognizing</button>
+  <p id="result"></p>
+
+  <script>
+    const startButton = document.getElementById('startButton');
+    const resultParagraph = document.getElementById('result');
+
+
+    // Creating a SpeechRecognition object
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+
+    recognition.lang = 'id-ID'; // Set the language for recognition
+
+
+    // Event handler when recognition starts
+    recognition.onstart = () => {
+      startButton.textContent = 'Listening...';
+    };
+
+
+    // Event handler when recognition produces a result
+    recognition.onresult = (event) => {
+      const result = event.results[0][0].transcript;
+      debugger
+      resultParagraph.textContent = 'You said: ' + result;
+    };
+ 
+
+    // Event handler when recognition ends
+    recognition.onend = () => {
+      startButton.textContent = 'Start Recognizing';
+    };
+
+
+    // Event listener for the button click
+    startButton.addEventListener('click', () => {
+      if (recognition && recognition.continuous) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    });
+  </script>
+</body>
