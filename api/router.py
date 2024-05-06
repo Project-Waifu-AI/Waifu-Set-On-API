@@ -36,6 +36,10 @@ from api.action.DelusionWaifu import router as router_dw
 # Notid Pembayaran
 from api.transaksi.hook_transaksi import router as router_notif_pemabayaran
 
+# endpoint gacha
+from api.action.gachapon import router as router_gacha
+
+
 router = APIRouter(prefix='/api')
 
 # router bw
@@ -73,3 +77,6 @@ router.include_router(router_premium_regis)
 
 # router notid pembayaran
 router.include_router(router_notif_pemabayaran)
+
+# router gacha
+router.include_router(router_gacha)

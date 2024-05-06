@@ -66,7 +66,10 @@ class userdata(Model):
     password = fields.BinaryField(max_length=225,null=True)
     AtsumaruKanjo = fields.IntField(default=0)
     NegaiGoto = fields.IntField(default=0)
-    karakterYangDimiliki = fields.JSONField(null=True)
+    pity_4_star = fields.IntField(default=0)
+    pity_5_star = fields.IntField(default=0)
+    gacha_count = fields.IntField(default=0)
+    karakterYangDimiliki = fields.JSONField(default=[])
     wsoAuth = fields.BooleanField(default=False)
     googleAuth = fields.BooleanField(default=False)
     smdAuth = fields.BooleanField(default=False)
@@ -126,3 +129,13 @@ class KarakterData(Model):
     
     def __str__(self):
         return self.nama
+    
+class GachaHistory(Model):
+    id = fields.IntField(pk=True)
+    user = fields.ForeignKeyField('models.userdata', related_name='gacha_history')
+    characters = fields.JSONField()
+    limited = fields.BooleanField()
+    timestamp = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "gachahistory"
