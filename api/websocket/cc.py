@@ -10,6 +10,7 @@ from helper.translate import translate_target, translate_target_premium
 from helper.access_token import check_access_token_expired, decode_access_token
 from helper.response import pesan_response
 from helper.premium import check_premium
+import requests
 
 router = APIRouter(prefix='/websoket/community-chat', tags=['Community-Chat-WEBSOCKET'])
 
@@ -59,18 +60,35 @@ async def communityChatSocket(websocket: WebSocket, access_token: str):
                     await websocket.send_json(message)
                 
             if permintaan.get("action") == "LoginNotif":
+                # Define API endpoint URL
+                url = "http://localhost:8080/api/community-chat/get-group-list"
+
+                # Set headers
+                headers = {
+                    "access-token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJidWRpc3RuMTA4QGdtYWlsLmNvbSIsImxldmVsIjoidXNlciIsImV4cCI6MTcxNTYyMDEzNn0.dF25ZtnVzpNH6Rn3z7Wc9r6_6E67AX_cY8NZ1DK5ISs"  # Replace with your actual access token
+                }
+
+                # Send GET request
+                response: list[dict] = requests.get(url, headers=headers).json()
+                
+                group_list: list[str] = []
+                
+                for group in response:
+                    group_members = group.get("group_member").get("members")
+                    
+                    if dataJWT.get("level") == "user":
+                        if group_members == "all" or email in group_members:
+                            group_list.append(group.get("group_name"))
+                    else:
+                        group_list.append(group.get("group_name"))
+                
                 await websocket.send_json({
                     "action": "InitialData",
                     "credentials": {
                         "sub": dataJWT.get('sub'),
                         "level": "user"
                         },
-                    "group_list": [
-                        "war",
-                        "peace",
-                        "drinking",
-                        "smoking"
-                    ]
+                    "group_list": group_list
                 })
                 
                 connected_users[email] = {

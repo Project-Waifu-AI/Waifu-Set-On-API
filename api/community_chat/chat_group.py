@@ -1,0 +1,128 @@
+import uuid
+from fastapi import APIRouter, File, HTTPException, Header, UploadFile,status
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
+from body_request.cc_group_request import ChatGroup
+import base64
+import io
+from PIL import Image
+from body_request.dw_body_request import CreateDelusion, VariantDelusion
+from helper.premium import check_premium
+from helper.fitur import generateDelusion, generateDelusionVariant
+from helper.cek_and_set import cek_kalimat_promting, cek_and_set_ukuran_delusion, set_response_save_delusion
+from database.model import logdelusion,commchatgrouplist
+from helper.access_token import check_access_token_expired, decode_access_token
+from configs import config
+from tortoise.exceptions import DoesNotExist
+
+router = APIRouter(prefix='/community-chat',tags=['Community-Chat'])
+
+@router.post("/add-group")
+async def add_group(group: ChatGroup, access_token: str = Header(...)):
+    # credential checking
+    check = check_access_token_expired(access_token=access_token)
+
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_401_UNAUTHORIZED)
+    else:
+        payloadJWT = decode_access_token(access_token=access_token)
+        email = payloadJWT.get('sub')
+    
+    group_id = str(uuid.uuid4())
+    new_group = commchatgrouplist(id=group_id,group_name=group.group_name,group_desc=group.group_desc,group_member=group.group_member,created_by = email)
+    
+    await new_group.save()
+    
+    return JSONResponse({
+        "status": "ok",
+        "created_group": {
+            "group_name": group.group_name,
+            "group_desc": group.group_desc,
+            "group_member": group.group_member,
+            "created_by": email
+        }
+    }, status_code=status.HTTP_201_CREATED)
+
+
+@router.get("/get-group-list")
+async def get_group_list(access_token: str = Header(...)):
+    # credential checking
+    check = check_access_token_expired(access_token=access_token)
+
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_401_UNAUTHORIZED)
+        
+    group_list = await commchatgrouplist.all()
+    response: list[dict] = []
+    for group in group_list:
+        response.append({
+            "group_id": group.id,
+            "group_name": group.group_name,
+            "group_desc": group.group_desc,
+            "group_member": group.group_member,
+        })
+    
+    return JSONResponse(response, status_code=status.HTTP_200_OK)
+    
+@router.put("/update-group-info")
+async def update_group_info(group_info: ChatGroup, group_id: str,access_token: str = Header(...)):
+    # credential checking
+    check = check_access_token_expired(access_token=access_token)
+
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_401_UNAUTHORIZED)
+    
+    try:
+        group_to_update = await commchatgrouplist.get(id=group_id)
+    
+        group_to_update.group_name = group_info.group_name
+        group_to_update.group_desc = group_info.group_desc
+        group_to_update.group_member = group_info.group_member
+        
+        await group_to_update.save()
+        
+        return JSONResponse({
+            "status": "ok",
+            "updated_group": {
+                "group_id": group_id,
+                "group_name": group_info.group_name,
+            }
+        }, status_code=status.HTTP_201_CREATED)
+    except DoesNotExist:
+        return JSONResponse({
+            "Error": "Group Not Found"
+        }, status_code=status.HTTP_404_NOT_FOUND)
+            
+        
+@router.put("/update-group-pp")
+async def update_group_photo(group_id: str, profile_pict: UploadFile = File(...),access_token: str = Header(...)):
+    # credential checking
+    check = check_access_token_expired(access_token=access_token)
+
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_401_UNAUTHORIZED)
+    
+    try:
+        if "image" not in profile_pict.content_type:
+            return JSONResponse({
+                "Error": "Please upload a valid image file"
+            }, status_code=status.HTTP_403_FORBIDDEN)
+                
+        group_to_update: commchatgrouplist = await commchatgrouplist.get(id=group_id)
+        group_to_update.group_pp = await profile_pict.read()
+        
+        # save updated profile pict
+        await group_to_update.save()
+        
+        return JSONResponse({
+                "status": "ok",
+                "updated_group_pp": {
+                    "group_id": group_id,
+                    "group_name": group_to_update.group_name
+                }
+            }, status_code=status.HTTP_201_CREATED)
+            
+    except DoesNotExist:
+        return JSONResponse({
+            "Error": "Group Not Found"
+        }, status_code=status.HTTP_404_NOT_FOUND)
+            

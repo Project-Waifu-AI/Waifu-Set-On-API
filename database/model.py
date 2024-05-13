@@ -118,3 +118,11 @@ class logcommunitychat(Model):
     text = fields.CharField(max_length=255, null=True)
     media_type = fields.CharField(max_length=255, null=True)
     media = fields.BinaryField(null=True)
+    
+class commchatgrouplist(Model):
+    id = fields.CharField(max_length=255,pk=True)
+    group_name = fields.CharField(max_length=255)
+    group_desc = fields.CharField(max_length=255)
+    group_pp = fields.BinaryField(null=True)
+    created_by = fields.CharField(max_length=255)
+    group_member = fields.JSONField()
