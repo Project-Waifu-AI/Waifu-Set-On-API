@@ -120,9 +120,7 @@ class hall_of_support(Model):
     
 class KarakterData(Model):
     nama = fields.CharField(max_length=225, pk=True)
-    bahasaYangDigunakan = fields.CharField(max_length=225)
     informasi_tambahan = fields.JSONField(null=True)
-    speakerID = fields.JSONField(null=True)
     rarity=fields.IntField()
     is_limited=fields.BooleanField(default=False)
     
@@ -141,3 +139,8 @@ class GachaHistory(Model):
 
     class Meta:
         table = "gachahistory"
+
+class HookList(Model):
+    ID = fields.CharField(max_length=225, pk=True)
+    tujuan = fields.CharField(max_length=225)
+    service = fields.CharField(max_length=225)

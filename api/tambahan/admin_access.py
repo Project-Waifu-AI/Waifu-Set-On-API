@@ -7,7 +7,7 @@ from configs import config
 import json
 
 router = APIRouter(prefix='/admin', tags=['admin'])
-
+#perlu diubah(dalam proses)
 @router.post('/tambah-karakter')
 async def tambah_karakter(meta: SetKarakter, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
@@ -17,12 +17,18 @@ async def tambah_karakter(meta: SetKarakter, access_token: str = Header(...)):
         payloadJWT = decode_access_token(access_token=access_token)
         level = payloadJWT.get('level')
         if level == 'admin':
-            cek_karakter = await KarakterData(nama=meta.nama).first()
+            # Convert the character name to lowercase for case-insensitive comparison
+            lowercase_nama = meta.nama.lower()
+            # Query the database for characters with the same lowercase name
+            cek_karakter = await KarakterData.filter(nama__iexact=lowercase_nama).first()
             if not cek_karakter:
-                list = [int(angka) for angka in meta.speakerID.split(',')]
-                save = KarakterData(nama=meta.nama, bahasaYangDigunakan=meta.bahasaYangDigunakan, speakerID = json.dumps(list))
+                save = KarakterData(
+                    nama=meta.nama, 
+                    rarity=meta.rarity,
+                    is_limited=meta.is_limited
+                )
                 await save.save()
-                karakter = await KarakterData.filter(nama=meta.nama).first()
+                karakter = await KarakterData.filter(nama__iexact=lowercase_nama).first()
                 if meta:
                     data_tambahan = tambahan(**meta.dict(exclude_unset=True))
                     data_dict = data_tambahan.dict()
@@ -54,10 +60,8 @@ async def update_karakter(meta: SetKarakter, access_token: str = Header(...)):
                     data_dict["ulang_tahun"] = data_dict["ulang_tahun"].isoformat()
                 if data_tambahan.__dict__:
                     karakter.informasi_tambahan = json.dumps(data_dict)            
-                if meta.bahasaYangDigunakan:
-                    karakter.bahasaYangDigunakan = meta.bahasaYangDigunakan
-                if meta.speakerID:
-                    karakter.speakerID = meta.speakerID
+                karakter.rarity = meta.rarity
+                karakter.is_limited = meta.is_limited
                 await karakter.save()
                 return Response(status_code=200, content=f'informasi mengenai karakter {meta.nama} berhasil diupdate')
             else:

@@ -1,11 +1,11 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date
-
+#perlu diubah(dalam proses)
 class SetKarakter(BaseModel):
     nama: Optional[str]
-    bahasaYangDigunakan: Optional[str]
-    speakerID: Optional[str]
+    rarity: int
+    is_limited: bool
     nama_panggilan: Optional[str]
     deskripsi: Optional[str]
     ras: Optional[str]

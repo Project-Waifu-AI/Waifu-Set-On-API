@@ -16,25 +16,28 @@ async def get_obtained_characters(email: str = Depends(get_current_user)):
 async def gacha_single_non_limited(email: str = Depends(get_current_user)):
     email = email
     results = await gacha_pull(email, 1, limited=False)
-    return [str(char) for char in results]
+    return [char.nama for char in results]
 
 @router.get("/gacha/multi/non-limited")
 async def gacha_multi_non_limited(email: str = Depends(get_current_user)):
     email = email
     results = await gacha_pull(email, 10, limited=False)
-    return [str(char) for char in results]
+    return [char.nama for char in results]
+    
 
 @router.get("/gacha/single/limited")
 async def gacha_single_limited(email: str = Depends(get_current_user)):
     email = email
     results = await gacha_pull(email, 1, limited=True)
-    return [str(char) for char in results]
+    return [char.nama for char in results]
+    
 
 @router.get("/gacha/multi/limited")
 async def gacha_multi_limited(email: str = Depends(get_current_user)):
     email = email
     results = await gacha_pull(email, 10, limited=True)
-    return [str(char) for char in results]
+    return [char.nama for char in results]
+
 
 @router.get("/gacha/history")
 async def gacha_history(email: str = Depends(get_current_user)):
