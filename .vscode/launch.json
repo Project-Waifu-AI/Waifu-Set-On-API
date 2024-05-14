@@ -12,7 +12,7 @@
             "args": [
                 "index:app",
                 "--port",
-                "8081",
+                "8008",
                 "--reload"
             ],
             "jinja": true

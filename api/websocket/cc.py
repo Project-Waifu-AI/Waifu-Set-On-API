@@ -61,7 +61,7 @@ async def communityChatSocket(websocket: WebSocket, access_token: str):
                 
             if permintaan.get("action") == "LoginNotif":
                 # Define API endpoint URL
-                url = "http://localhost:8080/api/community-chat/get-group-list"
+                url = "http://localhost:8081/api/community-chat/get-group-list"
 
                 # Set headers
                 headers = {
@@ -69,24 +69,13 @@ async def communityChatSocket(websocket: WebSocket, access_token: str):
                 }
 
                 # Send GET request
-                response: list[dict] = requests.get(url, headers=headers).json()
-                
-                group_list: list[str] = []
-                
-                for group in response:
-                    group_members = group.get("group_member").get("members")
-                    
-                    if dataJWT.get("level") == "user":
-                        if group_members == "all" or email in group_members:
-                            group_list.append(group.get("group_name"))
-                    else:
-                        group_list.append(group.get("group_name"))
+                group_list: list[dict] = requests.get(url, headers=headers).json()
                 
                 await websocket.send_json({
                     "action": "InitialData",
                     "credentials": {
                         "sub": dataJWT.get('sub'),
-                        "level": "user"
+                        "level": dataJWT.get('level')
                         },
                     "group_list": group_list
                 })

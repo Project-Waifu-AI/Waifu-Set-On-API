@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    <h1>WebSocket Example</h1>
+    <h1 id="app_title">WebSocket Example</h1>
     <div style="margin-bottom: 20px;">
         <label for="messageInput">
             Text:
@@ -17,7 +17,6 @@
         <label for="group_opt">
             Group:
             <select name="group_opt" id="group_opt" onchange="groupChange()">
-                <option value="default">default</option>
             </select>
         </label>
 
@@ -26,6 +25,14 @@
             <input type="file" id="fileToUpload">
         </label>
     </div>
+    <div style="display: inline;">
+        <img alt="group profile photo" id="group_pp" style="height: 100px;width: 100px;">
+    </div>
+    <div style="display: inline;">
+        <h3 id="group_name" style="display: inline;"></h3>
+        <p id="group_desc" style="font-style: italic;"></p>
+    </div>
+
     <div id="output">
 
     </div>
@@ -33,10 +40,14 @@
     <script>
         const accessToken = prompt("Enter your user access token"); // Prompt the user for their user ID
 
-        const ws = new WebSocket(`ws://localhost:8081/api/websoket/community-chat/chatting?access_token=${accessToken}`);
+        const ws = new WebSocket(`ws://localhost:8008/api/websoket/community-chat/chatting?access_token=${accessToken}`);
         const fileToUpload = document.getElementById("fileToUpload");
         const groupOptions = document.getElementById("group_opt");
         const msgHolder = document.getElementById("output")
+        const appTitle = document.getElementById("app_title")
+        const currentGroubName = document.getElementById("group_name")
+        const currentGroubDesc = document.getElementById("group_desc")
+        const currentGroubPP = document.getElementById("group_pp")
 
         ws.onopen = function (event) {
             const message = JSON.stringify({
@@ -72,7 +83,7 @@
                     const imageValidate = /image/
                     const audioValidate = /audio/
                     const videoValidate = /video/
-                    
+
                     if (imageValidate.test(mediaType)) {
                         var urlCreator = window.URL || window.webkitURL;
                         var imageUrl = urlCreator.createObjectURL(msg.media.blob);
@@ -80,7 +91,7 @@
                         mediaElement = `<img src="${imageUrl}" alt="" width="25%" height="25%">`
                     }
 
-                    if(audioValidate.test(mediaType)) {
+                    if (audioValidate.test(mediaType)) {
                         var urlCreator = window.URL || window.webkitURL;
                         var audioUrl = urlCreator.createObjectURL(msg.media.blob);
 
@@ -92,7 +103,7 @@
                         `
                     }
 
-                    if(videoValidate.test(mediaType)) {
+                    if (videoValidate.test(mediaType)) {
                         var urlCreator = window.URL || window.webkitURL;
                         var videoUrl = urlCreator.createObjectURL(msg.media.blob);
 
@@ -120,11 +131,40 @@
 
             if (data.action == "InitialData") {
                 initialData = data
+                appTitle.innerText = `Welcome ${initialData.credentials.sub}`
+                currentGroubName.innerText = data.group_list[0].group_name
+                currentGroubDesc.innerText = data.group_list[0].group_desc
+
+                
+                const url = `http://localhost:8081/api/community-chat/get-group-pp?group_id=${initialData.group_list[0].group_id}`;
+                debugger
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'accept': 'image/png',
+                        'access-token': accessToken
+                    }
+                }).then(async response => {
+                    debugger
+                    if (response.ok) {
+                        // Handle successful response with image data
+                        if (response.headers.get('Content-Type').includes('image/png')) {
+                            var urlCreator = window.URL || window.webkitURL;
+                            var imgUrl = urlCreator.createObjectURL(await response.blob());
+
+                            currentGroubPP.src = imgUrl
+                        } else {
+                            throw new Error("Unexpected content type. Expected image/png.");
+                        }
+                    } else {
+                        throw new Error("Error fetching group profile picture: " + response.status);
+                    }
+                })
 
                 for (const group of data.group_list) {
                     const option = document.createElement("option");
-                    option.value = group;
-                    option.text = group;
+                    option.value = group.group_name;
+                    option.text = group.group_name;
                     groupOptions.appendChild(option);
                 }
             }
@@ -171,12 +211,45 @@
             fileToUpload.value = ""
         }
 
-        function groupChange() {            
+        function groupChange() {
             ws.send(JSON.stringify({
                 "action": "GroupChange",
                 "currentGroup": groupOptions.value
             }))
             msgHolder.innerHTML = ""
+            currentGroubName.innerText = groupOptions.value
+            initialData.group_list.forEach((group) => {
+                if (group.group_name == groupOptions.value) {
+                    currentGroubDesc.innerText = group.group_desc
+                }
+
+                const url = `http://localhost:8081/api/community-chat/get-group-pp?group_id=${group.group_id}`;
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'accept': 'image/png',
+                        'access-token': accessToken
+                    }
+                }).then(async response => {
+                    debugger
+                    if (response.ok) {
+                        // Handle successful response with image data
+                        if (response.headers.get('Content-Type').includes('image/png')) {
+                            var urlCreator = window.URL || window.webkitURL;
+                            var imgUrl = urlCreator.createObjectURL(await response.blob());
+
+                            currentGroubPP.src = imgUrl
+                        } else {
+                            throw new Error("Unexpected content type. Expected image/png.");
+                        }
+                    } else {
+                        throw new Error("Error fetching group profile picture: " + response.status);
+                    }
+                })
+
+            })
+
+
             console.clear()
             console.log("groub have changed!")
         }
