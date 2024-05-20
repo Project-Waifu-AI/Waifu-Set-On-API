@@ -3,6 +3,8 @@ from typing import Optional
 from google_trans_new import google_translator
 from configs import config
 from openai import OpenAI
+import asyncio
+import re
 
 client_openai = OpenAI(api_key=config.api_key_openai)
 
@@ -64,3 +66,22 @@ def cek_bahasa(bahasa: str):
             'status': False,
             'keterangan': 'bahasa yang anda gunakan tidak valid'
         }
+
+def detect_text_in_parentheses(text: str):
+    # Gunakan regex untuk mendeteksi teks di dalam kurung
+    matches = re.findall(r'\((.*?)\)', text)
+    # Kembalikan teks yang ada di dalam kurung
+    return matches
+
+async def translate_to_japanese(text: str):
+    # Deteksi teks di dalam kurung
+    texts_in_parentheses = detect_text_in_parentheses(text)
+    # Hapus teks di dalam kurung dari teks asli
+    for t in texts_in_parentheses:
+        text = text.replace(f'({t})', '')
+    # Terjemahkan teks tanpa teks di dalam kurung ke bahasa Jepang
+    translated_text = await asyncio.to_thread(tl.translate, text, lang_tgt='ja')
+    # Tambahkan kembali teks yang ada di dalam kurung ke dalam teks terjemahan
+    for t in texts_in_parentheses:
+        translated_text = translated_text.replace(f'({t})', f'({t})')
+    return translated_text

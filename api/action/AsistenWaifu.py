@@ -2,9 +2,9 @@ from fastapi import APIRouter, Body, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from database.model import logpercakapan, logpercakapan_gemini
 from helper.fitur import obrolan, request_audio, gemini_chatbot
-from helper.translate import cek_bahasa, translate_target, translate_target_premium
+from helper.translate import cek_bahasa, translate_target, translate_target_premium, translate_to_japanese
 from helper.response import pesan_response
-from body_request.aiu_body_request import obrolan_aiu, Gemini_aiu, ChatRequest
+from body_request.aiu_body_request import obrolan_aiu
 from helper.aiu.model import obrolan_bot
 from helper.cek_and_set import set_karakter_id, set_karakter_persona
 from helper.access_token import check_access_token_expired, decode_access_token
@@ -181,15 +181,70 @@ async def delete_obrolan(access_token: str = Header(...)):
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/gemini-chatbot")
-async def gemini_chatbot_endpoint(user_input: str = Body(..., embed=True)):
+async def gemini_chatbot_endpoint(meta:obrolan_aiu, access_token: str = Header(...)):
   try:
-    # Jalankan fungsi gemini_chatbot dengan input user
-    response = await gemini_chatbot(user_input)
 
-    # Kembalikan response dalam format JSON
+    check = check_access_token_expired(access_token=access_token)
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
+    
+    elif check is False:
+        payloadJWT = decode_access_token(access_token=access_token)
+        email = payloadJWT.get('sub')
+    user_data = await logpercakapan_gemini.filter(email=email).order_by("-id_percakapan").first()
+    if user_data:
+        id_percakapan = user_data.id_percakapan + 1
+    else:
+        id_percakapan = 1  
+    premium = await check_premium(email=email)
+    if premium['keterangan'].lower() == 'aiu' or premium['keterangan'].lower() == 'admin':
+        premium = True
+    else:
+        premium = False
+
+    karakter_id = set_karakter_id(nama=meta.karakter)
+    if karakter_id is False:
+        raise HTTPException(detail='karakter tidak ditemukan', status_code=404)
+    
+    generation_config = {
+            "temperature": 1,
+            "top_p": 0.95,
+            "top_k": 0,
+            "max_output_tokens": 8192,
+        }
+    
+    response = await gemini_chatbot(meta.input,meta.karakter, email, generation_config)
+    japanese_translation = await translate_to_japanese(response['keterangan'])
+    data_audio = request_audio(text=japanese_translation, speaker_id=karakter_id)
+
+    if data_audio['status'] is False:
+        raise HTTPException(detail=data_audio, status_code=500)
+    
     if response['status'] is False:
         raise HTTPException(detail=response['keterangan'], status_code=500)
-    return {"response": response['keterangan']}
+    
+    save = logpercakapan(
+        id_percakapan=id_percakapan,
+        karakter=meta.karakter,
+        email=email,
+        input=meta.input,
+        output=response['keterangan'],
+        translate=japanese_translation,
+        )
+    
+    await save.save()
+
+    responses =[
+
+        {
+            "pesan" : meta.input,
+            "response": response['keterangan'],
+            "japanese_translation": japanese_translation
+        }
+
+    ] 
+    responses.append(data_audio)
+    return JSONResponse(responses)
 
   except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))

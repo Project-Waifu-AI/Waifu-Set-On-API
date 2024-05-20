@@ -22,7 +22,8 @@ class logpercakapan(Model):
     input = fields.CharField(max_length=225)
     output = fields.TextField()
     translate = fields.CharField(max_length=225)
-
+    timestamp = fields.DatetimeField(auto_now_add=True)
+    
     class Meta:
         table = "logpercakapan"
     
@@ -95,13 +96,16 @@ class KarakterData(Model):
     
 
 class logpercakapan_gemini(Model):
-    id = fields.IntField(pk=True)
-    user_input = fields.TextField()
-    bot_output = fields.TextField()
+    id_percakapan = fields.IntField()
+    karakter = fields.CharField(max_length=225)
+    email = fields.CharField(max_length=320)
+    input = fields.CharField(max_length=225)
+    output = fields.TextField()
+    translate = fields.CharField(max_length=225)
     timestamp = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
         table = "logpercakapan_gemini"
 
     def __str__(self):
-        return str(self.id)
+        return str(self.id_percakapan)

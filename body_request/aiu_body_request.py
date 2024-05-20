@@ -6,9 +6,3 @@ class obrolan_aiu(BaseModel):
     input: Optional[str]
     bahasa: Optional[str]
 
-class Gemini_aiu(BaseModel):
-    message:str
-
-class ChatRequest(BaseModel):
-    input_text: str
-    email: str

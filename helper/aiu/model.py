@@ -6,12 +6,14 @@ def obrolan_bot(input: str, karakter: str):
         base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/kusukabeTsumugi.json')
     elif karakter.lower() == 'nurse-t':
         base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/nurseT.json')
-    elif karakter.lower() == 'meimei himari':
-        base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/meimeiHimari.json')
+    elif karakter.lower() == 'kisara':
+        base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/kisara.jsonl')
     elif karakter.lower() == 'sayo':
         base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/sayo.json')
     elif karakter.lower() == 'no 7':
         base_pengetahuan: dict = load_knowledge_base('helper/aiu/dataset/no7.json')
+    elif karakter.lower() == 'tsukihime runa':
+        return load_knowledge_base('helper/aiu/dataset/kisara.json')
     
     karakter_id = set_karakter_id(nama=karakter)
     if karakter_id == False:

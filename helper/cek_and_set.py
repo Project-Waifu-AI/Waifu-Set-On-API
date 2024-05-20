@@ -143,8 +143,10 @@ async def set_response_save_delusion(jumlah, data, first_id, email, input, ukura
 def set_karakter_id(nama):
     if nama == 'kusukabe tsumugi':
         id = 8
-    elif nama == 'meimei himari':
+    elif nama == 'tsukihime runa':
         id = 14
+    elif nama == 'kisara':
+        id = 27
     elif nama == 'nurse-t':
         id = 47
     elif nama == 'no 7':
