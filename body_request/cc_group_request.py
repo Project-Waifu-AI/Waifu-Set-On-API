@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class ChatGroup(BaseModel):
-    group_name: Optional[str]
-    group_desc: Optional[str]
-    group_member: Optional[dict]
+class ChatCommunity(BaseModel):
+    community_name: Optional[str]
+    community_desc: Optional[str]
+    community_member: Optional[dict]
     

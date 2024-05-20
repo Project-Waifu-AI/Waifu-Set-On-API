@@ -113,16 +113,19 @@ class KarakterData(Model):
 class logcommunitychat(Model):
     id = fields.IntField(pk=True)
     sender = fields.CharField(max_length=255, null=True)
-    group = fields.CharField(max_length=255, null=True)
+    community = fields.ForeignKeyField(
+        "models.communitylist",
+        on_delete=fields.CASCADE
+    )
     sent_time = fields.DatetimeField(null=True)
     text = fields.CharField(max_length=255, null=True)
     media_type = fields.CharField(max_length=255, null=True)
     media = fields.BinaryField(null=True)
     
-class commchatgrouplist(Model):
+class communitylist(Model):
     id = fields.CharField(max_length=255,pk=True)
-    group_name = fields.CharField(max_length=255)
-    group_desc = fields.CharField(max_length=255)
-    group_pp = fields.BinaryField(null=True)
+    community_name = fields.CharField(max_length=255)
+    community_desc = fields.CharField(max_length=255)
+    community_pp = fields.BinaryField(null=True)
     created_by = fields.CharField(max_length=255)
-    group_member = fields.JSONField()
+    community_member = fields.JSONField()

@@ -35,14 +35,14 @@ async def communityChatSocket(websocket: WebSocket, access_token: str):
                 email = dataJWT.get('sub')
                 
             
-            async def ChatRestore(msg_group: str):
-                messages: list[logcommunitychat] = await logcommunitychat.filter(group=msg_group)
+            async def ChatRestore(msg_group_id: str):
+                messages: list[logcommunitychat] = await logcommunitychat.filter(group_id=msg_group_id)
                 
                 for msg in messages:
                     message = {
                         "action": "ChatRestore",
                         "sender": msg.sender,
-                        "group": msg.group,
+                        "group_id": msg.group_id,
                         "text": msg.text,
                         "withMedia": False, 
                     }
@@ -61,11 +61,11 @@ async def communityChatSocket(websocket: WebSocket, access_token: str):
                 
             if permintaan.get("action") == "LoginNotif":
                 # Define API endpoint URL
-                url = "http://localhost:8081/api/community-chat/get-group-list"
+                url = "http://localhost:8081/api/chat/get"
 
                 # Set headers
                 headers = {
-                    "access-token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJidWRpc3RuMTA4QGdtYWlsLmNvbSIsImxldmVsIjoidXNlciIsImV4cCI6MTcxNTYyMDEzNn0.dF25ZtnVzpNH6Rn3z7Wc9r6_6E67AX_cY8NZ1DK5ISs"  # Replace with your actual access token
+                    "access-token": access_token  # Replace with your actual access token
                 }
 
                 # Send GET request
@@ -100,7 +100,7 @@ async def communityChatSocket(websocket: WebSocket, access_token: str):
                             await states["ws"].send_json(permintaan)
                             await states["ws"].send_bytes(media)
                     
-                    await logcommunitychat(sender=email,text=permintaan.get("text"), group=msg_group,media_type=media_type,media=media).save()
+                    await logcommunitychat(sender=email,text=permintaan.get("text"), group_id=msg_group,media_type=media_type,media=media).save()
                 else:
                     permintaan["sender"] = email
                     msg_group = permintaan.get("group")
@@ -109,14 +109,14 @@ async def communityChatSocket(websocket: WebSocket, access_token: str):
                         if states["currentGroup"] == msg_group:
                             await states["ws"].send_json(permintaan)
                     
-                    await logcommunitychat(sender=email,text=permintaan.get("text"), group=msg_group).save()
+                    await logcommunitychat(sender=email,text=permintaan.get("text"), group_id=msg_group).save()
 
             if permintaan.get("action") == "GroupChange":
-                currentGroup = permintaan.get("currentGroup")
+                currentGroupId = permintaan.get("currentGroup")
                 
-                connected_users[email]["currentGroup"] = currentGroup
+                connected_users[email]["currentGroup"] = currentGroupId
                 
-                await ChatRestore(currentGroup)
+                await ChatRestore(currentGroupId)
     except WebSocketDisconnect or WebSocketException:
         del connected_users[email]
         print("Client disconnected")

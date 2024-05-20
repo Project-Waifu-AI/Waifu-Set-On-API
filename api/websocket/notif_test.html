@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button class="notify">Notify Me</button>
+</body>
+<script>
+    const Notifybtn = document.querySelector(".notify");
+
+    const registerServiceWorker = async () => {
+        if ("serviceWorker" in navigator) {
+            try {
+                const registration = await navigator.serviceWorker.register(
+                    "serviceWorker.js",
+                    {
+                        scope: "./",
+                    }
+                );
+                return registration;
+            } catch (error) {
+                console.error(`Registration failed with ${error}`);
+            }
+        }
+    };
+    const sendNotification = async () => {
+        if (!("Notification" in window)) {
+            throw new Error("Your browser does not support push notification");
+        }
+        Notification.requestPermission().then((Permission) => {
+            console.log("Notif Permission: ", Permission)
+        })
+
+
+        let notificationOptions = {
+            body: "Elon Musk sent you a friend request",
+            data: {
+                token: "1234",
+                username: "elonmusk",
+                datas: "asu"
+            },
+            actions: [
+                {
+                    action: "reply",
+                    title: "Reply",
+                    type: "text",
+                    placeholder: "Reply Comment",
+                },
+                {
+                    action: "dismiss",
+                    title: "Dismiss",
+                    type: "button",
+                },
+            ],
+            tag: "message_reply",
+        };
+        const sw = await registerServiceWorker();
+        sw.showNotification("Friend Request", notificationOptions);
+    };
+
+    if (!navigator.serviceWorker || !navigator.serviceWorker.register) {
+        console.log("This browser doesn't support service workers");
+    }
+
+    // Listen to messages from service workers.
+    navigator.serviceWorker.addEventListener('message', function (event) {
+        console.log("Got reply from service worker: " + event.data);
+    });
+    Notifybtn.addEventListener("click", sendNotification);
+
+
+
+</script>
+
+</html>

@@ -24,6 +24,8 @@
             Media:
             <input type="file" id="fileToUpload">
         </label>
+
+        <button id="getNotifPermission" onclick="getNotifPermission()">Notify Me</button>
     </div>
     <div style="display: inline;">
         <img alt="group profile photo" id="group_pp" style="height: 100px;width: 100px;">
@@ -57,6 +59,61 @@
 
             console.log("Connected!")
         };
+
+        const registerServiceWorker = async () => {
+            if ("serviceWorker" in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register(
+                        "serviceWorker.js",
+                        {
+                            scope: "./",
+                        }
+                    );
+                    return registration;
+                } catch (error) {
+                    console.error(`Registration failed with ${error}`);
+                }
+            }
+        };
+
+        const sendNotification = async (data) => {
+            if (!("Notification" in window)) {
+                throw new Error("Your browser does not support push notification");
+            }
+            Notification.requestPermission().then((Permission) => {
+                console.log("Notif Permission: ", Permission)
+            })
+
+
+            let notificationOptions = {
+                body: `${data.sender}: ${data.text}`,
+                data: {
+                    "token": accessToken,
+                    "action": data.action,
+                    "sender": data.sender,
+                    "text": data.text,
+                    "group": data.group,
+                    "withMedia": false
+                },
+                actions: [
+                    {
+                        action: "reply",
+                        title: "Reply",
+                        type: "text",
+                        placeholder: "Reply Message",
+                    },
+                    {
+                        action: "dismiss",
+                        title: "Dismiss",
+                        type: "button",
+                    },
+                ],
+                tag: "message_reply",
+            };
+            const sw = await registerServiceWorker();
+            sw.showNotification(`New Message @ ${currentGroubName.textContent}`, notificationOptions);
+        };
+
         let initialData
         let msg
         ws.onmessage = function (event) {
@@ -127,6 +184,10 @@
                 msgContainer.innerHTML = message
 
                 msgHolder.appendChild(msgContainer)
+
+                if(data.action == "Chat" && document.hidden == true && msg.sender != initialData.credentials.sub) {
+                    sendNotification(msg)
+                }
             }
 
             if (data.action == "InitialData") {
@@ -135,9 +196,9 @@
                 currentGroubName.innerText = data.group_list[0].group_name
                 currentGroubDesc.innerText = data.group_list[0].group_desc
 
-                
-                const url = `http://localhost:8081/api/community-chat/get-group-pp?group_id=${initialData.group_list[0].group_id}`;
-                debugger
+                // code to get corresponding group profile photo
+                const url = `http://localhost:8081/api/chat/get-photo-profile?group_id=${initialData.group_list[0].group_id}`;
+
                 fetch(url, {
                     method: 'GET',
                     headers: {
@@ -145,7 +206,7 @@
                         'access-token': accessToken
                     }
                 }).then(async response => {
-                    debugger
+
                     if (response.ok) {
                         // Handle successful response with image data
                         if (response.headers.get('Content-Type').includes('image/png')) {
@@ -163,7 +224,7 @@
 
                 for (const group of data.group_list) {
                     const option = document.createElement("option");
-                    option.value = group.group_name;
+                    option.value = group.group_id;
                     option.text = group.group_name;
                     groupOptions.appendChild(option);
                 }
@@ -217,35 +278,37 @@
                 "currentGroup": groupOptions.value
             }))
             msgHolder.innerHTML = ""
-            currentGroubName.innerText = groupOptions.value
             initialData.group_list.forEach((group) => {
-                if (group.group_name == groupOptions.value) {
+                if (group.group_id == groupOptions.value) {
+                    currentGroubName.innerText = group.group_name
                     currentGroubDesc.innerText = group.group_desc
+                    const url = `http://localhost:8008/api/chat/get-photo-profile?group_id=${group.group_id}`;
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'accept': 'image/png',
+                            'access-token': accessToken
+                        }
+                    }).then(async response => {
+                        if (response.ok) {
+                            // Handle successful response with image data
+                            if (response.headers.get('Content-Type').includes('image/png')) {
+                                var urlCreator = window.URL || window.webkitURL;
+                                p = await response.arrayBuffer()
+                                test = new Blob([p])
+                                var imgUrl = urlCreator.createObjectURL(test);
+
+                                currentGroubPP.src = imgUrl
+                            } else {
+
+                            }
+                        } else {
+                            currentGroubPP.src = ""
+
+                        }
+                    })
                 }
 
-                const url = `http://localhost:8081/api/community-chat/get-group-pp?group_id=${group.group_id}`;
-                fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'accept': 'image/png',
-                        'access-token': accessToken
-                    }
-                }).then(async response => {
-                    debugger
-                    if (response.ok) {
-                        // Handle successful response with image data
-                        if (response.headers.get('Content-Type').includes('image/png')) {
-                            var urlCreator = window.URL || window.webkitURL;
-                            var imgUrl = urlCreator.createObjectURL(await response.blob());
-
-                            currentGroubPP.src = imgUrl
-                        } else {
-                            throw new Error("Unexpected content type. Expected image/png.");
-                        }
-                    } else {
-                        throw new Error("Error fetching group profile picture: " + response.status);
-                    }
-                })
 
             })
 
@@ -254,6 +317,28 @@
             console.log("groub have changed!")
         }
 
+        function getNotifPermission() {
+            if (!("Notification" in window)) {
+                throw new Error("Your browser does not support push notification");
+            }
+            Notification.requestPermission().then((Permission) => {
+                console.log("Notif Permission: ", Permission)
+            })
+        }
+
+        function sendMsgNotif(data) {
+            const notificationOptions = {
+                body: `${data.sender}: ${data.text}`,
+            }
+            try {
+                let notif = new Notification(`New Message @ ${currentGroubName.textContent}`, notificationOptions);
+                notif.onclick = e => {
+                    window.focus()
+                }
+            } catch (err) {
+                console.log(err)
+            }
+        }
     </script>
 </body>
 
