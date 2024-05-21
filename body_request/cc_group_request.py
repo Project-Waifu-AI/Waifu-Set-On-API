@@ -4,5 +4,6 @@ from typing import Optional
 class ChatCommunity(BaseModel):
     community_name: Optional[str]
     community_desc: Optional[str]
-    community_member: Optional[dict]
+    community_type: Optional[str]
+    community_member: Optional[list]
     

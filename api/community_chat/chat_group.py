@@ -9,7 +9,7 @@ from body_request.dw_body_request import CreateDelusion, VariantDelusion
 from helper.premium import check_premium
 from helper.fitur import generateDelusion, generateDelusionVariant
 from helper.cek_and_set import cek_kalimat_promting, cek_and_set_ukuran_delusion, set_response_save_delusion
-from database.model import logdelusion,communitylist,logcommunitychat
+from database.model import logdelusion,communitylist,logcommunitychat,userdata
 from helper.access_token import check_access_token_expired, decode_access_token
 from configs import config
 from tortoise.exceptions import DoesNotExist
@@ -28,7 +28,29 @@ async def create_community(community: ChatCommunity, access_token: str = Header(
         email = payloadJWT.get('sub')
     
     community_id = str(uuid.uuid4())
-    new_community = communitylist(id=community_id,community_name=community.community_name,community_desc=community.community_desc,community_member=community.community_member,created_by = email)
+    community_type = community.community_type
+    valid_community_type = ["default", "private", "all"]
+    
+    if community_type not in valid_community_type:
+        return JSONResponse({
+            "msg": "Please enter valid community type"
+        }, status_code=status.HTTP_400_BAD_REQUEST)
+    
+    if community_type == "default" and payloadJWT.get("level") == "user":
+        return JSONResponse({
+            "msg": "You do not have permission to create default community!"
+        }, status_code=status.HTTP_403_FORBIDDEN)
+    
+    if community_type == "default":
+        members = await userdata.all()
+        member_list = []
+        
+        for member in members:
+            member_list.append(member.email)
+        
+        community.community_member = member_list
+    
+    new_community = communitylist(id=community_id,community_name=community.community_name,community_type=community_type,community_desc=community.community_desc,community_member=community.community_member,created_by = email)
     
     await new_community.save()
     
@@ -36,6 +58,7 @@ async def create_community(community: ChatCommunity, access_token: str = Header(
         "status": "ok",
         "created_community": {
             "community_name": community.community_name,
+            "community_type": community.community_type,
             "community_desc": community.community_desc,
             "community_member": community.community_member,
             "created_by": email
@@ -56,6 +79,7 @@ async def get_community_list(access_token: str = Header(...)):
         response.append({
             "community_id": community.id,
             "community_name": community.community_name,
+            "community_type": community.community_type,
             "community_desc": community.community_desc,
             "community_member": community.community_member,
         })

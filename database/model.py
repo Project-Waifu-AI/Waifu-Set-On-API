@@ -125,7 +125,8 @@ class logcommunitychat(Model):
 class communitylist(Model):
     id = fields.CharField(max_length=255,pk=True)
     community_name = fields.CharField(max_length=255)
-    community_desc = fields.CharField(max_length=255)
+    community_type = fields.CharField(max_length=255)
+    community_desc = fields.CharField(max_length=255, null=True)
     community_pp = fields.BinaryField(null=True)
     created_by = fields.CharField(max_length=255)
     community_member = fields.JSONField()
