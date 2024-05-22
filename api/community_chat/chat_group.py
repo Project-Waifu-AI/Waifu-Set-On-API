@@ -30,11 +30,15 @@ async def create_community(community: ChatCommunity, access_token: str = Header(
     community_id = str(uuid.uuid4())
     community_type = community.community_type
     valid_community_type = ["default", "private", "all"]
+    community_member = []
     
     if community_type not in valid_community_type:
         return JSONResponse({
             "msg": "Please enter valid community type"
         }, status_code=status.HTTP_400_BAD_REQUEST)
+    
+    if community_type in ["private", "all"]:
+        community_member = [email]
     
     if community_type == "default" and payloadJWT.get("level") == "user":
         return JSONResponse({
@@ -48,9 +52,9 @@ async def create_community(community: ChatCommunity, access_token: str = Header(
         for member in members:
             member_list.append(member.email)
         
-        community.community_member = member_list
+        community_member = member_list
     
-    new_community = communitylist(id=community_id,community_name=community.community_name,community_type=community_type,community_desc=community.community_desc,community_member=community.community_member,created_by = email)
+    new_community = communitylist(id=community_id,community_name=community.community_name,community_type=community_type,community_desc=community.community_desc,community_member=community_member,created_by = email)
     
     await new_community.save()
     
@@ -60,10 +64,41 @@ async def create_community(community: ChatCommunity, access_token: str = Header(
             "community_name": community.community_name,
             "community_type": community.community_type,
             "community_desc": community.community_desc,
-            "community_member": community.community_member,
+            "community_member": community_member,
             "created_by": email
         }
     }, status_code=status.HTTP_201_CREATED)
+
+@router.put('/join-community')
+async def join_community(community_id: str,access_token: str = Header(...)):
+    # credential checking
+    check = check_access_token_expired(access_token=access_token)
+
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_401_UNAUTHORIZED)
+    else:
+        payloadJWT = decode_access_token(access_token=access_token)
+        email = payloadJWT.get('sub')
+    
+    community_to_join = await communitylist.filter(id=community_id).first()
+    if not community_to_join:
+        return JSONResponse({
+            "error": "Community Not Found"
+        }, status_code=status.HTTP_404_NOT_FOUND)
+        
+    community_members = community_to_join.community_member
+    if email in community_members:
+        return JSONResponse({
+            "error": "You already join the community"
+        }, status_code=status.HTTP_400_BAD_REQUEST)
+    
+    community_members.append(email)
+    await community_to_join.save()
+    
+    return JSONResponse({
+        "msg": f"Successfully join community {community_to_join.community_name}"
+    }, status_code=status.HTTP_201_CREATED)
+    
 
 @router.get("/get")
 async def get_community_list(access_token: str = Header(...)):
