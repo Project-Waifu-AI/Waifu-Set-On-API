@@ -130,3 +130,9 @@ class communitylist(Model):
     community_pp = fields.BinaryField(null=True)
     created_by = fields.CharField(max_length=255)
     community_member = fields.JSONField()
+
+class privatecommunityjoinreq(Model):
+    id = fields.IntField(pk=True)
+    email = fields.CharField(max_length=255)
+    requested_community_id = fields.CharField(max_length=255)
+    requested_at = fields.DatetimeField(auto_now_add=True)
