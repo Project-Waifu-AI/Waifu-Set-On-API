@@ -26,11 +26,16 @@
         </label>
 
         <button id="getNotifPermission" onclick="getNotifPermission()">Notify Me</button>
+
     </div>
-    <div style="display: inline;">
+    <div id="communityList">
+        <h3>Group List:</h3>
+    </div>
+    
+    <div style="margin-top: 15px">
         <img alt="group profile photo" id="group_pp" style="height: 100px;width: 100px;">
     </div>
-    <div style="display: inline;">
+    <div style="margin-top: 15px">
         <h3 id="group_name" style="display: inline;"></h3>
         <p id="group_desc" style="font-style: italic;"></p>
     </div>
@@ -50,6 +55,7 @@
         const currentGroubName = document.getElementById("group_name")
         const currentGroubDesc = document.getElementById("group_desc")
         const currentGroubPP = document.getElementById("group_pp")
+        const allCommunityList = document.getElementById("communityList")
 
         ws.onopen = function (event) {
             const message = JSON.stringify({
@@ -193,11 +199,11 @@
             if (data.action == "InitialData") {
                 initialData = data
                 appTitle.innerText = `Welcome ${initialData.credentials.sub}`
-                currentGroubName.innerText = data.group_list[0].group_name
-                currentGroubDesc.innerText = data.group_list[0].group_desc
+                currentGroubName.innerText = data.joined_group_list[0].community_name
+                currentGroubDesc.innerText = data.joined_group_list[0].community_desc
 
                 // code to get corresponding group profile photo
-                const url = `http://localhost:8081/api/chat/get-photo-profile?group_id=${initialData.group_list[0].group_id}`;
+                const url = `http://localhost:8081/api/chat/get-photo-profile?group_id=${initialData.joined_group_list[0].community_id}`;
 
                 fetch(url, {
                     method: 'GET',
@@ -218,15 +224,40 @@
                             throw new Error("Unexpected content type. Expected image/png.");
                         }
                     } else {
-                        throw new Error("Error fetching group profile picture: " + response.status);
+                        console.log("Error fetching group profile picture: " + response.status);
                     }
                 })
 
-                for (const group of data.group_list) {
+                for (const group of data.joined_group_list) {
                     const option = document.createElement("option");
-                    option.value = group.group_id;
-                    option.text = group.group_name;
+                    option.value = group.community_id;
+                    option.text = group.community_name;
                     groupOptions.appendChild(option);
+                }
+
+                // code for all-community-ist section
+                for(const group of data.all_group_list) {
+                    is_joined_group = group.community_member.includes(initialData.credentials.sub)
+                    group_action = is_joined_group ? "Enter" : "Join"
+                    function joinGroup(event) {
+                        console.log(`Joining Group... with data comm ${event.target.value}`)
+                    }
+
+                    function enterGroup(event) {
+                        console.log(`Entering Group... with data comm id ${event.target.value}`)
+                    }
+                    groupElement = `
+                    <label for="group">
+                        ${group.community_name}
+                        <button id="actionBtn"' value=${group.community_id}>${group_action}</button>
+                    </label>
+                    `
+
+                    wrapper = document.createElement("div")
+                    wrapper.innerHTML = groupElement
+                    wrapper.getElementsByTagName("button")[0].addEventListener("click", is_joined_group ? enterGroup : joinGroup)
+
+                    allCommunityList.append(wrapper)
                 }
             }
             console.log(msg)
@@ -278,7 +309,7 @@
                 "currentGroup": groupOptions.value
             }))
             msgHolder.innerHTML = ""
-            initialData.group_list.forEach((group) => {
+            initialData.joined_group_list.forEach((group) => {
                 if (group.group_id == groupOptions.value) {
                     currentGroubName.innerText = group.group_name
                     currentGroubDesc.innerText = group.group_desc

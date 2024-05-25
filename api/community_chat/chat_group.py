@@ -203,23 +203,38 @@ async def handle_join_request(request_id: str, is_accepted: bool,access_token: s
         })
 
 @router.get("/get")
-async def get_community_list(access_token: str = Header(...)):
+async def get_community_list(access_token: str = Header(...), joined_only: bool = False):
     # credential checking
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_401_UNAUTHORIZED)
+    else:
+        payloadJWT = decode_access_token(access_token=access_token)
+        email = payloadJWT.get('sub')
         
     community_list = await communitylist.all()
     response: list[dict] = []
     for community in community_list:
-        response.append({
-            "community_id": community.id,
-            "community_name": community.community_name,
-            "community_type": community.community_type,
-            "community_desc": community.community_desc,
-            "community_member": community.community_member,
-        })
+        members = community.community_member
+        if joined_only:
+            if email in members:
+                response.append({
+                "community_id": community.id,
+                "community_name": community.community_name,
+                "community_type": community.community_type,
+                "community_desc": community.community_desc,
+                "community_member": members,
+            })
+        else:
+            response.append({
+                "community_id": community.id,
+                "community_name": community.community_name,
+                "community_type": community.community_type,
+                "community_desc": community.community_desc,
+                "community_member": members,
+            })
+        
     
     return JSONResponse(response, status_code=status.HTTP_200_OK)
 
