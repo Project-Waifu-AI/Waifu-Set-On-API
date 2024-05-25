@@ -150,8 +150,8 @@ async def get_join_request(access_token: str = Header(...)):
     for community in community_list:
         if email in community.community_member:
             owned_community_id.append(community.id)
-            
-    join_request_list: list[privatecommunityjoinreq] = await privatecommunityjoinreq.raw(f"select * from privatecommunityjoinreq where requested_community_id IN {tuple(owned_community_id)}")
+
+    join_request_list: list[privatecommunityjoinreq] = await privatecommunityjoinreq.filter(requested_community_id__in=owned_community_id)
     
     response = []
     for join_request in join_request_list:
