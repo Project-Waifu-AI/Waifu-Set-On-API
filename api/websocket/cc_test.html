@@ -240,7 +240,12 @@
                     is_joined_group = group.community_member.includes(initialData.credentials.sub)
                     group_action = is_joined_group ? "Enter" : "Join"
                     function joinGroup(event) {
-                        console.log(`Joining Group... with data comm ${event.target.value}`)
+                        ws.send(JSON.stringify({
+                            "action": "JoinRequest",
+                            "community_id": event.target.value
+                        }))
+
+                        alert("Request to join this community have been sent. Please wait!")
                     }
 
                     function enterGroup(event) {
@@ -260,9 +265,25 @@
                     allCommunityList.append(wrapper)
                 }
             }
-            console.log(msg)
+            
 
 
+            if (data.action == "JoinRequest") {
+                isRequestAccepted = confirm(`Community Join Request By ${data.email} to join '${data.community_name}'. Do you accept it?`)
+                
+                ws.send(JSON.stringify({
+                    "action": "JoinRequestResponse",
+                    "data": {
+                        "email": data.email,
+                        "community_id": data.community_id
+                    },
+                    "isRequestAccepted": isRequestAccepted
+                }))
+            }
+
+            if (data.action == "JoinReqReponse") {
+                console.log(data)
+            }
 
         };
 

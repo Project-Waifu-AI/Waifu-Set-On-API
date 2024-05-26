@@ -131,7 +131,10 @@ async def join_private_community(community_id: str,access_token: str = Header(..
     await privatecommunityjoinreq(email=email, requested_community_id=community_id).save()
     
     return JSONResponse({
-        "msg": f"request to join community with id {community_id} have been sent!"
+        "msg": f"request to join community with id {community_id} have been sent!",
+        "requested_to": [
+            community_to_join.created_by
+        ]
     }, status_code=status.HTTP_201_CREATED)
 
 @router.get("/get-join-request")

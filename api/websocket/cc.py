@@ -118,6 +118,50 @@ async def communityChatSocket(websocket: WebSocket, access_token: str):
                 connected_users[email]["currentGroup"] = currentGroupId
                 
                 await ChatRestore(currentGroupId)
+
+            if permintaan.get("action") == "JoinRequest":
+                headers = {
+                    "access-token": access_token  # Replace with your actual access token
+                }
+                
+                # create join request to server
+                join_request_response = requests.post(f"http://localhost:8081/api/chat/join-private-community?community_id={permintaan.get('community_id')}", headers=headers)
+                
+                requested_community_info = requests.get(f"http://localhost:8081/api/chat/get-community-info?community_id={permintaan.get('community_id')}", headers=headers).json()
+                json_join_req = join_request_response.json()
+                
+                
+                
+                if join_request_response.status_code == 201:
+                    for admin in json_join_req["requested_to"]:
+                        if admin in connected_users:
+                            await connected_users[admin]["ws"].send_json({
+                            "action": "JoinRequest",
+                            "email": email,
+                            "community_id": permintaan.get('community_id'),
+                            "community_name": requested_community_info.get("community_name")
+                        })
+                
+                await connected_users[email]["ws"].send_json({
+                    "action": "JoinReqReponse",
+                    "response": json_join_req
+                })
+    
+            if permintaan.get("action") == "JoinRequestResponse":
+                isRequestAccepted = permintaan.get("isRequestAccepted")
+                data = permintaan.get("data")
+                join_requests = requests.get(f"http://localhost:8081/api/chat/get-join-request", headers=headers).json()
+                headers = {
+                    "access-token": access_token  # Replace with your actual access token
+                }
+                
+                join_request_id = 0
+                
+                for join_req in join_requests:
+                    if data.get("email") == join_req.get("email") and data.get("community_id") == join_req.get("requested_community_id"):
+                        join_request_id = join_req.get("request_id")
+                
+                requests.put(f"http://localhost:8081/api/chat/handle-join-request?request_id={join_request_id}&is_accepted={isRequestAccepted}", headers=headers)
     except WebSocketDisconnect or WebSocketException:
         del connected_users[email]
         print("Client disconnected")
