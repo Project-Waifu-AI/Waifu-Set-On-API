@@ -9,10 +9,12 @@ from body_request.dw_body_request import CreateDelusion, VariantDelusion
 from helper.premium import check_premium
 from helper.fitur import generateDelusion, generateDelusionVariant
 from helper.cek_and_set import cek_kalimat_promting, cek_and_set_ukuran_delusion, set_response_save_delusion
-from database.model import logdelusion,communitylist,logcommunitychat,userdata,privatecommunityjoinreq
+from database.model import logdelusion,communitylist,logcommunitychat,userdata
 from helper.access_token import check_access_token_expired, decode_access_token
 from configs import config
 from tortoise.exceptions import DoesNotExist
+import time
+
 
 router = APIRouter(prefix='/chat',tags=['Community-Chat'])
 
@@ -54,7 +56,11 @@ async def create_community(community: ChatCommunity, access_token: str = Header(
         
         community_member = member_list
     
-    new_community = communitylist(id=community_id,community_name=community.community_name,community_type=community_type,community_desc=community.community_desc,community_member=community_member,created_by = email)
+    permintaan = None
+    if community_type == "private":
+        permintaan = []
+    
+    new_community = communitylist(id=community_id,community_name=community.community_name,community_type=community_type,community_desc=community.community_desc,community_member=community_member,created_by = email, permintaan = permintaan)
     
     await new_community.save()
     
@@ -100,7 +106,7 @@ async def join_community(community_id: str,access_token: str = Header(...)):
     }, status_code=status.HTTP_201_CREATED)
 
 @router.post("/join-private-community")
-async def join_private_community(community_id: str,access_token: str = Header(...)):
+async def join_private_community(community_id: str, acceptance_reason: str, access_token: str = Header(...)):
     # credential checking
     check = check_access_token_expired(access_token=access_token)
 
@@ -122,13 +128,21 @@ async def join_private_community(community_id: str,access_token: str = Header(..
             "error": "You already join the community"
         }, status_code=status.HTTP_400_BAD_REQUEST)
     
-    is_user_already_request = await privatecommunityjoinreq.filter(email=email).first()
-    if is_user_already_request:
-        return JSONResponse({
-            "error": "You already requested to join the community. Please wait!"
-        }, status_code=status.HTTP_400_BAD_REQUEST)
+    join_requests = community_to_join.permintaan
+   
+    for join_req in join_requests:
+        if email == join_req.get("email"):
+            return JSONResponse({
+                "error": "You already requested to join the community. Please wait!"
+            }, status_code=status.HTTP_400_BAD_REQUEST)
     
-    await privatecommunityjoinreq(email=email, requested_community_id=community_id).save()
+    join_requests.append({
+        "email": email,
+        "acceptance_reason": acceptance_reason,
+        "timestamps": time.time()
+    })
+    
+    await community_to_join.save()
     
     return JSONResponse({
         "msg": f"request to join community with id {community_id} have been sent!",
@@ -148,27 +162,24 @@ async def get_join_request(access_token: str = Header(...)):
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
     
-    community_list: list[communitylist] = await communitylist.all()
-    owned_community_id = []
-    for community in community_list:
-        if email in community.community_member:
-            owned_community_id.append(community.id)
-
-    join_request_list: list[privatecommunityjoinreq] = await privatecommunityjoinreq.filter(requested_community_id__in=owned_community_id)
+    owned_community_list: list[communitylist] = await communitylist.filter(created_by=email)
     
-    response = []
-    for join_request in join_request_list:
-        response.append({
-            "request_id": join_request.id,
-            "email": join_request.email,
-            "requested_community_id": join_request.requested_community_id,
-            "requested_at": str(join_request.requested_at)
-        })
+    join_request_list: list = []
     
-    return JSONResponse(response, status_code=status.HTTP_200_OK)
+    for owned_community in owned_community_list:
+        for join_req in owned_community.permintaan:
+            join_request_list.append({
+                "email": join_req.get("email"),
+                "community_name": owned_community.community_name,
+                "community_id": owned_community.id,
+                "acceptance_reason": join_req.get("acceptance_reason"),
+                "timestamps": join_req.get("timestamps"),
+            })   
+    
+    return JSONResponse(join_request_list, status_code=status.HTTP_200_OK)
 
 @router.put("/handle-join-request")
-async def handle_join_request(request_id: str, is_accepted: bool,access_token: str = Header(...)):
+async def handle_join_request(community_id: str, requesting_email: str, is_accepted: bool,access_token: str = Header(...)):
     # credential checking
     check = check_access_token_expired(access_token=access_token)
 
@@ -178,31 +189,37 @@ async def handle_join_request(request_id: str, is_accepted: bool,access_token: s
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
     
-    join_req = await privatecommunityjoinreq.filter(id=request_id).first()
-    
-    if not join_req:
+    requested_community: communitylist = await communitylist.filter(id=community_id).first()
+    req_email_list = []
+    for join_req in requested_community.permintaan:
+        req_email_list.append(join_req.get("email"))
+        
+    if requesting_email not in req_email_list:
         return JSONResponse({
             "error": "Join request not found"
         }, status_code=status.HTTP_404_NOT_FOUND)
         
     if is_accepted:
         # acc user request and add them to desired community
-        requested_community = await communitylist.filter(id=join_req.requested_community_id).first()
-        
-        requested_community.community_member.append(join_req.email)
-        
+        requested_community.community_member.append(requesting_email)
+        # remove join request
+        updated_permintaan = [d for d in requested_community.permintaan if d["email"] != requesting_email]
+        requested_community.permintaan = updated_permintaan
         await requested_community.save()
-        await join_req.delete()
+        
         return JSONResponse({
             "status": "join request accepted",
-            "added_email": join_req.email,
+            "added_email": requesting_email,
             "to_community": requested_community.community_name
         }, status_code=status.HTTP_201_CREATED)
     else:
-        await join_req.delete()
+        updated_permintaan = [d for d in requested_community.permintaan if d["email"] != requesting_email]
+        requested_community.permintaan = updated_permintaan
+        await requested_community.save()
+        
         return JSONResponse({
             "status": "join request denied",
-            "denied_email": join_req.email
+            "denied_email": requesting_email
         })
 
 @router.get("/get")
