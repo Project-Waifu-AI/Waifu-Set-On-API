@@ -82,6 +82,8 @@ class userdata(Model):
     def __str__(self):
         return self.email
 
+
+# TRANSAKSI
 class anonim_buyer(Model):
     id_transaksi = fields.CharField(max_length=320)
     service = fields.CharField(max_length=100)
@@ -110,24 +112,26 @@ class hall_of_support(Model):
     waktu = fields.DatetimeField()
     
     class Meta:
-        tables = 'anonimn_buyer'
+        tables = 'hall_of_support'
 
     def __str__(self):
         return self.email
-    
-class KarakterData(Model):
-    nama = fields.CharField(max_length=225, pk=True)
-    bahasaYangDigunakan = fields.CharField(max_length=225)
-    informasi_tambahan = fields.JSONField(null=True)
-    speakerID = fields.JSONField(null=True)
-    
-    class Meta:
-        table = 'karakter'
-    
-    def __str__(self):
-        return self.nama
-    
+
 class HookList(Model):
     ID = fields.CharField(max_length=225, pk=True)
     tujuan = fields.CharField(max_length=225)
     service = fields.CharField(max_length=225)
+
+# CHAR MANAGEMENT
+class KarakterData(Model):
+    nama = fields.CharField(max_length=225, pk=True)
+    variant = fields.CharField(max_length=225)
+    rarity = fields.IntField()
+    desc = fields.CharField(max_length=225)
+    asset = fields.BinaryField(max_length=225)
+
+    class Meta:
+        table = 'karakterdata'
+    
+    def __str__(self):
+        return self.nama

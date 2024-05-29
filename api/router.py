@@ -27,9 +27,6 @@ from api.tambahan.user_root import router as router_user
 # user root websocket
 from api.websocket.user import router as socket_user
 
-# premium regis
-from api.premium.premium_regis import router as router_premium_regis
-
 # DelusionWaifu
 from api.action.DelusionWaifu import router as router_dw
 
@@ -67,9 +64,6 @@ router.include_router(router_user)
 
 # socket crud user
 router.include_router(socket_user)
-
-# router premium regis
-router.include_router(router_premium_regis)
 
 # router notid pembayaran
 router.include_router(router_notif_pemabayaran)

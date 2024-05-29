@@ -5,6 +5,7 @@ import requests
 import os
 from configs import config
 from database.model import userdata
+from helper.response import success_response, error_response
 from helper.access_token import create_access_token, decode_access_token, check_access_token_expired
 from helper.cek_and_set import cek_namaku_ada, set_name_unik, cek_admin
 from helper.google_auth import save_google_creds
@@ -80,7 +81,7 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
                 if user.driveID is None:
                     drive = create_folder_gdrive(access_token=access_token)
                     if drive['status'] is False:
-                        raise HTTPException(detail=drive['keterangan'], status_code=500)
+                        raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=drive['keterangan'], kepada=email, action='callback-autentikasi-google'), status_code=500)
                     else:
                         drive_id = drive['keterangan']
                     user.driveID = drive_id
@@ -100,7 +101,7 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
             drive = create_folder_gdrive(access_token=access_token)
             
             if drive['status'] is False:
-                raise HTTPException(detail=drive['keterangan'], status_code=500)
+                raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=drive['keterangan'], kepada=email, action='callback-autentikasi-google'), status_code=500)
             else:
                 drive_id = drive['keterangan']
             
@@ -124,7 +125,7 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
 
     
     except ConnectionError as e:
-        raise HTTPException(detail=str(e), status_code=500)
+        raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=str(e), kepada=email, action='callback-autentikasi-google'), status_code=500)
     
 @router.get('/root')
 async def submit(request: Request, token: str, access_token: str = Cookie(default=None)):

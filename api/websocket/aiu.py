@@ -1,10 +1,10 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException
 from configs import config
 from database.model import logpercakapan
-from helper.fitur import obrolan, request_audio
+from helper.fitur import obrolan_gpt, request_audio
 from helper.translate import translate_target, translate_target_premium
 from helper.access_token import check_access_token_expired, decode_access_token
-from helper.response import pesan_response
+from helper.response import error_response, success_response
 from helper.premium import check_premium
 
 router = APIRouter(prefix='/websoket/aiu', tags=['AIU-WEBSOCKET'])
@@ -23,7 +23,6 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
             else:
                 dataJWT = decode_access_token(access_token=access_token)
                 email = dataJWT.get('sub')
-            output_eror = pesan_response(email=email, pesan='something gone wrong')
             
             # action obrolan aiu semua karakter
             if permintaan['action']['type'] == 'obrolan':
@@ -75,7 +74,7 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
                     id_percakapan = 1  
                 
                 # proses audio            
-                response = await obrolan(input_text=pesan, email=email, setKarakter=setkarakter)
+                response = await obrolan_gpt(input_text=pesan, email=email, setKarakter=setkarakter)
                 
                 if response['status'] is True:
                     premium = await check_premium(email=email)
@@ -106,14 +105,14 @@ async def socketObrolan(websocket: WebSocket, access_token: str):
                         await save.save()            
                         await websocket.send_json(data)
                     else:
-                        await websocket.send_json(output_eror)
+                        await websocket.send_json(error_response(kepada=email, pesan='something gone wrong', penyebab=translate['response']))
                         
                         
             elif permintaan['action']['type'] == 'delete-all-log-percakapan':
                 data = await logpercakapan.filter(email=email).first()
                 await data.delete()
-                response = pesan_response(email=data.email, pesan='log obrolan berhasil dihapus')
-                await websocket.send_json(output_eror)
+                response = success_response(kepada=data.email, action='delete-history-percakapan-aiu', pesan='Your conversation history on the AIU feature has been successfully deleted')
+                await websocket.send_json(response)
             
             else:
                 break

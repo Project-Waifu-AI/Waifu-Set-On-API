@@ -62,5 +62,5 @@ def cek_bahasa(bahasa: str):
     else:
         return {
             'status': False,
-            'keterangan': 'bahasa yang anda gunakan tidak valid'
+            'keterangan': 'the language you are using is invalid'
         }

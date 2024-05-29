@@ -17,17 +17,17 @@ def request_audio(text, speaker_id: int):
         download = data.get('mp3DownloadUrl')
         streaming = data.get('mp3StreamingUrl') 
         return {
-            'status': True,
             'download_audio': download,
             'streaming_audio': streaming
         }
+    
     except Exception as e:
         return{
             'status': False,
             'keterangan': str(e)
         }
 
-async def obrolan(input_text, email, setKarakter):
+async def obrolan_gpt(input_text, email, setKarakter):
     logObrolan = await logpercakapan.filter(email=email).all()
     user = await userdata.filter(email=email).first()
     obrolan = []
