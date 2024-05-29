@@ -3,13 +3,13 @@ from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 import base64
 import io
 from PIL import Image
-from body_request.dw_body_request import CreateDelusion, VariantDelusion
+from handler.request.dw_body_request import CreateDelusion, VariantDelusion
 from helper.premium import check_premium
 from helper.fitur import generateDelusion, generateDelusionVariant
 from helper.cek_and_set import cek_kalimat_promting, cek_and_set_ukuran_delusion, set_response_save_delusion
 from database.model import logdelusion
 from helper.access_token import check_access_token_expired, decode_access_token
-from helper.response import error_response, success_response
+from handler.response.response import error_response, success_response
 from configs import config
 
 router = APIRouter(prefix='/DW',tags=['Delusion-Waifu'])

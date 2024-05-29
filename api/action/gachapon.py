@@ -2,7 +2,7 @@ from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from numpy.random import choice
 from helper.access_token import check_access_token_expired, decode_access_token
-from helper.response import pesan_response, karakter_response
+from handler.response.response import pesan_response, karakter_response
 from database.model import KarakterData, userdata
 from configs import config
 

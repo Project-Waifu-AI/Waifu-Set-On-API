@@ -5,7 +5,7 @@ import requests
 import os
 from configs import config
 from database.model import userdata
-from helper.response import success_response, error_response
+from handler.response.response import success_response, error_response
 from helper.access_token import create_access_token, decode_access_token, check_access_token_expired
 from helper.cek_and_set import cek_namaku_ada, set_name_unik, cek_admin
 from helper.google_auth import save_google_creds

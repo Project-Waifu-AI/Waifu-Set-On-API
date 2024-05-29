@@ -2,7 +2,7 @@ from fastapi import APIRouter, Header, Response, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 from database.model import KarakterData
 from helper.access_token import check_access_token_expired, decode_access_token
-from body_request.gachapon_body_request import SetKarakter, tambahan
+from handler.request.gachapon_body_request import SetKarakter, tambahan
 from configs import config
 import json
 

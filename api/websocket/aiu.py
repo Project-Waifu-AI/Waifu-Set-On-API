@@ -4,7 +4,7 @@ from database.model import logpercakapan
 from helper.fitur import obrolan_gpt, request_audio
 from helper.translate import translate_target, translate_target_premium
 from helper.access_token import check_access_token_expired, decode_access_token
-from helper.response import error_response, success_response
+from handler.response.response import error_response, success_response
 from helper.premium import check_premium
 
 router = APIRouter(prefix='/websoket/aiu', tags=['AIU-WEBSOCKET'])

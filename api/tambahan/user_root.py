@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Header, HTTPException, Request
 from fastapi.responses import RedirectResponse, JSONResponse
-from body_request.auth_body_request import updateUser, updatePassword
+from handler.request.auth_body_request import updateUser, updatePassword
 from configs import config
 from database.model import userdata, logaudio, logpercakapan, token_google
 from send.email import send_password_change
 from helper.access_token import check_access_token_expired, decode_access_token, create_access_token
 from helper.cek_and_set import cek_data_user, cek_namaku_ada, cek_valid_password, set_password
-from helper.response import success_response, user_response, error_response
+from handler.response.response import success_response, user_response, error_response
 
 router = APIRouter(prefix='/user-root', tags=['user-data'])
 

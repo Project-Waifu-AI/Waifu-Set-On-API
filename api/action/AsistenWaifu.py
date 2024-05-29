@@ -3,8 +3,8 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from database.model import logpercakapan
 from helper.fitur import obrolan_gpt, request_audio
 from helper.translate import cek_bahasa, translate_target, translate_target_premium
-from helper.response import success_response, error_response, aiu_response
-from body_request.aiu_body_request import obrolan_aiu
+from handler.response.response import success_response, error_response, aiu_response
+from handler.request.aiu_body_request import obrolan_aiu
 from helper.aiu.model import obrolan_bot
 from helper.cek_and_set import set_karakter_id, set_karakter_persona
 from helper.access_token import check_access_token_expired, decode_access_token

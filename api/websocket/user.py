@@ -1,7 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from database.model import userdata
 from helper.access_token import decode_access_token, check_access_token_expired
-from helper.response import user_response
+from handler.response.response import user_response
 
 router = APIRouter(prefix='/websoket/user',tags=['USER-WEBSOCKET'])
 

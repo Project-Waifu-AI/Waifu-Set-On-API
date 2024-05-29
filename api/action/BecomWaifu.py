@@ -5,8 +5,8 @@ import speech_recognition as sr
 import tempfile
 from configs import config
 from database.model import logaudio, userdata
-from body_request.bw_body_request import shareToSMD
-from helper.response import success_response, error_response, bw_response
+from handler.request.bw_body_request import shareToSMD
+from handler.response.response import success_response, error_response, bw_response
 from helper.access_token import check_access_token_expired, decode_access_token
 from helper.premium import check_premium
 from helper.fitur import request_audio
