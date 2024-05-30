@@ -94,7 +94,7 @@ async def simpan_user(meta: SimpanUserWSO):
     
     adminkah = cek_admin(email=meta.email)
 
-    if meta.password is not meta.konfirmasi_password:
+    if meta.password != meta.konfirmasi_password:
         raise HTTPException(detail=error_response(pesan='The password and confirmation password you entered are not the same, please try again', penyebab='The password and confirmation password you entered are not the same', action='simpan-user-wso', kepada=user.email), status_code=403)
         
     if cek_valid_password(meta.password) is False:
