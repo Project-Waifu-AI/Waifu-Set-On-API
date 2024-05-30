@@ -53,7 +53,7 @@ async def register(email: str):
         
         if user.wsoAuth is False:
             sendEmail01=send_verify_token(target_email=email, token=token_konfirmasi)
-            if sendEmail01[''] is True:
+            if sendEmail01 is True:
                 
                 try:
                     user.token_konfirmasi = token_konfirmasi
