@@ -82,15 +82,18 @@ class userdata(Model):
     def __str__(self):
         return self.email
 
+
+# TRANSAKSI
 class anonim_buyer(Model):
-    id_transaksi = fields.CharField(max_length=320, pk=True)
+    id_transaksi = fields.CharField(max_length=320)
+    service = fields.CharField(max_length=100)
     email = fields.CharField(max_length=225)
     nama = fields.CharField(max_length=225, null=True)
     no_telp = fields.CharField(max_length=225, null=True)
-    service = fields.CharField(max_length=100)
     object_buy = fields.CharField(max_length=225)
-    jumlah_dibayar = fields.IntField()
+    nominal = fields.IntField()
     currency = fields.CharField(max_length=100)
+    waktu = fields.DatetimeField()
 
     class Meta:
         tables = 'anonimn_buyer'
@@ -98,13 +101,37 @@ class anonim_buyer(Model):
     def __str__(self):
         return self.id_transaksi
 
+class hall_of_support(Model):
+    id_transaksi = fields.CharField(max_length=335)
+    service = fields.CharField(max_length=100)
+    email = fields.CharField(max_length=225, null=True)
+    nama = fields.CharField(max_length=225, null=True)
+    pesan = fields.CharField(max_length=225, null=True)
+    nominal = fields.IntField()
+    currency = fields.CharField(max_length=100)
+    waktu = fields.DatetimeField()
+    
+    class Meta:
+        tables = 'hall_of_support'
+
+    def __str__(self):
+        return self.email
+
+class HookList(Model):
+    ID = fields.CharField(max_length=225, pk=True)
+    tujuan = fields.CharField(max_length=225)
+    service = fields.CharField(max_length=225)
+
+# CHAR MANAGEMENT
 class KarakterData(Model):
     nama = fields.CharField(max_length=225, pk=True)
-    bahasaYangDigunakan = fields.CharField(max_length=225)
-    informasi_tambahan = fields.JSONField(null=True)
-    speakerID = fields.JSONField(null=True)
+    variant = fields.CharField(max_length=225)
+    rarity = fields.IntField()
+    desc = fields.CharField(max_length=225)
+    asset = fields.BinaryField(max_length=225)
+
     class Meta:
-        table = 'karakter'
+        table = 'karakterdata'
     
     def __str__(self):
         return self.nama
