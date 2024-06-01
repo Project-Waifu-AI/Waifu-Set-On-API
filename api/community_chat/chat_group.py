@@ -1,11 +1,11 @@
 import uuid
 from fastapi import APIRouter, File, HTTPException, Header, Response, UploadFile,status
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
-from body_request.cc_group_request import ChatCommunity
+from handler.request.cc_body_request import ChatCommunity
 import base64
 import io
 from PIL import Image
-from body_request.dw_body_request import CreateDelusion, VariantDelusion
+from handler.request.dw_body_request import CreateDelusion, VariantDelusion
 from helper.premium import check_premium
 from helper.fitur import generateDelusion, generateDelusionVariant
 from helper.cek_and_set import cek_kalimat_promting, cek_and_set_ukuran_delusion, set_response_save_delusion

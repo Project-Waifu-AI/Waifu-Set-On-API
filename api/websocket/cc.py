@@ -1,15 +1,7 @@
 # Community Chat API
-import codecs
-from datetime import datetime
-import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException
-from configs import config
-from database.model import logpercakapan,logcommunitychat
-from helper.fitur import obrolan, request_audio
-from helper.translate import translate_target, translate_target_premium
+from database.model import logcommunitychat
 from helper.access_token import check_access_token_expired, decode_access_token
-from helper.response import pesan_response
-from helper.premium import check_premium
 import requests
 
 router = APIRouter(prefix='/websoket/community-chat', tags=['Community-Chat-WEBSOCKET'])
