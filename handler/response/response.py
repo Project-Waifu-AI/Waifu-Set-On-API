@@ -68,3 +68,13 @@ def aiu_response(pesan: str, response: str, translate: str, id_percakapan, email
         'response': response,
         'translate': translate 
     }
+
+def cc_response(community_id: str, community_name: str, community_type: str, community_desc: str, community_member: list, created_by: str):
+    return {
+        "community_id": community_id,
+        "community_name": community_name,
+        "community_type": community_type,
+        "community_desc": community_desc,
+        "community_member": community_member,
+        "created_by": created_by
+    }
