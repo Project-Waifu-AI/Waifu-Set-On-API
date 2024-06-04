@@ -24,7 +24,7 @@ async def create_community(community: ChatCommunity, access_token: str = Header(
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
@@ -35,13 +35,13 @@ async def create_community(community: ChatCommunity, access_token: str = Header(
     community_member = []
     
     if community_type not in valid_community_type:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_response("Please enter valid community type", "Invalid input type", "create-chat", email))
+        raise HTTPException(status_code=403, detail=error_response("Please enter valid community type", "Invalid input type", "create-chat", email))
     
     if community_type in ["private", "all"]:
         community_member = [email]
     
     if community_type == "default" and payloadJWT.get("level") == "user":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=error_response("You do not have permission to create default community!", "Insufficient user level", "create-chat", email))
+        raise HTTPException(status_code=401, detail=error_response("You do not have permission to create default community!", "Insufficient user level", "create-chat", email))
     
     if community_type == "default":
         members = await userdata.all()
@@ -69,7 +69,7 @@ async def create_community(community: ChatCommunity, access_token: str = Header(
             "community_member": community_member,
             "created_by": email
         }
-    }, status_code=status.HTTP_201_CREATED)
+    }, status_code=201)
 
 @router.put('/join-community')
 async def join_community(community_id: str,access_token: str = Header(...)):
@@ -77,23 +77,23 @@ async def join_community(community_id: str,access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
     
     community_to_join = await communitylist.filter(id=community_id).first()
     if not community_to_join:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Community Not Found", "Object does not exist", "join-community-chat", email))
+        raise HTTPException(status_code=404, detail=error_response("Community Not Found", "Object does not exist", "join-community-chat", email))
         
     community_members = community_to_join.community_member
     if email in community_members:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_response("You already join the community", "Already joined", "join-community-chat", email))
+        raise HTTPException(status_code=405, detail=error_response("You already join the community", "Already joined", "join-community-chat", email))
     
     community_members.append(email)
     await community_to_join.save()
     
-    return JSONResponse(success_response("join-community-chat", f"Successfully join community {community_to_join.community_name}", email), status_code=status.HTTP_201_CREATED)
+    return JSONResponse(success_response("join-community-chat", f"Successfully join community {community_to_join.community_name}", email), status_code=201)
 
 @router.post("/join-private-community")
 async def join_private_community(community_id: str, acceptance_reason: str, access_token: str = Header(...)):
@@ -101,24 +101,24 @@ async def join_private_community(community_id: str, acceptance_reason: str, acce
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
     
     community_to_join = await communitylist.filter(id=community_id).first()
     if not community_to_join:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Community Not Found", "Object does not exist", "join-private-community-chat", email))
+        raise HTTPException(status_code=404, detail=error_response("Community Not Found", "Object does not exist", "join-private-community-chat", email))
         
     community_members = community_to_join.community_member
     if email in community_members:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_response("You already join the community", "Already joined", "join-private-community-chat", email))
+        raise HTTPException(status_code=405, detail=error_response("You already join the community", "Already joined", "join-private-community-chat", email))
     
     join_requests = community_to_join.permintaan
    
     for join_req in join_requests:
         if email == join_req.get("email"):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_response("You already requested to join the community. Please wait!", "Already requested", "join-private-community-chat", email))
+            raise HTTPException(status_code=405, detail=error_response("You already requested to join the community. Please wait!", "Already requested", "join-private-community-chat", email))
     
     join_requests.append({
         "email": email,
@@ -128,7 +128,7 @@ async def join_private_community(community_id: str, acceptance_reason: str, acce
     
     await community_to_join.save()
     
-    return JSONResponse(success_response("join-private-community-chat", f"request to join community with id: {community_id} have been sent!", email), status_code=status.HTTP_201_CREATED)
+    return JSONResponse(success_response("join-private-community-chat", f"request to join community with id: {community_id} have been sent!", email), status_code=201)
 
 @router.get("/get-join-requests")
 async def get_join_request(access_token: str = Header(...)):
@@ -136,7 +136,7 @@ async def get_join_request(access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
@@ -155,7 +155,7 @@ async def get_join_request(access_token: str = Header(...)):
                 "timestamps": join_req.get("timestamps"),
             })   
     
-    return JSONResponse(join_request_list, status_code=status.HTTP_200_OK)
+    return JSONResponse(join_request_list, status_code=200)
 
 @router.put("/handle-join-request")
 async def handle_join_request(community_id: str, requesting_email: str, is_accepted: bool,access_token: str = Header(...)):
@@ -163,7 +163,7 @@ async def handle_join_request(community_id: str, requesting_email: str, is_accep
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
@@ -174,7 +174,7 @@ async def handle_join_request(community_id: str, requesting_email: str, is_accep
         req_email_list.append(join_req.get("email"))
         
     if requesting_email not in req_email_list:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Join request not found", "Object does not exist", "handle-join-request-chat", email))
+        raise HTTPException(status_code=404, detail=error_response("Join request not found", "Object does not exist", "handle-join-request-chat", email))
         
     if is_accepted:
         # acc user request and add them to desired community
@@ -188,7 +188,7 @@ async def handle_join_request(community_id: str, requesting_email: str, is_accep
             "status": "join request accepted",
             "added_email": requesting_email,
             "to_community": requested_community.community_name
-        }, status_code=status.HTTP_201_CREATED)
+        }, status_code=201)
     else:
         updated_permintaan = [d for d in requested_community.permintaan if d["email"] != requesting_email]
         requested_community.permintaan = updated_permintaan
@@ -205,7 +205,7 @@ async def get_community_list(access_token: str = Header(...), joined_only: bool 
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
@@ -220,7 +220,7 @@ async def get_community_list(access_token: str = Header(...), joined_only: bool 
         else:
             response.append(cc_response(community.id, community.community_name, community.community_type, community.community_desc, members, community.created_by))
         
-    return JSONResponse(response, status_code=status.HTTP_200_OK)
+    return JSONResponse(response, status_code=200)
 
 @router.get("/get-community-info")
 async def get_community_info(community_id: str, access_token: str = Header(...)):
@@ -228,7 +228,7 @@ async def get_community_info(community_id: str, access_token: str = Header(...))
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
@@ -236,17 +236,17 @@ async def get_community_info(community_id: str, access_token: str = Header(...))
     try:
         requested_community = await communitylist.get(id=community_id)
         
-        return JSONResponse(cc_response(requested_community.id, requested_community.community_name, requested_community.community_type, requested_community.community_desc, requested_community.community_member, requested_community.created_by), status_code=status.HTTP_200_OK)
+        return JSONResponse(cc_response(requested_community.id, requested_community.community_name, requested_community.community_type, requested_community.community_desc, requested_community.community_member, requested_community.created_by), status_code=200)
     except DoesNotExist  as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Community Not Found", str(e), "get-chat", email))
+        raise HTTPException(status_code=404, detail=error_response("Community Not Found", str(e), "get-chat-community", email))
     
-@router.put("/update-community-info")
+@router.put("/update-info")
 async def update_community_info(community_info: ChatCommunity, community_id: str,access_token: str = Header(...)):
     # credential checking
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
@@ -265,9 +265,9 @@ async def update_community_info(community_info: ChatCommunity, community_id: str
                 "community_id": community_id,
                 "community_name": community_info.community_name,
             }
-        }, status_code=status.HTTP_201_CREATED)
+        }, status_code=201)
     except DoesNotExist as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Community Not Found", str(e), "update-community-info-chat", email))           
+        raise HTTPException(status_code=404, detail=error_response("Community Not Found", str(e), "update-info-chat", email))           
 
 @router.get(
     "/get-photo-profile",
@@ -283,7 +283,7 @@ async def get_community_photo_profile(community_id: str, access_token: str = Hea
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
@@ -297,9 +297,9 @@ async def get_community_photo_profile(community_id: str, access_token: str = Hea
             image_data = base64.b64decode(community_pp)
             return StreamingResponse(io.BytesIO(image_data), media_type="image/png")
         else:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Community Profile Photo Not Found", "Object does not exist", "get-photo-profile-chat", email))
+            raise HTTPException(status_code=404, detail=error_response("Community Profile Photo Not Found", "Object does not exist", "get-photo-profile-chat", email))
     except DoesNotExist as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Community Not Found", str(e), "get-photo-profile-chat", email))
+        raise HTTPException(status_code=404, detail=error_response("Community Not Found", str(e), "get-photo-profile-chat", email))
         
 @router.put("/update-photo-profile")
 async def update_photo_profile(community_id: str, profile_pict: UploadFile = File(...), access_token: str = Header(...)):
@@ -307,14 +307,14 @@ async def update_photo_profile(community_id: str, profile_pict: UploadFile = Fil
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
         
     try:
         if "image" not in profile_pict.content_type:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Please upload a valid image file", "Invalid Input Type", "update-photo-profile-chat", email))
+            raise HTTPException(status_code=404, detail=error_response("Please upload a valid image file", "Invalid Input Type", "update-photo-profile-chat", email))
                 
         community_to_update: communitylist = await communitylist.get(id=community_id)
         community_to_update.community_pp = await profile_pict.read()
@@ -328,10 +328,10 @@ async def update_photo_profile(community_id: str, profile_pict: UploadFile = Fil
                     "community_id": community_id,
                     "community_name": community_to_update.community_name
                 }
-            }, status_code=status.HTTP_201_CREATED)
+            }, status_code=201)
             
     except DoesNotExist as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Community Not Found", "Object does not exist", "update-photo-profile-chat", email))
+        raise HTTPException(status_code=404, detail=error_response("Community Not Found", "Object does not exist", "update-photo-profile-chat", email))
 
 @router.delete("/delete-photo-profile")
 async def delete_photo_profile(community_id: str, access_token: str = Header(...)):
@@ -339,7 +339,7 @@ async def delete_photo_profile(community_id: str, access_token: str = Header(...
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
@@ -357,10 +357,10 @@ async def delete_photo_profile(community_id: str, access_token: str = Header(...
                     "community_id": community_id,
                     "community_name": group_to_update.community_name
                 }
-            }, status_code=status.HTTP_200_OK)
+            }, status_code=200)
             
     except DoesNotExist as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Community Not Found", str(e), "delete-photo-profile-chat", email))
+        raise HTTPException(status_code=404, detail=error_response("Community Not Found", str(e), "delete-photo-profile-chat", email))
             
 @router.delete("/delete")
 async def delete_community(community_id: str, access_token: str = Header(...)):
@@ -368,7 +368,7 @@ async def delete_community(community_id: str, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
 
     if check is True:
-        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_300_MULTIPLE_CHOICES)
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=300)
     else:
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
@@ -382,6 +382,6 @@ async def delete_community(community_id: str, access_token: str = Header(...)):
         return JSONResponse({
             "status": "ok",
             "deleted_community": deleted_community_name
-        }, status_code=status.HTTP_202_ACCEPTED)
+        }, status_code=200)
     except DoesNotExist as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_response("Community Not Found", str(e), "delete-chat", email))
+        raise HTTPException(status_code=404, detail=error_response("Community Not Found", str(e), "delete-chat", email))
