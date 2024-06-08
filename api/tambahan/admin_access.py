@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Header, Response, HTTPException
+from fastapi import APIRouter, Header, Response, HTTPException,status
 from fastapi.responses import JSONResponse, RedirectResponse
-from database.model import KarakterData
+from database.model import KarakterData,logcommunitychat
 from helper.access_token import check_access_token_expired, decode_access_token
 from handler.request.gachapon_body_request import SetKarakter, tambahan
 from configs import config
@@ -82,3 +82,23 @@ async def delete_karakter(nama_karakter: str, access_token: str = Header(...)):
                 raise HTTPException(detail=f'karakter dengan {nama_karakter} tidak ditemukan', status_code=404)
         else:
             raise HTTPException(status_code=403, detail=f'user anda {level}')
+        
+@router.get("/get-log-chat")
+async def get_community_log_chat(access_token: str = Header(...)):
+    # credential checking
+    check = check_access_token_expired(access_token=access_token)
+
+    if check is True:
+        return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=status.HTTP_401_UNAUTHORIZED)
+    else:
+        payloadJWT = decode_access_token(access_token=access_token)
+        email = payloadJWT.get('sub')
+        
+        if payloadJWT.get("level") == "user":
+            return JSONResponse({
+                "msg": "You do not have permission to access community log chat!"
+            }, status_code=status.HTTP_403_FORBIDDEN)
+    
+    log_chat = await logcommunitychat.all()
+    
+    return log_chat

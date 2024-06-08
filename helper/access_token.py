@@ -1,6 +1,7 @@
 from typing import Optional
 from datetime import datetime, timezone, timedelta
-from jose import jwt
+from fastapi import HTTPException,status
+from jose import JWTError, jwt
 from configs import config
 
 def create_access_token(user, permintaan: Optional[str]= None):
@@ -28,6 +29,8 @@ def check_access_token_expired(access_token: str):
             return expiration_utc < datetime.now(timezone.utc)
         else:
             return False
+    except JWTError:
+        return True
     except jwt.ExpiredSignatureError:
         return True  # Token sudah kadaluarsa
 

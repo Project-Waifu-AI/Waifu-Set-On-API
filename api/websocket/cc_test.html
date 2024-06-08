@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>WebSocket Example</title>
+</head>
+
+<body>
+    <h1 id="app_title">WebSocket Example</h1>
+    <div style="margin-bottom: 20px;">
+        <label for="messageInput">
+            Text:
+            <input type="text" id="messageInput" placeholder="Type a message">
+        </label>
+        <button onclick="sendMessage()">Send</button>
+
+        <label for="group_opt">
+            Group:
+            <select name="group_opt" id="group_opt" onchange="groupChange()">
+            </select>
+        </label>
+
+        <label for="fileToUpload">
+            Media:
+            <input type="file" id="fileToUpload">
+        </label>
+
+        <button id="getNotifPermission" onclick="getNotifPermission()">Notify Me</button>
+
+    </div>
+    <div id="communityList">
+        <h3>Group List:</h3>
+    </div>
+    
+    <div style="margin-top: 15px">
+        <img alt="group profile photo" id="group_pp" style="height: 100px;width: 100px;">
+    </div>
+    <div style="margin-top: 15px">
+        <h3 id="group_name" style="display: inline;"></h3>
+        <p id="group_desc" style="font-style: italic;"></p>
+    </div>
+
+    <div id="output">
+
+    </div>
+
+    <script>
+        const accessToken = prompt("Enter your user access token"); // Prompt the user for their user ID
+
+        const ws = new WebSocket(`ws://localhost:8008/api/websoket/community-chat/chatting?access_token=${accessToken}`);
+        const fileToUpload = document.getElementById("fileToUpload");
+        const groupOptions = document.getElementById("group_opt");
+        const msgHolder = document.getElementById("output")
+        const appTitle = document.getElementById("app_title")
+        const currentGroubName = document.getElementById("group_name")
+        const currentGroubDesc = document.getElementById("group_desc")
+        const currentGroubPP = document.getElementById("group_pp")
+        const allCommunityList = document.getElementById("communityList")
+
+        ws.onopen = function (event) {
+            const message = JSON.stringify({
+                "action": "LoginNotif",
+            });
+            ws.send(message);
+
+            console.log("Connected!")
+        };
+
+        const registerServiceWorker = async () => {
+            if ("serviceWorker" in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register(
+                        "serviceWorker.js",
+                        {
+                            scope: "./",
+                        }
+                    );
+                    return registration;
+                } catch (error) {
+                    console.error(`Registration failed with ${error}`);
+                }
+            }
+        };
+
+        const sendNotification = async (data) => {
+            if (!("Notification" in window)) {
+                throw new Error("Your browser does not support push notification");
+            }
+            Notification.requestPermission().then((Permission) => {
+                console.log("Notif Permission: ", Permission)
+            })
+
+
+            let notificationOptions = {
+                body: `${data.sender}: ${data.text}`,
+                data: {
+                    "token": accessToken,
+                    "action": data.action,
+                    "sender": data.sender,
+                    "text": data.text,
+                    "group": data.group,
+                    "withMedia": false
+                },
+                actions: [
+                    {
+                        action: "reply",
+                        title: "Reply",
+                        type: "text",
+                        placeholder: "Reply Message",
+                    },
+                    {
+                        action: "dismiss",
+                        title: "Dismiss",
+                        type: "button",
+                    },
+                ],
+                tag: "message_reply",
+            };
+            const sw = await registerServiceWorker();
+            sw.showNotification(`New Message @ ${currentGroubName.textContent}`, notificationOptions);
+        };
+
+        let initialData
+        let msg
+        ws.onmessage = function (event) {
+            try {
+                // handle if msg is a json
+                data = JSON.parse(event.data)
+                msg = data
+
+
+            } catch {
+                // handle if msg is a bytes
+                msg.media.blob = event.data
+            }
+
+            if (data.action == "Chat" || data.action == "ChatRestore") {
+                if (data.withMedia == true && !data.media.blob) {
+                    // skip to next msg to get the media blob
+                    return true
+                }
+                let mediaElement = ""
+
+                if (msg.withMedia == true) {
+                    const mediaType = msg.media.type
+                    const imageValidate = /image/
+                    const audioValidate = /audio/
+                    const videoValidate = /video/
+
+                    if (imageValidate.test(mediaType)) {
+                        var urlCreator = window.URL || window.webkitURL;
+                        var imageUrl = urlCreator.createObjectURL(msg.media.blob);
+
+                        mediaElement = `<img src="${imageUrl}" alt="" width="25%" height="25%">`
+                    }
+
+                    if (audioValidate.test(mediaType)) {
+                        var urlCreator = window.URL || window.webkitURL;
+                        var audioUrl = urlCreator.createObjectURL(msg.media.blob);
+
+                        mediaElement = `
+                        <audio controls style="width: 18%;">
+                            <source src="${audioUrl}" type="${mediaType}">
+                            Your browser does not support the audio element.
+                        </audio>
+                        `
+                    }
+
+                    if (videoValidate.test(mediaType)) {
+                        var urlCreator = window.URL || window.webkitURL;
+                        var videoUrl = urlCreator.createObjectURL(msg.media.blob);
+
+                        mediaElement = `
+                        <video controls style="width: 18%;">
+                            <source src="${videoUrl}" type="${mediaType}">
+                            Your browser does not support the video element.
+                        </video>
+                        `
+                    }
+                }
+
+                message = `
+                <span id="msgSender"><b>${msg.sender}:</b></span>
+                <span id="msgText">${msg.text}</span>
+                <div id="mediaPlace" style="">
+                    ${mediaElement}
+                </div>
+                `
+                msgContainer = document.createElement("div")
+                msgContainer.innerHTML = message
+
+                msgHolder.appendChild(msgContainer)
+
+                if(data.action == "Chat" && document.hidden == true && msg.sender != initialData.credentials.sub) {
+                    sendNotification(msg)
+                }
+            }
+
+            if (data.action == "InitialData") {
+                initialData = data
+                appTitle.innerText = `Welcome ${initialData.credentials.sub}`
+                currentGroubName.innerText = data.joined_group_list[0].community_name
+                currentGroubDesc.innerText = data.joined_group_list[0].community_desc
+
+                // code to get corresponding group profile photo
+                const url = `http://localhost:8081/api/chat/get-photo-profile?group_id=${initialData.joined_group_list[0].community_id}`;
+
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'accept': 'image/png',
+                        'access-token': accessToken
+                    }
+                }).then(async response => {
+
+                    if (response.ok) {
+                        // Handle successful response with image data
+                        if (response.headers.get('Content-Type').includes('image/png')) {
+                            var urlCreator = window.URL || window.webkitURL;
+                            var imgUrl = urlCreator.createObjectURL(await response.blob());
+
+                            currentGroubPP.src = imgUrl
+                        } else {
+                            throw new Error("Unexpected content type. Expected image/png.");
+                        }
+                    } else {
+                        console.log("Error fetching group profile picture: " + response.status);
+                    }
+                })
+
+                for (const group of data.joined_group_list) {
+                    const option = document.createElement("option");
+                    option.value = group.community_id;
+                    option.text = group.community_name;
+                    groupOptions.appendChild(option);
+                }
+
+                // code for all-community-ist section
+                for(const group of data.all_group_list) {
+                    is_joined_group = group.community_member.includes(initialData.credentials.sub)
+                    group_action = is_joined_group ? "Enter" : "Join"
+                    function joinGroup(event) {
+                        ws.send(JSON.stringify({
+                            "action": "JoinRequest",
+                            "community_id": event.target.value
+                        }))
+
+                        alert("Request to join this community have been sent. Please wait!")
+                    }
+
+                    function enterGroup(event) {
+                        console.log(`Entering Group... with data comm id ${event.target.value}`)
+                    }
+                    groupElement = `
+                    <label for="group">
+                        ${group.community_name}
+                        <button id="actionBtn"' value=${group.community_id}>${group_action}</button>
+                    </label>
+                    `
+
+                    wrapper = document.createElement("div")
+                    wrapper.innerHTML = groupElement
+                    wrapper.getElementsByTagName("button")[0].addEventListener("click", is_joined_group ? enterGroup : joinGroup)
+
+                    allCommunityList.append(wrapper)
+                }
+            }
+            
+
+
+            if (data.action == "JoinRequest") {
+                isRequestAccepted = confirm(`Community Join Request By ${data.email} to join '${data.community_name}'. Do you accept it?`)
+                
+                ws.send(JSON.stringify({
+                    "action": "JoinRequestResponse",
+                    "data": {
+                        "email": data.email,
+                        "community_id": data.community_id
+                    },
+                    "isRequestAccepted": isRequestAccepted
+                }))
+            }
+
+            if (data.action == "JoinReqReponse") {
+                console.log(data)
+            }
+
+        };
+
+        function sendMessage() {
+            const messageInput = document.getElementById("messageInput");
+            const now = new Date();
+            let withMedia = false
+
+            if (fileToUpload.value != "") {
+                withMedia = true
+            }
+
+            data = {
+                "action": "Chat",
+                "text": messageInput.value,
+                "group": groupOptions.value,
+                "withMedia": withMedia
+            }
+
+            if (withMedia == true) {
+                data["media"] = {
+                    "type": fileToUpload.files[0].type,
+                }
+            }
+
+            const message = JSON.stringify(data);
+
+            ws.send(message);
+            if (withMedia == true) {
+                sendMedia()
+            }
+            messageInput.value = "";
+        }
+
+
+        function sendMedia() {
+            ws.send(fileToUpload.files[0])
+            fileToUpload.value = ""
+        }
+
+        function groupChange() {
+            ws.send(JSON.stringify({
+                "action": "GroupChange",
+                "currentGroup": groupOptions.value
+            }))
+            msgHolder.innerHTML = ""
+            initialData.joined_group_list.forEach((group) => {
+                if (group.group_id == groupOptions.value) {
+                    currentGroubName.innerText = group.group_name
+                    currentGroubDesc.innerText = group.group_desc
+                    const url = `http://localhost:8008/api/chat/get-photo-profile?group_id=${group.group_id}`;
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'accept': 'image/png',
+                            'access-token': accessToken
+                        }
+                    }).then(async response => {
+                        if (response.ok) {
+                            // Handle successful response with image data
+                            if (response.headers.get('Content-Type').includes('image/png')) {
+                                var urlCreator = window.URL || window.webkitURL;
+                                p = await response.arrayBuffer()
+                                test = new Blob([p])
+                                var imgUrl = urlCreator.createObjectURL(test);
+
+                                currentGroubPP.src = imgUrl
+                            } else {
+
+                            }
+                        } else {
+                            currentGroubPP.src = ""
+
+                        }
+                    })
+                }
+
+
+            })
+
+
+            console.clear()
+            console.log("groub have changed!")
+        }
+
+        function getNotifPermission() {
+            if (!("Notification" in window)) {
+                throw new Error("Your browser does not support push notification");
+            }
+            Notification.requestPermission().then((Permission) => {
+                console.log("Notif Permission: ", Permission)
+            })
+        }
+
+        function sendMsgNotif(data) {
+            const notificationOptions = {
+                body: `${data.sender}: ${data.text}`,
+            }
+            try {
+                let notif = new Notification(`New Message @ ${currentGroubName.textContent}`, notificationOptions);
+                notif.onclick = e => {
+                    window.focus()
+                }
+            } catch (err) {
+                console.log(err)
+            }
+        }
+    </script>
+</body>
+
+</html>
