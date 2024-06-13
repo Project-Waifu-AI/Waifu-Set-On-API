@@ -33,7 +33,7 @@ def translate_target_premium(input: str, bahasa_target: str):
     except Exception as e:
         return{
             'status': False,
-            'response': str(e)
+            'penyebab': str(e)
         }
 
 def translate_target(input: str, bahasa_target: str, bahasa_asal: str | None):
@@ -49,7 +49,7 @@ def translate_target(input: str, bahasa_target: str, bahasa_asal: str | None):
     except Exception as e:
         return{
             'status': False,
-            'response': str(e)
+            'penyebab': str(e)
         }
        
 def cek_bahasa(bahasa: str):
@@ -62,5 +62,5 @@ def cek_bahasa(bahasa: str):
     else:
         return {
             'status': False,
-            'keterangan': 'the language you are using is invalid'
+            'penyebab': 'the language you are using is invalid'
         }

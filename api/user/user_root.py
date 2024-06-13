@@ -1,16 +1,17 @@
 from fastapi import APIRouter, Header, HTTPException, Request
 from fastapi.responses import RedirectResponse, JSONResponse
-from handler.request.auth_body_request import updateUser, updatePassword
+from handler.request.user import updateUser, updatePassword
 from configs import config
-from database.model import userdata, logaudio, logpercakapan, token_google
+from database.model import UserData
 from send.email import send_password_change
 from helper.access_token import check_access_token_expired, decode_access_token, create_access_token
 from helper.cek_and_set import cek_data_user, cek_namaku_ada, cek_valid_password, set_password
-from handler.response.response import success_response, user_response, error_response
+from handler.response.basic import success_response, error_response
+from handler.response.data import user_response
 
-router = APIRouter(prefix='/user-root', tags=['user-data'])
+router = APIRouter(prefix='/user-wso', tags=['user-data'])
 
-@router.put('/update-data')
+@router.put('/update')
 async def update_userData(meta: updateUser, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -19,7 +20,7 @@ async def update_userData(meta: updateUser, access_token: str = Header(...)):
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
 
-    user = await userdata.filter(email=email).first()
+    user = await UserData.get_or_none(email=email)
     if user is None:
         raise HTTPException(detail=error_response(pesan='User data not found, please repeat the request', penyebab='user not found', action='update-data-user-root'), status_code=404)
     
@@ -38,12 +39,12 @@ async def update_userData(meta: updateUser, access_token: str = Header(...)):
             raise HTTPException(detail=error_response(pesan='The gender you entered is invalid. Please re-select the gender according to the options', penyebab='The gender you selected is invalid', kepada=email, action='update-data-user-root'), status_code=403)
     
     if meta.ulang_tahun is not None:
-        user.ulang_tahun = meta.ulang_tahun
+        user.birth_date = meta.ulang_tahun
         await user.save()
     
     return JSONResponse(success_response(kepada=user.email, action='update-data-user-root', pesan='user data has been updated successfully'), status_code=201)
     
-@router.get('/get-data')
+@router.get('/get')
 async def user_data(access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
     if check is True:
@@ -52,8 +53,7 @@ async def user_data(access_token: str = Header(...)):
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
           
-    user = await userdata.filter(email=email).first()
-    
+    user = await UserData.get_or_none(email=email)
     if user is None:
         raise HTTPException(detail=error_response(pesan='User data not found, please repeat the request', penyebab='user not found', action='get-data-user-root'), status_code=404)
     
@@ -98,8 +98,8 @@ async def want_change_password(request: Request, meta: updatePassword):
     if meta.password is not meta.konfirmasi_password:
         raise HTTPException(detail=error_response(pesan='The password and confirmation password you entered are not the same, please try again', penyebab='The password and confirmation password you entered are not the same', action='change-password-root-user', kepada=email), status_code=403)
     
-    user = await userdata.filter(email=email).first()
-    user.password = set_password(password=meta.password)
+    user = await UserData.get_or_none(email=email)
+    user.auth.password = set_password(password=meta.password)
     user.save()
 
     return JSONResponse(success_response(kepada=user.email, action='change-password-user-root', pesan='Your password has been successfully changed'), status_code=201)
@@ -113,13 +113,10 @@ async def deleteAcount(access_token: str = Header(...)):
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
     
-    user = await userdata.filter(email=email).first()
+    user = await UserData.get_or_none(email=email)
     if user is None:
         raise HTTPException(detail=error_response(pesan='User data not found, please repeat the request', penyebab='user not found', action='delete-account-user-root'), status_code=404)
     
-    await logaudio.filter(email=email).delete()
-    await logpercakapan.filter(email=email).delete()
-    await token_google.filter(email=email).delete()
     await user.delete()
 
     repsonse = success_response(kepada=email, pesan='Your account has been successfully deleted, thank you for using our service Waifu-Set-On', action='delete-account-user-root')

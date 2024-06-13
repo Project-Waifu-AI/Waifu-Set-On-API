@@ -1,7 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from database.model import userdata
+from database.model import UserData
 from helper.access_token import decode_access_token, check_access_token_expired
-from handler.response.response import user_response
+from handler.response.data import user_response
 
 router = APIRouter(prefix='/websoket/user',tags=['USER-WEBSOCKET'])
 
@@ -17,7 +17,7 @@ async def userStatus(websocket: WebSocket, access_token: str):
             check = check_access_token_expired(access_token=access_token)
             dataJWT = decode_access_token(access_token=access_token)
             email = dataJWT.get('sub')
-            user = await userdata.filter(email=email).first()
+            user = await UserData.filter(email=email).first()
             if check is False:
                 
                 if permintaan['action'] == 'set-online':
@@ -43,7 +43,7 @@ async def userStatus(websocket: WebSocket, access_token: str):
                             user.gender = permintaan['data']['gender']
                     
                     if permintaan['data']['ulang_tahun'] is not None:
-                        user.ulang_tahun = permintaan['data']['ulang_tahun']
+                        user.birth_date = permintaan['data']['ulang_tahun']
                     
                     await user.save()    
                     await websocket.send_json('data berhasil di update')

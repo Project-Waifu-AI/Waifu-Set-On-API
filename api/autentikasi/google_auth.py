@@ -1,13 +1,19 @@
 from fastapi import APIRouter, Request, HTTPException, Cookie
 from fastapi.responses import RedirectResponse
+
 import google_auth_oauthlib.flow
+
 import requests
 import os
+
 from configs import config
-from database.model import userdata
-from handler.response.response import success_response, error_response
+
+from database.model import UserData, UserAsset, UserAuth, UserGoogleAuth
+
+from handler.response.basic import success_response, error_response
 from helper.access_token import create_access_token, decode_access_token, check_access_token_expired
-from helper.cek_and_set import cek_namaku_ada, set_name_unik, cek_admin
+
+from helper.cek_and_set import cek_namaku_ada, set_name_unik, cek_admin, cek_data_user
 from helper.google_auth import save_google_creds
 from helper.drive_google import create_folder_gdrive
 
@@ -54,7 +60,7 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
         nama = user_info.get("name")
         email = user_info.get('email')
 
-        user = await userdata.filter(email=email).first()
+        user = await UserData.get_or_none(email=email)
         
         global namaYangDisimpan
         if await cek_namaku_ada(nama=nama) == False:
@@ -64,31 +70,30 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
         
         if user:
             
-            if user.googleAuth is False:
-                
-                user.googleAuth = True
-                
+            if user.auth.google is False:
+
                 if cek_admin is True:
                     user.admin = True
-                    user.AtsumaruKanjo += 999999999
-                    user.NegaiGoto += 999999999
+                    user.asset.AtsumaruKanjo += 999999999
+                    user.asset.NegaiGoto += 999999999
+                
                 else:
-                    user.AtsumaruKanjo += 100
+                    user.asset.AtsumaruKanjo += 100
 
                 if user.nama is None:
                     user.nama = namaYangDisimpan
                 
-                if user.driveID is None:
-                    drive = create_folder_gdrive(access_token=access_token)
-                    if drive['status'] is False:
-                        raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=drive['keterangan'], kepada=email, action='callback-autentikasi-google'), status_code=500)
-                    else:
-                        drive_id = drive['keterangan']
-                    user.driveID = drive_id
+                drive = create_folder_gdrive(access_token=access_token)
+                if drive['status'] is False:
+                    raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=drive['penyebab'], kepada=email, action='callback-autentikasi-google'), status_code=500)
                 
-                await user.save()
+                drive_id = drive['keterangan']
+                
+                user.auth.google = True
 
-            await save_google_creds(email=email, token=access_token, exp=exp_token, refersh=refresh_token)
+                await user.save()
+            
+            await save_google_creds(user=user, token=access_token, exp=exp_token, refersh=refresh_token, drive_id=drive_id)
             
             token = create_access_token(user=user)
             redirect_url = f'{config.redirect_root_google}?token={token}'
@@ -99,27 +104,28 @@ async def auth2callback_register(request: Request, state: str) -> RedirectRespon
         else:
             
             drive = create_folder_gdrive(access_token=access_token)
-            
             if drive['status'] is False:
                 raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=drive['keterangan'], kepada=email, action='callback-autentikasi-google'), status_code=500)
+            
             else:
                 drive_id = drive['keterangan']
             
             if cek_admin(email=email) is False:
-                save = userdata(nama=namaYangDisimpan, email=email, googleAuth=True, AtsumaruKanjo=100, driveID=drive_id)
+                user = await UserData.create(nama=namaYangDisimpan, email=email, admin=False, status='new')
+
+                await UserAuth.create(user=user, google=True)
+                
             else:
-                save = userdata(nama=namaYangDisimpan, email=email, googleAuth=True, AtsumaruKanjo=999999999, driveID=drive_id, admin=True)
+                user = await UserData.create(nama=namaYangDisimpan, email=email, admin=False, status='new')
+
+                await UserAuth.create(user=user, google=True)
             
-            await save_google_creds(email=email, token=access_token, exp=exp_token, refersh=refresh_token)
-            
-            await save.save()
-            
-            user = await userdata.filter(email=email).first()
+            await save_google_creds(user=user, token=access_token, exp=exp_token, refersh=refresh_token, drive_id=drive_id)    
             
             token = create_access_token(user=user)
             
             redirect_url = f'{config.redirect_root_google}?token={token}'
-            response = RedirectResponse(redirect_url)
+            response = RedirectResponse(redirect_url, status_code=300)
             response.set_cookie(key='token', value=token, httponly=True)
             return response
 
@@ -133,23 +139,27 @@ async def submit(request: Request, token: str, access_token: str = Cookie(defaul
     response = requests.get(target_url, cookies={'access_token': access_token})
 
     if 'access_token' in response.cookies:
-        response = RedirectResponse(target_url, status_code=302)
+        response = RedirectResponse(target_url, status_code=300)
         response.delete_cookie(key='access_token', domain="waifu-set-on.wso", path='/')
     else:
-        response = RedirectResponse(target_url, status_code=302)
+        response = RedirectResponse(target_url, status_code=300)
 
     check = check_access_token_expired(access_token=token)
-
     if check is True:
         return RedirectResponse(url=config.redirect_uri_page_masuk, status_code=401)
     elif check is False:
         payloadJWT = decode_access_token(access_token=token)
         email = payloadJWT.get('sub')
     
-    user = await userdata.filter(email=email).first()
+    user = cek_data_user(namaORemail=email)
+    if user is False:
+        raise HTTPException(detail=error_response(pesan='Sorry the user is not found, please register first to the WSO application with the authentication registered in the WSO application.', penyebab='user not found in database', action='root-google-auth'), status_code=404)
     
     response.set_cookie(key='access_token', value=token, domain="waifu-set-on.wso", path='/')
-    response.set_cookie(key='google_auth', value=user.googleAuth, domain="waifu-set-on.wso", path='/')
-    response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
-    response.set_cookie(key='wso_auth', value=user.wsoAuth, domain="waifu-set-on.wso", path='/')
+    
+    response.set_cookie(key='google_auth', value=user.auth.google, domain="waifu-set-on.wso", path='/')
+    
+    response.set_cookie(key='smd_auth', value=user.auth.google, domain="waifu-set-on.wso", path='/')
+    
+    response.set_cookie(key='wso_auth', value=user.auth.google, domain="waifu-set-on.wso", path='/')
     return response

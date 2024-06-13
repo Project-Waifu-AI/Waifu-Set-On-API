@@ -1,6 +1,6 @@
 import openai
 import requests
-from database.model import logpercakapan, userdata
+from io import BytesIO
 from configs import config
 
 client_openai = openai.OpenAI(api_key=config.api_key_openai)
@@ -17,6 +17,7 @@ def request_audio(text, speaker_id: int):
         download = data.get('mp3DownloadUrl')
         streaming = data.get('mp3StreamingUrl') 
         return {
+            'status': True,
             'download_audio': download,
             'streaming_audio': streaming
         }
@@ -24,19 +25,18 @@ def request_audio(text, speaker_id: int):
     except Exception as e:
         return{
             'status': False,
-            'keterangan': str(e)
+            'penyebab': str(e)
         }
 
-async def obrolan_gpt(input_text, email, setKarakter):
-    logObrolan = await logpercakapan.filter(email=email).all()
-    user = await userdata.filter(email=email).first()
+async def obrolan_gpt(input_text, user, setKarakter):
+    logObrolan = await user.aiu_history.all()
     obrolan = []
     obrolan.append(setKarakter)
     obrolanBaru = {
             'role': 'user', 'content': input_text
         }
     setNama = f'nama user adalah {user.nama}' if user.nama is not None else ''
-    setUlangTahun = f'ulang tahun user adalah {user.ulang_tahun}' if user.ulang_tahun is not None else ''
+    setUlangTahun = f'ulang tahun user adalah {user.birth_date}' if user.birth_date is not None else ''
     setGender = f'gender user adalah {user.gender}' if user.gender is not None else ''
     setUser = {
         'role': 'assistant', 'content': f'{setNama},{setUlangTahun},{setGender}'
@@ -45,7 +45,7 @@ async def obrolan_gpt(input_text, email, setKarakter):
     if logObrolan:
         for data in logObrolan:
             jsonLog = {
-                'role': 'user', 'content': data.input
+                'role': 'user', 'content': data.user_input
             }
             obrolan.append(jsonLog)
         obrolan.append(obrolanBaru)
@@ -66,7 +66,7 @@ async def obrolan_gpt(input_text, email, setKarakter):
     except Exception as e:
         return{
             'status': False,
-            'output': str(e)
+            'penyebab': str(e)
         }
         
 def generateDelusion(prompt: str, ukuran: str, premium: str, jumlah: str):
@@ -94,7 +94,7 @@ def generateDelusion(prompt: str, ukuran: str, premium: str, jumlah: str):
           data.append(
             {
               'status': False,
-              'keterangan': str(e)
+              'penyebab': str(e)
             }
           )
     
@@ -119,7 +119,7 @@ def generateDelusion(prompt: str, ukuran: str, premium: str, jumlah: str):
           data.append(
             {
               'status': False,
-              'keterangan': str(e)
+              'penyebab': str(e)
             }
           )
         
@@ -148,8 +148,17 @@ def generateDelusionVariant(images_data, jumlah: str):
         data.append(
         {
             'status': False,
-            'keterangan': str(e)
+            'penyebab': str(e)
         }
         )
         
         return data
+    
+def download_audio(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        audio_data = BytesIO(response.content)
+        return audio_data.getvalue()
+    except requests.RequestException as e:
+        return str(e)

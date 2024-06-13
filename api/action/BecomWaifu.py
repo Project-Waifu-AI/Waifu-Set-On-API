@@ -1,18 +1,25 @@
 from fastapi import APIRouter, HTTPException, Header, UploadFile, File
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, StreamingResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+
 from pydub import AudioSegment
 import speech_recognition as sr
+
 import tempfile
+
 from configs import config
-from database.model import logaudio, userdata
-from handler.request.bw_body_request import shareToSMD
-from handler.response.response import success_response, error_response, bw_response
+
+from database.model import UserData, BWResult, AudioData
+
+from handler.request.bw import shareToSMD
+from handler.response.basic import success_response, error_response
+from handler.response.fitur import bw_response
+
 from helper.access_token import check_access_token_expired, decode_access_token
 from helper.premium import check_premium
-from helper.fitur import request_audio
-from helper.cek_and_set import set_karakter_id
+from helper.fitur import request_audio, download_audio
+from helper.cek_and_set import set_karakter_id, cek_data_user
 from helper.translate import cek_bahasa, translate_target, translate_target_premium
-from helper.drive_google import simpanKe_Gdrive
+# from helper.drive_google import simpanKe_Gdrive
 from helper.smd import post_audio_to_smd_blob, post_audio_to_smd_file
 
 r = sr.Recognizer()
@@ -27,17 +34,21 @@ async def change_voice(nama_karakter: str, bahasa: str, audio_file: UploadFile =
         payloadJWT = decode_access_token(access_token=access_token)
         email = payloadJWT.get('sub')
 
+    user = cek_data_user(namaORemail=email)
+    if user is False:
+        raise HTTPException(detail=error_response(pesan='Sorry the user is not found, please register first to the WSO application with the authentication registered in the WSO application.', penyebab='user not found in database', action='change-voice-bw'), status_code=404)
+
     premium_check = await check_premium(email=email)
     if premium_check['status'] is False or premium_check['status'] is True and premium_check['keterangan'] != 'bw':
-        user_audio_count = await logaudio.filter(email=email).count()
+        user_audio_count = await BWResult.filter(user=user).count()
         if user_audio_count >= 10:
             raise HTTPException(detail=error_response(pesan='logaudio your data has reached the limit. Upgrade to a premium plan or remove logaudio', penyebab='audio storage limit with a limit of 10 audio only', action='change-voice-bw', kepada=email), status_code=405)
     
-    user_data = await logaudio.filter(email=email).order_by("-audio_id").first()
+    user_data = await BWResult.filter(user=user).order_by("-ID_number").first()
     if user_data:
-        audio_id = user_data.audio_id + 1
+        audio_id = user_data.ID_number + 1
     else:
-        audio_id = 1  
+        audio_id = 1
     format_audio: str = audio_file.content_type
     
     if audio_file.content_type not in ['audio/wav', 'audio/x-wav', 'audio/aiff', 'audio/x-aiff', 'audio/flac']:
@@ -51,7 +62,7 @@ async def change_voice(nama_karakter: str, bahasa: str, audio_file: UploadFile =
         
         bahasaYangDigunakan = cek_bahasa(bahasa=bahasa)
         if bahasaYangDigunakan['status'] is False:
-            raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=bahasaYangDigunakan['keterangan'], kepada=email, action='change-voice=bw'), status_code=404)
+            raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=bahasaYangDigunakan['penyebab'], kepada=email, action='change-voice=bw'), status_code=404)
         bahasaYangDigunakan = bahasaYangDigunakan['keterangan']
         
         transcript = r.recognize_google(audio_data, language=bahasaYangDigunakan)
@@ -63,7 +74,7 @@ async def change_voice(nama_karakter: str, bahasa: str, audio_file: UploadFile =
         translation = translate_target(input=transcript, bahasa_asal=bahasaYangDigunakan, bahasa_target='ja')
     
     if translation['status'] is False:
-        raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=translation['response'], kepada=email, action='change-voice=bw'), status_code=500)
+        raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=translation['penyebab'], kepada=email, action='change-voice=bw'), status_code=500)
     
     translation = translation['response']
     
@@ -71,18 +82,24 @@ async def change_voice(nama_karakter: str, bahasa: str, audio_file: UploadFile =
     if speaker_id is False:
         raise HTTPException(detail=error_response(pesan='The character you selected was not found, please select another character', penyebab='The character you selected is not in the list', kepada=email, action='change-voice-bw'), status_code=404)
     
-    data_audio = request_audio(text=translation, speaker_id=speaker_id)
-    if data_audio['status'] is False or data_audio['status'] is None:
-        raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=data_audio['keterangan'], kepada=email, action='change-voice-bw'), status_code=500)
+    url_audio = request_audio(text=translation, speaker_id=speaker_id)
+    if url_audio['status'] is False or url_audio['status'] is None:
+        raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=url_audio['penyebab'], kepada=email, action='change-voice-bw'), status_code=500)
     
-    save = logaudio(audio_id=audio_id, email=email, transcript=transcript, translate=translation, karakter=nama_karakter)
-    await save.save()
+    audio_data = download_audio(url=url_audio['download_audio'])
+    if isinstance(audio_data, str):
+        raise HTTPException(detail=error_response(pesan='something gone wrong', penyebab=audio_data, kepada=email, action='change-voice-bw'))
 
-    data=[bw_response(email=email, audio_id=audio_id, transcript=transcript, translation=translation)]
-    data.append(data_audio)
+    save_audio = await AudioData.create(user=user, audio_data=audio_data, service='BW')
+
+    url_audio = f'{config.domain}audio_data/stream/BW/{save_audio.UUID_number})?email={email}'
+
+    await BWResult.create(ID_number=audio_id, user=user, transcript=transcript, translation=translation, character=nama_karakter, audio_url=url_audio)
     
-    return JSONResponse(content=data, status_code=200)
-    
+    return JSONResponse(content=bw_response(email=email, audio_id=audio_id, transcript=transcript, translation=translation, url_audio=url_audio), status_code=201)
+
+# MOVE TO AUDIO MANAGEMENT
+'''
 @router.get('/get-audio-data')
 async def streamAudio(audio_id: str, access_token: str= Header(...)):
     check = check_access_token_expired(access_token=access_token)
@@ -245,3 +262,5 @@ async def shareSMD(meta: shareToSMD, access_token: str = Header()):
         return JSONResponse(content=pesan, status_code=201)
     else:
         raise HTTPException(detail='something wrong', status_code=500)
+
+'''

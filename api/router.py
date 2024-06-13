@@ -18,11 +18,8 @@ from api.autentikasi.google_auth import router as router_google_auth
 # auth smd
 from api.autentikasi.smd_auth import router as router_smd_auth
 
-# admin access
-from api.tambahan.admin_access import router as router_admin
-
 # user root
-from api.tambahan.user_root import router as router_user
+from api.user.user_root import router as router_user
 
 # user root websocket
 from api.websocket.user import router as socket_user
@@ -55,9 +52,6 @@ router.include_router(router_google_auth)
 
 # router auth wso
 router.include_router(router_smd_auth)
-
-# router admin access
-router.include_router(router_admin)
 
 # router crud user
 router.include_router(router_user)

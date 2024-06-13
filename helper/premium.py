@@ -1,48 +1,36 @@
 from jose import jwt
 from datetime import timedelta, datetime, timezone
-from configs import config
-from helper.access_token import check_access_token_expired, decode_access_token
-from database.model import userdata
 
-async def check_premium(email):
-    try:
-        user = await userdata.filter(email=email).first()
-        if user.premium_token is None:
-            if user.admin is True:
-                return{
-                    'status': True,
-                    'keterangan': 'admin'
-                }
+from database.model import UserPremium
+
+from configs import config
+
+from helper.access_token import check_access_token_expired, decode_access_token
+
+async def check_premium(user):
+    user_premium = await UserPremium.get_or_none(user=user)
+    
+    if user_premium is None:
+        if user.admin is False:
             return{
                 'status': False,
-                'keterangan': 'silahkan pilih plan premium'
+                'penyebab': 'user has not registered as a premium user'
             }
-        else:
-            if check_access_token_expired(access_token=user.premium_token) is True:
-                user.premium_token = None
-                user.save()
-                return{
-                    'status': False,
-                    'keterangan': 'akses premium user telah berakhir'
-                }
-            elif user.admin is True:
-                return{
-                    'status': True,
-                    'keterangan': 'admin'
-                }
-            else:
-                cek = decode_access_token(access_token=user.premium_token)
-                planing = cek.get('plan')
-                return {
-                    'status': True,
-                    'keterangan': planing
-                }
-            
-    except Exception as e:
+        
+    if check_access_token_expired(access_token=user_premium.token) is True:
+        user_premium.token = None
+        await user_premium.save()
         return{
-            'status':False,
-            'keterangan': str(e)
+            'status': False,
+            'penyebab': 'akses premium user telah berakhir'
         }
+    
+    cek = decode_access_token(access_token=user_premium.token)
+    planing = cek.get('plan')
+    return {
+        'status': True,
+        'keterangan': planing
+    }
 
 async def create_token_premium(email: str, plan: str):
     try:
@@ -63,5 +51,5 @@ async def create_token_premium(email: str, plan: str):
         print (str(e))
         return {
                 'status': False,
-                'keterangan': str(e)
+                'penyebab': str(e)
                 }

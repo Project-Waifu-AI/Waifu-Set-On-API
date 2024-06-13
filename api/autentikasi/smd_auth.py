@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Cookie
 from fastapi.responses import JSONResponse, RedirectResponse
-from handler.request.auth_body_request import smd_login, smd_register
-from database.model import userdata
+from handler.request.auth import smd_login, smd_register
+from database.model import UserData
 from helper.access_token import create_access_token, check_access_token_expired, decode_access_token
 from helper.cek_and_set import cek_namaku_ada, set_name_unik, cek_admin
 from configs import config
@@ -9,6 +9,8 @@ import requests
 
 router = APIRouter(prefix='/auth/smd', tags=['SMD AUTH'])
 
+# MAINTAIN
+'''
 @router.post('/login')
 async def authLogin(meta: smd_login, access_token: str = Cookie(default=None)):
     endpoint = 'auth/login'
@@ -176,3 +178,4 @@ async def submit(request: Request, token: str, access_token: str = Cookie(defaul
     response.set_cookie(key='smd_auth', value=user.smdAuth, domain="waifu-set-on.wso", path='/')
     response.set_cookie(key='wso_auth', value=user.wsoAuth, domain="waifu-set-on.wso", path='/')
     return response
+'''

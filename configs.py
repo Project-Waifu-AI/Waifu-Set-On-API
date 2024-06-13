@@ -61,4 +61,7 @@ class Config(BaseSettings):
     # hook list
     hook_list = os.getenv('HOOK_LIST')
 
+    # profile API
+    domain = os.getenv('DOMAIN')
+
 config = Config()

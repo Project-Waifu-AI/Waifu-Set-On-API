@@ -3,17 +3,19 @@ from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 import base64
 import io
 from PIL import Image
-from handler.request.dw_body_request import CreateDelusion, VariantDelusion
+from handler.request.dw import CreateDelusion, VariantDelusion
 from helper.premium import check_premium
 from helper.fitur import generateDelusion, generateDelusionVariant
 from helper.cek_and_set import cek_kalimat_promting, cek_and_set_ukuran_delusion, set_response_save_delusion
-from database.model import logdelusion
+from database.model import DWResult
 from helper.access_token import check_access_token_expired, decode_access_token
-from handler.response.response import error_response, success_response
+from handler.response.basic import error_response, success_response
 from configs import config
 
 router = APIRouter(prefix='/DW',tags=['Delusion-Waifu'])
 
+# maintain
+'''
 @router.post('/create-delusion')
 async def createWaifu(meta: CreateDelusion, access_token: str = Header(...)):
     check = check_access_token_expired(access_token=access_token)
@@ -122,3 +124,4 @@ async def variantDelusion(meta: VariantDelusion, access_token: str = Header(...)
     
     response = await set_response_save_delusion(jumlah=meta.jumlah, data=create, first_id=delusion_id, input=user_delusion.delusion_prompt, ukuran='persegi-sama-sisi', email=email)
     return JSONResponse(content=response, status_code=200)
+'''

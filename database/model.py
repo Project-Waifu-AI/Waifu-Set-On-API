@@ -1,137 +1,193 @@
 from tortoise.models import Model
 from tortoise import fields
+from datetime import datetime
+import pytz
 
-# LOG 
-class logaudio(Model):
-    audio_id = fields.IntField()
-    email = fields.CharField(max_length=320)
-    transcript = fields.CharField(max_length=225)
-    translate = fields.CharField(max_length=225)
-    karakter = fields.CharField(max_length=225)
+WIB = pytz.timezone('Asia/Jakarta')
 
-    class Meta:
-        table = "logaudio"
-    
-    def __str__(self):
-        return self.audio_id
+# USER
+class UserData(Model):
+    email = fields.CharField(max_length=255, pk=True)
+    nama = fields.CharField(max_length=255, null=True)
+    status = fields.CharField(max_length=50)
+    admin = fields.BooleanField(default=False, null=True)
+    birth_date = fields.DateField(null=True)
+    gender = fields.CharField(max_length=1, null=True)
+    banned = fields.BooleanField(default=False)
+    token = fields.CharField(max_length=255, null=True)
+    timestamp = fields.DatetimeField()
 
-class logpercakapan(Model):
-    id_percakapan = fields.IntField()
-    karakter = fields.CharField(max_length=225)
-    email = fields.CharField(max_length=320)
-    input = fields.CharField(max_length=225)
-    output = fields.TextField()
-    translate = fields.CharField(max_length=225)
+    async def save(self, *args, **kwargs):    
+        self.timestamp = datetime.now(WIB)
+        await super().save(*args, **kwargs)
 
-    class Meta:
-        table = "logpercakapan"
-    
-    def __str__(self):
-        return self.id_percakapan
+class UserPremium(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    user = fields.ForeignKeyField('models.UserData', related_name='premium', on_delete=fields.CASCADE)
+    token = fields.CharField(max_length=255, null=True)
+    transaction_service = fields.CharField(max_length=255)
+    timestamp = fields.DatetimeField()
 
-class logdelusion(Model):
-    delusion_id = fields.IntField()
-    email = fields.CharField(max_length=320)
-    delusion_prompt = fields.CharField(max_length=225)
-    delusion_shape = fields.CharField(max_length=100)
-    delusion_result = fields.BinaryField() 
-    
-    class Meta:
-        table = 'logdelusion'
-        
-    def __str__(self):
-        return self.email
+    async def save(self, *args, **kwargs):    
+        self.timestamp = datetime.now(WIB)
+        await super().save(*args, **kwargs)
 
-# token dan refresh_token autentikasi tambahan
-class token_google(Model):
-    email = fields.CharField(max_length=320)
+class UserAuth(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    user = fields.ForeignKeyField('models.UserData', related_name='auth', on_delete=fields.CASCADE)
+    password = fields.CharField(max_length=255, null=True)
+    wso = fields.BooleanField(default=False)
+    google = fields.BooleanField(default=False)
+    smd = fields.BooleanField(default=False)
+
+class UserGoogleAuth(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    user = fields.ForeignKeyField('models.UserData', related_name='google_auth', on_delete=fields.CASCADE)
+    drive_id = fields.CharField(max_length=255)
     access_token = fields.CharField(max_length=255)
+    refresh_token = fields.CharField(max_length=255)
     token_exp = fields.DatetimeField()
-    refersh_token = fields.CharField(max_length=255, null=True)
 
-    class Meta:
-        table = 'token_google'
+class UserAsset(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    user = fields.ForeignKeyField('models.UserData', related_name='asset', on_delete=fields.CASCADE)
+    NegaiGoto = fields.IntField()
+    AtsumaruKanjo = fields.IntField()
+    character = fields.JSONField()
 
-    def __str__(self):
-        return self.email
+# FITUR
+class BWResult(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    user = fields.ForeignKeyField('models.UserData', related_name='bw_result', on_delete=fields.CASCADE)
+    ID_number = fields.IntField()
+    timestamp = fields.DatetimeField()
+    character = fields.CharField(max_length=255)
+    transcript = fields.TextField()
+    translation = fields.TextField()
+    audio_url = fields.CharField(max_length=255)
 
-# USER & KARAKTER DATA
-class userdata(Model):
-    email = fields.CharField(max_length=320, pk=True)
-    nama = fields.CharField(max_length=225, null=True)
-    status = fields.CharField(max_length=225, null=True)
-    admin = fields.BooleanField(default=False)
-    ulang_tahun = fields.DateField(null=True)
-    gender = fields.CharField(max_length=10, null=True)
-    password = fields.BinaryField(max_length=225,null=True)
-    AtsumaruKanjo = fields.IntField(default=0)
-    NegaiGoto = fields.IntField(default=0)
-    karakterYangDimiliki = fields.JSONField(null=True)
-    wsoAuth = fields.BooleanField(default=False)
-    googleAuth = fields.BooleanField(default=False)
-    smdAuth = fields.BooleanField(default=False)
-    driveID = fields.CharField(null=True, max_length=320)
-    smdID = fields.CharField(null=True, max_length=320)
-    token_konfirmasi = fields.CharField(max_length=225, null=True)
-    premium_token = fields.CharField(max_length=225, null=True)
-    ban = fields.BooleanField(default=False)
+    async def save(self, *args, **kwargs):    
+        self.timestamp = datetime.now(WIB)
+        await super().save(*args, **kwargs)
 
-    class Meta:
-        table = "userdata"
+class AIUHistory(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    user = fields.ForeignKeyField('models.UserData', related_name='aiu_history', on_delete=fields.CASCADE)
+    ID_number = fields.IntField()
+    timestamp = fields.DatetimeField()
+    character = fields.CharField(max_length=255)
+    user_input = fields.TextField()
+    japanese_output = fields.TextField()
+    display_output = fields.TextField()
+    service = fields.CharField(max_length=255)
+    audio_url = fields.CharField(max_length=255)
 
-    def __str__(self):
-        return self.email
+    async def save(self, *args, **kwargs):    
+        self.timestamp = datetime.now(WIB)
+        await super().save(*args, **kwargs)
 
+class AudioData(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    user = fields.ForeignKeyField('models.UserData', related_name='audio_data', on_delete=fields.CASCADE)
+    character = fields.CharField(max_length=255)
+    japanese_text = fields.TextField(null=True)
+    audio_data = fields.BinaryField()
+    service = fields.CharField(max_length=50)
+
+class DWResult(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    user = fields.ForeignKeyField('models.UserData', related_name='dw_result', on_delete=fields.CASCADE)
+    timestamp = fields.DatetimeField()
+    result = fields.BinaryField()
+    shape = fields.CharField(max_length=255)
+    prompt = fields.TextField()
+
+    async def save(self, *args, **kwargs):    
+        self.timestamp = datetime.now(WIB)
+        await super().save(*args, **kwargs)
+
+class PityCounter(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    ID_number = fields.IntField()
+    user = fields.ForeignKeyField('models.UserData', related_name='pity_counter', on_delete=fields.CASCADE)
+    timestamp = fields.DatetimeField()
+    obtained = fields.BooleanField(default=False)
+    limited = fields.BooleanField(default=False)
+    four_star_counter = fields.IntField()
+    five_star_counter = fields.IntField()
+    bonus_counter = fields.IntField()
+
+    async def save(self, *args, **kwargs):    
+        self.timestamp = datetime.now(WIB)
+        await super().save(*args, **kwargs)
+
+# DATA SYSTEM
+class KarakterListWSO(Model):
+    ID_number = fields.IntField(pk=True)
+    nama = fields.CharField(max_length=255)
+    variant = fields.CharField(max_length=255)
+    rarity = fields.CharField(max_length=255)
+    limited = fields.BooleanField(default=False)
+    deskripsi = fields.TextField()
+    release_time = fields.DatetimeField()
+    endtime = fields.DatetimeField()
+    asset = fields.CharField(max_length=255)
+
+class HookListService(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    tujuan = fields.CharField(max_length=255)
+    service = fields.CharField(max_length=255)
+
+# COMMUNITY
+class CommunityList(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    nama = fields.CharField(max_length=255)
+    type = fields.CharField(max_length=255)
+    deskripsi = fields.TextField()
+    profile_photo = fields.CharField(max_length=255)
+    creator = fields.CharField(max_length=255)
+    member = fields.TextField()
+    requests = fields.JSONField()
+
+class CommunityChatHistory(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    community = fields.ForeignKeyField('models.CommunityList', related_name='chat_history', on_delete=fields.CASCADE)
+    sender = fields.CharField(max_length=255)
+    timestamp = fields.DatetimeField()
+    message = fields.TextField()
+    media = fields.BinaryField(max_length=255)
+    media_type = fields.CharField(max_length=50)
+
+    async def save(self, *args, **kwargs):    
+        self.timestamp = datetime.now(WIB)
+        await super().save(*args, **kwargs)
 
 # TRANSAKSI
-class anonim_buyer(Model):
-    id_transaksi = fields.CharField(max_length=320)
-    service = fields.CharField(max_length=100)
-    email = fields.CharField(max_length=225)
-    nama = fields.CharField(max_length=225, null=True)
-    no_telp = fields.CharField(max_length=225, null=True)
-    object_buy = fields.CharField(max_length=225)
-    nominal = fields.IntField()
-    currency = fields.CharField(max_length=100)
-    waktu = fields.DatetimeField()
+class HallOfSupport(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    transaction_id = fields.CharField(max_length=255)
+    timestamp = fields.DatetimeField()
+    service = fields.CharField(max_length=255)
+    email = fields.CharField(max_length=255)
+    nama = fields.CharField(max_length=255)
+    amount = fields.DecimalField(max_digits=10, decimal_places=2)
+    currency = fields.CharField(max_length=10)
 
-    class Meta:
-        tables = 'anonimn_buyer'
+    async def save(self, *args, **kwargs):    
+        self.timestamp = datetime.now(WIB)
+        await super().save(*args, **kwargs)
 
-    def __str__(self):
-        return self.id_transaksi
+class AnonimBuyer(Model):
+    UUID_number = fields.UUIDField(pk=True)
+    service = fields.CharField(max_length=255)
+    timestamp = fields.DatetimeField()
+    email = fields.CharField(max_length=255)
+    nama = fields.CharField(max_length=255)
+    phone_number = fields.CharField(max_length=255)
+    object = fields.CharField(max_length=255)
+    jumlah = fields.DecimalField(max_digits=10, decimal_places=2)
+    currency = fields.CharField(max_length=10)
 
-class hall_of_support(Model):
-    id_transaksi = fields.CharField(max_length=335)
-    service = fields.CharField(max_length=100)
-    email = fields.CharField(max_length=225, null=True)
-    nama = fields.CharField(max_length=225, null=True)
-    pesan = fields.CharField(max_length=225, null=True)
-    nominal = fields.IntField()
-    currency = fields.CharField(max_length=100)
-    waktu = fields.DatetimeField()
-    
-    class Meta:
-        tables = 'hall_of_support'
-
-    def __str__(self):
-        return self.email
-
-class HookList(Model):
-    ID = fields.CharField(max_length=225, pk=True)
-    tujuan = fields.CharField(max_length=225)
-    service = fields.CharField(max_length=225)
-
-# CHAR MANAGEMENT
-class KarakterData(Model):
-    nama = fields.CharField(max_length=225, pk=True)
-    variant = fields.CharField(max_length=225)
-    rarity = fields.IntField()
-    desc = fields.CharField(max_length=225)
-    asset = fields.BinaryField(max_length=225)
-
-    class Meta:
-        table = 'karakterdata'
-    
-    def __str__(self):
-        return self.nama
+    async def save(self, *args, **kwargs):    
+        self.timestamp = datetime.now(WIB)
+        await super().save(*args, **kwargs)

@@ -3,9 +3,11 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 from helper.cek_and_set import cek_data_user, cek_hookID
 from helper.premium import create_token_premium
-from database.model import anonim_buyer, hall_of_support
+from database.model import AnonimBuyer, HallOfSupport
 
 router = APIRouter(prefix='/transaksi', tags=['pembayaran-wso'])
+
+# ALL ENDPOINT RIGHT HERE MAINTAIN
 
 @router.post('/planning-socilabuz/{id}')
 async def plan_socialbuz(id: str, req: Request):
@@ -19,7 +21,7 @@ async def plan_socialbuz(id: str, req: Request):
         user_data = await cek_data_user(data.get('buyer_email'))
         if not user_data:
             
-            save = anonim_buyer(
+            save = AnonimBuyer(
                 id_transaksi = str(data.get('id')),
                 service = 'socialbuz',
                 email = data.get('buyer_email') or 'anonim',
@@ -51,7 +53,7 @@ async def support_socialbuz(id: str, req: Request):
         data = await req.json()
         print(data)
 
-        save = hall_of_support(
+        save = HallOfSupport(
             id_transaksi = data.get('id'),
             service = 'socialbuz',
             email = data.get('email_supporter'),
@@ -77,7 +79,7 @@ async def plan_saweria(id: str, req: Request):
         data = await req.json()
         print(data)
         
-        save = hall_of_support(
+        save = HallOfSupport(
             id_transaksi = data.get('id'),
             service = 'saweria',
             email = data.get('donator_email'),
